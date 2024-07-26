@@ -1,2 +1,3 @@
-# meegsim
+# MEEGsim
+
 M/EEG simulation framework
