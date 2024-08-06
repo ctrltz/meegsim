@@ -23,6 +23,7 @@ Methods:
 import numpy as np
 import mne
 
+from .utils import _extract_hemi
 # from .utils import src_vertno_to_vertices
 
 
@@ -31,19 +32,21 @@ class BaseSource:
         # Current constraint: one source corresponds to one waveform
         # Point source: the waveform is present in one vertex
         # Patch source: the waveform is mixed with noise in several vertices
-        # TODO: how to proceed free dipole orientations?
         self.waveform = waveform
 
 
 class PointSource(BaseSource):
-    def __init__(self, src_idx, vertno, waveform):
+    def __init__(self, src_idx, vertno, waveform, hemi=None):
         super().__init__(waveform)
 
         self.src_idx = src_idx
         self.vertno = vertno
+        self.hemi = hemi
 
     def __repr__(self):
-        return f'<PointSource | src={self.src_idx} | vertno={self.vertno}>'
+        # Use human readable names of hemispheres if possible
+        src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
+        return f'<PointSource | {src_desc} | {self.vertno}>'
 
     def to_stc(self, src, sfreq, subject=None):
         data = self.waveform[np.newaxis, :]
@@ -104,19 +107,23 @@ def _create_point_sources(
 
     # Flatten the vertices list, keep the source space indices in a separate list
     src_indices = []
+    hemis = []
     vertices_flat = []
     for src_idx, src_vertno in enumerate(vertices):
         n_vertno = len(src_vertno)
         src_indices.extend([src_idx] * n_vertno)
+        hemi = _extract_hemi(src[src_idx])
+        hemis.extend([hemi] * n_vertno)
         vertices_flat.extend(src_vertno)
         
     # Create point sources and save them as a group
     sources = {}
-    for src_idx, vertno, waveform, name in zip(src_indices, vertices_flat, data, names):
-        new_source = PointSource(src_idx, vertno, waveform)
+    for src_idx, hemi, vertno, waveform, name in zip(src_indices, hemis, vertices_flat, data, names):
+        new_source = PointSource(src_idx, vertno, waveform, hemi=hemi)
 
         if name is None:
-            name = f'{name_prefix}src{src_idx}-{vertno}'
+            src_desc = hemi if hemi else f'src{src_idx}'
+            name = f'{name_prefix}{src_desc}-{vertno}'
         sources[name] = new_source
         
     return sources

@@ -1,5 +1,6 @@
 import numpy as np
 
+from mne._fiff.constants import FIFF
 
 def combine_sources_into_stc(sources, src, sfreq):
     stc_combined = None
@@ -56,6 +57,43 @@ def normalize_power(data):
     data /= np.sqrt(np.linalg.norm(data, axis=1))[:, np.newaxis]
     return data
 
+
+def _extract_hemi(src):
+    """
+    Extract a human-readable name (lh or rh) for the provided source space
+    if it is a surface one.
+
+    Parameters
+    ----------
+    src: dict
+        The source space to process. It should be one of the elements stored
+        in the mne.SourceSpaces structure.
+
+    Returns
+    -------
+    hemi: str or None
+        'lh' and 'rh' are returned for left and right hemisphere, respectively.
+        None is returned otherwise. 
+    """
+
+    if 'type' not in src or 'id' not in src:
+        raise ValueError("The provided source space does not have the mandatory "
+                         "internal fields ('id' or 'type'). Please check the code "
+                         "that was used to generate and/or manipulate the src. "
+                         "It should not change or remove these fields.")
+
+    if src['type'] != 'surf':
+        return None
+    
+    if src['id'] == FIFF.FIFFV_MNE_SURF_LEFT_HEMI:
+        return 'lh'
+    
+    if src['id'] == FIFF.FIFFV_MNE_SURF_RIGHT_HEMI:
+        return 'rh'
+    
+    raise ValueError(f"Unexpected ID for the provided surface source space. "
+                     f"Please check the code that was used to generate and/or "
+                     f"manipulate the src, it should not change the 'id' field.")
 
 # def src_vertno_to_vertices(src, src_idx, vertno):
 #     n_vertno = [len(s['vertno']) for s in src]
