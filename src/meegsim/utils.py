@@ -1,41 +1,51 @@
-import numpy as np
-
-
-def combine_sources_into_stc(sources, src, sfreq):
-    stc_combined = None
-    
-    for s in sources:
-        stc_source = s.to_stc(src, sfreq)
-        if stc_combined is None:
-            stc_combined = stc_source
-            continue
-
-        stc_combined = combine_stcs(stc_combined, stc_source)
-
-    return stc_combined    
+import numpy as np    
     
     
 def combine_stcs(stc1, stc2):
     """
-    Extension of stc.expand to work with data from another stc
+    Combines the data two SourceEstimate objects. If a vertex is present in both 
+    stcs (e.g., as a source of 1/f noise in one and oscillation in the other), 
+    the corresponding signals are summed. 
+
+    Parameters
+    ----------
+    stc1: SourceEstimate
+        First object.
+    
+    stc2: SourceEstimate
+        Second object.
+
+    Returns
+    -------
+    stc: SourceEstimate
+        The resulting stc that contains all vertices and data from stc1 and stc2.
+        If a vertex is present in both stcs, the corresponding signals are summed.
     """
+
+    # Accumulate positions in stc1.data where time series from stc2.data
+    # should be inserted
     inserters = list()
+
+    # Keep track of the offset in stc.data while iterating over hemispheres
     offsets_old = [0]
     offsets_new = [0]
     
     stc = stc1.copy()
     new_data = stc2.data.copy()
     for vi, (v_old, v_new) in enumerate(zip(stc.vertices, stc2.vertices)):
-        # Sum up signals for vertices common to stc1 and stc2
         v_common, ind1, ind2 = np.intersect1d(v_old, v_new, return_indices=True)
         if v_common.size > 0:
+            # Sum up signals for vertices common to stc1 and stc2
             ind1 = ind1 + offsets_old[-1]
             ind2 = ind2 + offsets_new[-1]
             stc.data[ind1] += new_data[ind2]
+
+            # Delete the common vertices from stc2 since they do not need
+            # to be processed anymore
             new_data = np.delete(new_data, ind2, axis=0)
             v_new = v_new[np.isin(v_new, v_common, invert=True)]
 
-        # Add vertices that are specific to s2
+        # Find where to insert the remaining vertices from stc2
         inds = np.searchsorted(v_old, v_new)
         stc.vertices[vi] = np.insert(v_old, inds, v_new)
         inserters += [inds.copy()]
@@ -51,14 +61,18 @@ def combine_stcs(stc1, stc2):
 
 def normalize_power(data):
     """
+    Divide the time series by its norm to normalize the variance.
 
+    Parameters
+    ----------
+    data: array, shape (n_series, n_samples)
+        Time series to be normalized.
+
+    Returns
+    -------
+    data: array
+        Normalized time series. The norm of each row is equal to 1.
     """
-    data /= np.sqrt(np.linalg.norm(data, axis=1))[:, np.newaxis]
+
+    data /= np.linalg.norm(data, axis=1)[:, np.newaxis]
     return data
-
-
-# def src_vertno_to_vertices(src, src_idx, vertno):
-#     n_vertno = [len(s['vertno']) for s in src]
-#     offset = sum(n_vertno[:src_idx])
-#     index = np.where(src[src_idx]['vertno'] == vertno)[0][0]
-#     return [offset + index]
