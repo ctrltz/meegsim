@@ -18,13 +18,13 @@ Waveforms that are not urgent to have but could in principle be useful:
     * non-sinusoidal stuff (harmonics, peak-trough asymmetry)
 """
 import warnings
-
 import numpy as np
+from scipy.signal import butter, filtfilt
+import colorednoise as cn
+from .utils import normalize_power, get_sfreq
 
-from .utils import normalize_power
 
-
-def narrowband_oscillation(n_series, times, fs, *, fmin=None, fmax=None, order=2, random_state=None):
+def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, random_state=None):
     #
     # Ideas for tests
     # Test 2 (order)
@@ -40,9 +40,6 @@ def narrowband_oscillation(n_series, times, fs, *, fmin=None, fmax=None, order=2
 
     times: ndarray
         Array of time points (each one represents time in seconds).
-
-    fs: float
-        Sampling frequency (in Hz).
 
     fmin: float, optional
         Lower cutoff frequency (in Hz). default = None.
@@ -63,8 +60,6 @@ def narrowband_oscillation(n_series, times, fs, *, fmin=None, fmax=None, order=2
         Generated filtered white noise.
     """
 
-    from scipy.signal import butter, filtfilt
-
     if fmin is None:
         warnings.warn("fmin was None. Setting fmin to 8 Hz", UserWarning)
         fmin = 8.
@@ -80,10 +75,11 @@ def narrowband_oscillation(n_series, times, fs, *, fmin=None, fmax=None, order=2
     if not isinstance(order, int) or order <= 0:
         raise ValueError("order must be a positive integer.")
 
+    fs = get_sfreq(times)
     rng = np.random.default_rng(seed=random_state)
     data = rng.standard_normal(size=(n_series, times.size))
-    b1, a1 = butter(N=order, Wn=np.array([fmin, fmax]) / fs * 2, btype='bandpass')
-    data = filtfilt(b1, a1, data, axis=1)
+    b, a = butter(N=order, Wn=np.array([fmin, fmax]) / fs * 2, btype='bandpass')
+    data = filtfilt(b, a, data, axis=1)
     return normalize_power(data)
 
 
@@ -109,10 +105,8 @@ def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
     Returns
     -------
     out: ndarray, shape (n_series, n_times)
-        Generated filtered white noise.
+        Generated filtered 1/f noise.
     """
-
-    import colorednoise as cn
 
     data = cn.powerlaw_psd_gaussian(slope, size=(n_series, times.size), random_state=random_state)
     return normalize_power(data)

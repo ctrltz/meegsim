@@ -1,7 +1,9 @@
 import numpy as np
 from scipy.signal import welch
+import pytest
 
-from src.meegsim.waveform import white_noise, narrowband_oscillation, one_over_f_noise
+from meegsim.utils import get_sfreq
+from meegsim.waveform import white_noise, narrowband_oscillation, one_over_f_noise
 
 
 def prepare_inputs():
@@ -55,14 +57,17 @@ def test_one_over_f_noise_random_state():
     assert np.allclose(data1, data2)
 
 
-def test_frequencies_in_band():
+@pytest.mark.parametrize("fmin, fmax", [
+    (4.0, 7.0),
+    (8.0, 12.0),
+    (20.0, 30.0),
+    (15.0, 35.0),
+])
+def test_frequencies_in_band(fmin, fmax):
     # Test that frequencies within the specified band have higher power
     n_series, n_times, times = prepare_inputs()
-    fs = 100.0
-    fmin = 8.0
-    fmax = 12.0
-    data = narrowband_oscillation(n_series, times, fs, fmin=fmin, fmax=fmax)
-
+    data = narrowband_oscillation(n_series, times, fmin=fmin, fmax=fmax)
+    fs = get_sfreq(times)
     # Calculate power spectral density
     freqs, power = welch(data, fs=fs, axis=1)
 
@@ -70,7 +75,8 @@ def test_frequencies_in_band():
     sorted_freqs = freqs[np.argsort(power.mean(axis=0))[::-1]]
 
     # Check if frequencies within the band are among the most powerful
-    band_freqs = sorted_freqs[(sorted_freqs >= fmin) & (sorted_freqs <= fmax)]
+    band_fmin_fmax = (freqs >= fmin) & (freqs <= fmax)
+    band_freqs = sorted_freqs[:np.sum(band_fmin_fmax)]
     assert len(band_freqs) > 0, "No frequencies found in the specified band."
     assert np.all((band_freqs >= fmin) & (band_freqs <= fmax)), "Not all powerful frequencies are in the specified band."
     assert data.shape == (n_series, n_times), "Shape mismatch"

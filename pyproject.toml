@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "mne",
+    "colorednoise",
 ]
 
 [project.urls]

@@ -62,3 +62,32 @@ def normalize_power(data):
 #     offset = sum(n_vertno[:src_idx])
 #     index = np.where(src[src_idx]['vertno'] == vertno)[0][0]
 #     return [offset + index]
+
+def get_sfreq(times):
+    """
+    Calculate the sampling frequency of a sequence of time points.
+
+    Parameters:
+    ----------
+    times: ndarray
+        A sequence of time points assumed to be uniformly spaced.
+
+    Returns:
+    ----------
+    out : float
+        The sampling frequency
+    """
+
+    # Check if the number of time points is less than 2
+    if len(times) < 2:
+        raise ValueError("The times array must contain at least two points.")
+
+    # Calculate the differences between consecutive time points
+    dt = np.diff(times)
+
+    # Check if the mean difference is different from the first difference
+    if not np.isclose(np.mean(dt), dt[0]):
+        raise ValueError("Time points are not uniformly spaced.")
+
+    return 1/dt[0]
+
