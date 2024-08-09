@@ -23,7 +23,7 @@ Methods:
 import numpy as np
 import mne
 
-# from .utils import src_vertno_to_vertices
+from .utils import combine_stcs
 
 
 class BaseSource:
@@ -120,3 +120,17 @@ def _create_point_sources(
         sources[name] = new_source
         
     return sources
+
+
+def _combine_sources_into_stc(sources, src, sfreq):
+    stc_combined = None
+    
+    for s in sources:
+        stc_source = s.to_stc(src, sfreq)
+        if stc_combined is None:
+            stc_combined = stc_source
+            continue
+
+        stc_combined = combine_stcs(stc_combined, stc_source)
+
+    return stc_combined
