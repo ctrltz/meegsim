@@ -17,19 +17,17 @@ Waveforms currently in mind:
 Waveforms that are not urgent to have but could in principle be useful:
     * non-sinusoidal stuff (harmonics, peak-trough asymmetry)
 """
-import warnings
-import numpy as np
-from scipy.signal import butter, filtfilt
+
 import colorednoise as cn
+import numpy as np
+import warnings
+
+from scipy.signal import butter, filtfilt
+
 from .utils import normalize_power, get_sfreq
 
 
 def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, random_state=None):
-    #
-    # Ideas for tests
-    # Test 2 (order)
-    #  - we could check that we pass correct value to filtfilt (requires mocking)
-    #  - check the shape of the resulting array
     """
     Generate time series in a requested frequency band by filtering white noise
 

@@ -1,7 +1,8 @@
 import numpy as np
 import mne
+import pytest
 
-from meegsim.utils import combine_stcs, normalize_power
+from meegsim.utils import combine_stcs, normalize_power, get_sfreq
 
 
 def prepare_stc(vertices, num_samples=5):
@@ -53,3 +54,19 @@ def test_normalize_power():
     # Should not change the shape but should change the norm
     assert data.shape == normalized.shape
     assert np.allclose(np.linalg.norm(normalized, axis=1), 1)
+
+
+def test_get_sfreq():
+    sfreq = 250
+    times = np.arange(0, sfreq) / sfreq
+    assert get_sfreq(times) == sfreq
+
+
+def test_get_sfreq_too_few_timepoints_raises():
+    with pytest.raises(ValueError, match='must contain at least two points'):
+        get_sfreq(np.array([0]))
+
+
+def test_get_sfreq_unequal_spacing_raises():
+    with pytest.raises(ValueError, match='not uniformly spaced'):
+        get_sfreq(np.array([0, 0.01, 0.1]))
