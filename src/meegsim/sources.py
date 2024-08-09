@@ -67,57 +67,34 @@ class PatchSource(BaseSource):
 
 
 def _create_point_sources(
-    src, 
-    times, 
-    location, 
-    waveform, 
-    snr=None, 
-    location_params=None, 
-    waveform_params=None, 
-    random_state=None, 
-    names=None,
-    name_prefix=''
+    src,
+    times,
+    location,
+    waveform,
+    names,
+    random_state=None,
 ):
     """
     This function creates point sources according to the provided input.
     """
 
     # Get the list of vertices (directly from the provided input or through the function)
-    vertices = location(src, random_state=random_state, **location_params) if callable(location) else location
-    # TODO: check that the format of vertices matches src	  
+    vertices = location(src, random_state=random_state) if callable(location) else location
     n_vertices = sum([len(vs) for vs in vertices])
 
-    # Check the provided names, broadcast to match the number of vertices
-    if names is None:
-        names = [None] * n_vertices
-    if len(names) != n_vertices:
-        raise ValueError('The number of provided source names does not match the number of generated source locations')
+    # what if custom location functions produce non-unique values? we might need to warn the user or forbid it
 
     # Get the corresponding number of time series
-    data = waveform(n_vertices, times, random_state=random_state, **waveform_params) if callable(waveform) else waveform
-    if data.shape != (n_vertices, len(times)):
-        # TODO: split into two errors with more informative messages?
-        raise ValueError('The provided array/function for source waveform does not match other simulation parameters')
-
-    # Here we should also adjust the SNR
-    # 2. Adjust the amplitude of each signal source (self._sources) according to the desired SNR (if not None)
-
+    data = waveform(n_vertices, times, random_state=random_state) if callable(waveform) else waveform
+    
     # Flatten the vertices list, keep the source space indices in a separate list
-    src_indices = []
-    vertices_flat = []
-    for src_idx, src_vertno in enumerate(vertices):
-        n_vertno = len(src_vertno)
-        src_indices.extend([src_idx] * n_vertno)
-        vertices_flat.extend(src_vertno)
+    src_indices = map(lambda el: el[0], vertices)
+    vertices_flat = map(lambda el: el[1], vertices)
         
     # Create point sources and save them as a group
-    sources = {}
+    sources = []
     for src_idx, vertno, waveform, name in zip(src_indices, vertices_flat, data, names):
-        new_source = PointSource(src_idx, vertno, waveform)
-
-        if name is None:
-            name = f'{name_prefix}src{src_idx}-{vertno}'
-        sources[name] = new_source
+        sources.append(PointSource(name, src_idx, vertno, waveform))
         
     return sources
 
