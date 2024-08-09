@@ -63,12 +63,10 @@ def test_get_sfreq():
 
 
 def test_get_sfreq_too_few_timepoints_raises():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match='must contain at least two points'):
         get_sfreq(np.array([0]))
-    assert "must contain at least two points" in str(excinfo.value)
 
 
 def test_get_sfreq_unequal_spacing_raises():
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match='not uniformly spaced')
         get_sfreq(np.array([0, 0.01, 0.1]))
-    assert "not uniformly spaced" in str(excinfo.value)
