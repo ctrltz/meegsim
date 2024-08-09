@@ -68,5 +68,5 @@ def test_get_sfreq_too_few_timepoints_raises():
 
 
 def test_get_sfreq_unequal_spacing_raises():
-    with pytest.raises(ValueError, match='not uniformly spaced')
+    with pytest.raises(ValueError, match='not uniformly spaced'):
         get_sfreq(np.array([0, 0.01, 0.1]))
