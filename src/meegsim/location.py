@@ -6,7 +6,6 @@ Methods for selecting locations of the sources that accept the following argumen
 Many options are already covered by mne.simulation.select_source_in_label so we can reuse the functionality under the hood.
 """
 import numpy as np
-import mne
 
 from meegsim.utils import unpack_vertices
 
@@ -49,19 +48,16 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
 
     src_unpacked = unpack_vertices([s['vertno'] for s in src])
 
-    if vertices is None:
-        vertices = src_unpacked
-    else:
-        vertices = unpack_vertices(vertices)
-        if not all(vert in set(src_unpacked) for vert in vertices):
-            raise ValueError("Some vertices are not contained in the src.")
+    vertices = unpack_vertices(vertices) if vertices else src_unpacked
+    vertices_not_in_src = set(vertices) - set(src_unpacked)
+    if vertices_not_in_src:
+        raise ValueError("Some vertices are not contained in the src.")
 
     if n > len(vertices):
         raise ValueError("Number of vertices to select exceeds available vertices.")
 
+    selected_vertno = rng.choice(vertices, size=n, replace=False)
     if sort_output:
-        selected_vertno = np.sort(rng.choice(vertices, size=n, replace=False))
-    else:
-        selected_vertno = rng.choice(vertices, size=n, replace=False)
+        selected_vertno = np.sort(selected_vertno)        
 
     return [(vert[0], vert[1]) for vert in selected_vertno]

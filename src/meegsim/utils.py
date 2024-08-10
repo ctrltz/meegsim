@@ -1,5 +1,6 @@
 import numpy as np
-    
+import warnings
+
     
 def combine_stcs(stc1, stc2):
     """
