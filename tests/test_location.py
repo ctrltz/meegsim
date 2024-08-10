@@ -3,6 +3,8 @@ import numpy as np
 import mne
 import pytest
 
+from mock import patch
+
 from meegsim.location import select_random
 from meegsim.utils import unpack_vertices
 
@@ -90,3 +92,21 @@ def test_more_than_available_vertices():
     with pytest.raises(ValueError, match="Number of vertices to select exceeds available vertices."):
         select_random(single_src, n=6)
 
+
+def test_select_random_sort_output():
+    # Create a mock that returns some unsorted vertices
+    # Sorting should reverse the list
+    initial = [(1, 2), (1, 0), (0, 1)]
+    expected = initial[::-1]
+
+    class MockGenerator:
+        def choice(self, a, size=None, replace=False):
+            return initial
+
+    vertices = [[0, 1], [0, 1, 2]]
+    src = create_dummy_sourcespace(vertices)
+
+    # Replace the numpy generator with our mock and check the sorting
+    with patch('numpy.random.default_rng') as mock_rng:
+        mock_rng.return_value = MockGenerator()
+        assert select_random(src, n=3, sort_output=True) == expected

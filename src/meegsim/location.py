@@ -58,6 +58,6 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
 
     selected_vertno = rng.choice(vertices, size=n, replace=False)
     if sort_output:
-        selected_vertno = np.sort(selected_vertno)        
+        selected_vertno = sorted(selected_vertno)        
 
     return [(vert[0], vert[1]) for vert in selected_vertno]
