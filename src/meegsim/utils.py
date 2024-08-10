@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 
@@ -80,36 +81,14 @@ def unpack_vertices(vertices_lists):
         - index: The index of the source space.
         - vertno: Vertices in corresponding source space.
     """
+
+    if isinstance(vertices_lists, list) and not all(isinstance(vertices, list) for vertices in vertices_lists):
+        warnings.warn("Input is not a list of lists. Will be assumed that there is one source space.", UserWarning)
+        vertices_lists = [vertices_lists]
+
     unpacked_vertices = []
     for index, vertices in enumerate(vertices_lists):
         for vertno in vertices:
             unpacked_vertices.append((index, vertno))
     return unpacked_vertices
-
-def pack_vertices(unpacked_vertices):
-    """
-    Pack a list of tuples into a list of lists of vertices.
-
-    Parameters
-    ----------
-    unpacked_vertices : list of tuples
-        A list of tuples, where each tuple contains:
-        - index: The index of the source space.
-        - vertno: A vertex number in the corresponding source space.
-
-    Returns
-    -------
-    list of lists
-        A list where each element is a list of vertices corresponding to
-        different source spaces.
-    """
-    packed_vertices = {}
-    for index, vertno in unpacked_vertices:
-        if index not in packed_vertices:
-            packed_vertices[index] = []
-        packed_vertices[index].append(vertno)
-
-    # Convert the dictionary to a list of lists
-    # Sort keys to maintain order and ensure consistent output
-    return [packed_vertices[i] for i in sorted(packed_vertices.keys())]
 

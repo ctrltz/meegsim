@@ -11,7 +11,7 @@ import mne
 from meegsim.utils import unpack_vertices
 
 
-def select_random(src, *, n=1, vertices=None, random_state=None):
+def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=None):
     """
     Randomly selects a specified number of vertices from a given source space.
 
@@ -26,6 +26,9 @@ def select_random(src, *, n=1, vertices=None, random_state=None):
     vertices : list of lists, optional
         Specific vertices to choose from. If not provided, the function uses all vertices
         from src. default = None.
+
+    sort_output : bool
+        Indicates if sorting is needed for the output. default = False
 
     random_state : int or None, optional
         Seed for the random number generator. If None, it will be drawn
@@ -56,6 +59,9 @@ def select_random(src, *, n=1, vertices=None, random_state=None):
     if n > len(vertices):
         raise ValueError("Number of vertices to select exceeds available vertices.")
 
-    selected_vertno = np.sort(rng.choice(vertices, size=n, replace=False))
+    if sort_output:
+        selected_vertno = np.sort(rng.choice(vertices, size=n, replace=False))
+    else:
+        selected_vertno = rng.choice(vertices, size=n, replace=False)
 
     return [(vert[0], vert[1]) for vert in selected_vertno]
