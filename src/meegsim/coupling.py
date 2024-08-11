@@ -14,10 +14,12 @@ Methods currently in mind:
 import warnings
 
 import numpy as np
-from scipy.signal import hilbert
+import pytest
+from scipy.stats import vonmises
+from scipy.signal import butter, filtfilt, hilbert
 
 
-def shifted_copy(waveform, phase_lag, *, m=1, n=1):
+def constant_phase_shift(waveform, phase_lag, *, m=1, n=1):
     """
     Generate time series that is phase coupled to input time series. Phase coupling is deterministic.
 
@@ -37,8 +39,7 @@ def shifted_copy(waveform, phase_lag, *, m=1, n=1):
 
     Returns
     -------
-    out : two ndarray, 1D
-        Original waveform.
+    out : ndarray, 1D
         The phase-coupled waveform.
     """
 
@@ -48,13 +49,14 @@ def shifted_copy(waveform, phase_lag, *, m=1, n=1):
     waveform_amp = np.abs(waveform)
     waveform_angle = np.angle(waveform)
     waveform_coupled = waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * phase_lag)
-    return np.real(waveform), np.real(waveform_coupled)
+    return np.real(waveform_coupled)
 
 
 def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax=None, random_state=None):
     """
     Generate time series that is phase coupled to input time series. Phase coupling is probabilistic
     and based on von Mises distribution.
+    This function can be used to set up both within-frequency (1:1) and cross-frequency (n:m) coupling.
 
     Parameters
     ----------
@@ -65,10 +67,13 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
         Sampling frequency (in Hz).
 
     phase_lag : float
-        Constant phase lag to apply to the waveform in radians.
+        Average phase lag to apply to the waveform in radians.
 
     kappa : float, optional
-        Concentration parameter of the von Mises distribution. dafault = 1.
+        Concentration parameter of the von Mises distribution. With higher kappa, phase angles
+        are more concentrated around the mean direction, which translates to the coupled waveform having phase shifts
+        that are consistently close to the specified phase_lag. With lower kappa, phase lags along the time series
+        will vary substantially. default = 1.
 
     m : int, optional
         Harmonic of interest for phase coupling, default = 1.
@@ -77,10 +82,10 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
         Base frequency harmonic, default = 1.
 
     fmin: float, optional
-        Lower cutoff frequency (in Hz). default = None.
+        Lower cutoff frequency of the base frequency harmonic (in Hz). default = None.
 
     fmax: float, optional
-        Upper cutoff frequency (in Hz). default = None.
+        Upper cutoff frequency of the base frequency harmonic (in Hz). default = None.
 
     random_state : int or None, optional
         Seed for the random number generator. If None, it will be drawn
@@ -89,13 +94,9 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
 
     Returns
     -------
-    out : two ndarray, 1D
-        Original waveform.
+    out : ndarray, 1D
         The phase-coupled waveform.
     """
-
-    from scipy.stats import vonmises
-    from scipy.signal import butter, filtfilt, hilbert
 
     if not np.iscomplexobj(waveform):
         waveform = hilbert(waveform)
@@ -113,13 +114,37 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
 
     ph_distr = vonmises.rvs(kappa, loc=phase_lag, size=n_samples, random_state=random_state)
     tmp_waveform = np.real(waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * ph_distr))
-    b1, a1 = butter(N=2, Wn=np.array([m * fmin, m * fmax]) / fs * 2, btype='bandpass')
-    tmp_waveform = filtfilt(b1, a1, tmp_waveform)
+    b, a = butter(N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / fs * 2, btype='bandpass')
+    tmp_waveform = filtfilt(b, a, tmp_waveform)
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 
-    return np.real(waveform), np.real(waveform_coupled)
+    return np.real(waveform_coupled)
+
+
+def estimate_phase_locking(angle1, angle2):
+    """
+    Estimate the Phase Locking between two arrays of angles.
+
+    Parameters
+    ----------
+    angle1 : ndarray, 1D
+        Phase angles of the first waveform, typically in radians. This array should have the same length as `angle2`.
+
+    angle2 : ndarray, 1D
+        TPhase angles of the second waveform, typically in radians. This array should have the same length as `angle1`.
+
+    Returns
+    -------
+    out : complex float
+        The complex phase-locking measure between `angle1` and `angle2`.
+        Absolute part of this is phase-locking valur (PLV).
+    """
+    if len(angle1) != len(angle2):
+        raise ValueError("The length of angle1 and angle2 must be the same.")
+
+    return np.mean(np.exp(1j * angle1 - 1j * angle2))
 
 COUPLING_FUNCTIONS = {
-    'shifted_copy': shifted_copy,
+    'constant_phase_shift': constant_phase_shift,
     'ppc_von_mises': ppc_von_mises,
 }

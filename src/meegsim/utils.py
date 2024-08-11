@@ -1,5 +1,5 @@
 import numpy as np
-
+from scipy.special import i1, i0
 
 def combine_sources_into_stc(sources, src, sfreq):
     stc_combined = None
@@ -62,3 +62,7 @@ def normalize_power(data):
 #     offset = sum(n_vertno[:src_idx])
 #     index = np.where(src[src_idx]['vertno'] == vertno)[0][0]
 #     return [offset + index]
+
+
+def theoretical_plv(kappa):
+    return i1(kappa) / i0(kappa)
