@@ -121,29 +121,6 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
     return np.real(waveform_coupled)
 
 
-def estimate_phase_locking(angle1, angle2):
-    """
-    Estimate the Phase Locking between two arrays of angles.
-
-    Parameters
-    ----------
-    angle1 : ndarray, 1D
-        Phase angles of the first waveform, typically in radians. This array should have the same length as `angle2`.
-
-    angle2 : ndarray, 1D
-        TPhase angles of the second waveform, typically in radians. This array should have the same length as `angle1`.
-
-    Returns
-    -------
-    out : complex float
-        The complex phase-locking measure between `angle1` and `angle2`.
-        Absolute part of this is phase-locking valur (PLV).
-    """
-    if len(angle1) != len(angle2):
-        raise ValueError("The length of angle1 and angle2 must be the same.")
-
-    return np.mean(np.exp(1j * angle1 - 1j * angle2))
-
 COUPLING_FUNCTIONS = {
     'constant_phase_shift': constant_phase_shift,
     'ppc_von_mises': ppc_von_mises,

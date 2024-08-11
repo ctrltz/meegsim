@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from meegsim.coupling import constant_phase_shift, ppc_von_mises, estimate_phase_locking
+from meegsim.coupling import constant_phase_shift, ppc_von_mises
 from meegsim.waveform import white_noise
 from meegsim.utils import get_sfreq, theoretical_plv
 from scipy.signal import hilbert
@@ -18,7 +18,7 @@ def prepare_inputs():
 def test_estimate_phase_locking_perfect_locking():
     angle1 = np.array([0, np.pi / 2, np.pi])
     angle2 = np.array([0, np.pi / 2, np.pi])
-    cplv = estimate_phase_locking(angle1, angle2)
+    cplv = compute_plv(angle1, angle2, m=1, n=1, plv_type='complex')
 
     assert np.isclose(np.abs(cplv), 1.0), f"Expected 1.0, but got {cplv}"
     assert np.isclose(np.angle(cplv), 0.0), f"Expected 0.0, but got {cplv}"
@@ -30,16 +30,9 @@ def test_estimate_phase_locking_no_locking():
 
     angle1 = np.angle(hilbert(noise[0]))
     angle2 = np.angle(hilbert(noise[1]))
-    cplv = estimate_phase_locking(angle1, angle2)
+    cplv = compute_plv(angle1, angle2, m=1, n=1, plv_type='complex')
 
-    assert abs(cplv) <= 0.2, "Test failed: plv between white noise is bigger than 0.2."
-
-
-def test_estimate_phase_locking_different_lengths():
-    angle1 = np.array([0, np.pi / 2])
-    angle2 = np.array([0, np.pi / 2, np.pi])
-    with pytest.raises(ValueError, match="The length of angle1 and angle2 must be the same."):
-        estimate_phase_locking(angle1, angle2)
+    assert abs(cplv) <= 0.2, f"Test failed: plv between white noise is bigger than 0.2. plv = {abs(cplv)}"
 
 
 @pytest.mark.parametrize("phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi])
@@ -53,15 +46,12 @@ def test_constant_phase_shift(phase_lag):
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    waveform_angle = np.angle(waveform)
-    result_angle = np.angle(result)
-
-    cplv = estimate_phase_locking(waveform_angle, result_angle)
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type='complex')
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.99, "Test failed: plv is smaller than 0.99."
-    assert (np.abs(test_angle) - phase_lag) <= 0.01, "Test failed: angle is different from phase_lag."
+    assert plv >= 0.99, f"Test failed: plv is smaller than 0.99. plv = {plv}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.01, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 @pytest.mark.parametrize("m, n", [
     (2, 1),
@@ -83,8 +73,8 @@ def test_different_harmonics(m, n):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.9, "Test failed: plv is smaller than 0.9."
-    assert (np.abs(test_angle) - phase_lag) <= 0.1, "Test failed: angle is different from phase_lag."
+    assert plv >= 0.9, f"Test failed: plv is smaller than 0.9. plv = {plv}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.1, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
 @pytest.mark.parametrize("kappa", [0.001, 0.1, 0.5, 1, 5, 10, 50])
@@ -99,14 +89,11 @@ def test_ppc_von_mises(kappa):
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    waveform_angle = np.angle(waveform)
-    result_angle = np.angle(result)
-
-    cplv = estimate_phase_locking(waveform_angle, result_angle)
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type='complex')
     plv = np.abs(cplv)
     plv_theoretical = theoretical_plv(kappa)
 
-    assert plv >= plv_theoretical, "Test failed: plv is smaller than theoretical."
+    assert plv >= plv_theoretical, f"Test failed: plv is smaller than theoretical. plv = {plv}, plv_theoretical = {plv_theoretical}"
 
 
 @pytest.mark.parametrize("m, n", [
@@ -130,8 +117,8 @@ def test_ppc_von_mises_harmonics(m, n):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.8, "Test failed: plv is smaller than 0.8."
-    assert (np.abs(test_angle) - phase_lag) <= 0.1, "Test failed: angle is different from phase_lag."
+    assert plv >= 0.8, f"Test failed: plv is smaller than 0.8. plv = {plv}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.1, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
 def test_reproducibility_with_random_state():
@@ -147,6 +134,3 @@ def test_reproducibility_with_random_state():
     # Test that results are identical
     np.testing.assert_array_almost_equal(result1, result2)
 
-
-if __name__ == "__main__":
-    pytest.main()
