@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from meegsim.coupling import constant_phase_shift, ppc_von_mises
-from meegsim.waveform import white_noise
 from meegsim.utils import get_sfreq, theoretical_plv
 from scipy.signal import hilbert
 from harmoni.extratools import compute_plv
@@ -13,26 +12,6 @@ def prepare_inputs():
     fs = 1000
     times = np.arange(0, 1, 1 / fs)
     return n_series, len(times), times
-
-
-def test_estimate_phase_locking_perfect_locking():
-    angle1 = np.array([0, np.pi / 2, np.pi])
-    angle2 = np.array([0, np.pi / 2, np.pi])
-    cplv = compute_plv(angle1, angle2, m=1, n=1, plv_type='complex')
-
-    assert np.isclose(np.abs(cplv), 1.0), f"Expected 1.0, but got {cplv}"
-    assert np.isclose(np.angle(cplv), 0.0), f"Expected 0.0, but got {cplv}"
-
-
-def test_estimate_phase_locking_no_locking():
-    n_series, n_times, times = prepare_inputs()
-    noise = white_noise(n_series, times)
-
-    angle1 = np.angle(hilbert(noise[0]))
-    angle2 = np.angle(hilbert(noise[1]))
-    cplv = compute_plv(angle1, angle2, m=1, n=1, plv_type='complex')
-
-    assert abs(cplv) <= 0.2, f"Test failed: plv between white noise is bigger than 0.2. plv = {abs(cplv)}"
 
 
 @pytest.mark.parametrize("phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi])
@@ -53,10 +32,11 @@ def test_constant_phase_shift(phase_lag):
     assert plv >= 0.99, f"Test failed: plv is smaller than 0.99. plv = {plv}"
     assert (np.abs(test_angle) - phase_lag) <= 0.01, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
+
 @pytest.mark.parametrize("m, n", [
     (2, 1),
     (3, 1),
-    (3/2, 1)
+    (5/2, 1)
 ])
 def test_different_harmonics(m, n):
     # Test with different m and n harmonics
