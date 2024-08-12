@@ -18,6 +18,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "colorednoise",
     "mne",
     "harmoni"
 ]
@@ -28,7 +29,9 @@ Issues = "https://github.com/ctrltz/meegsim/issues"
 
 [project.optional-dependencies]
 dev = [
-    "pytest"
+    "mock",
+    "pytest",
+    "pytest-cov"
 ]
 
 [tool.pytest.ini_options]
@@ -36,3 +39,4 @@ pythonpath = "."
 testpaths = [
     "tests",
 ]
+addopts = "--cov=src/meegsim --cov-report term-missing"
