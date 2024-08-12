@@ -1,7 +1,9 @@
 import numpy as np
 import warnings
 import mne
+
 from scipy.signal import butter, filtfilt
+
 
 def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     """
@@ -37,6 +39,7 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
         if fmax is None:
             warnings.warn("fmax was None. Setting fmax to 12 Hz", UserWarning)
             fmax = 12.
+
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype='bandpass')
         stc_data = filtfilt(b, a, stc.data, axis=1)
     else:
@@ -75,11 +78,14 @@ def adjust_snr(signal_var, noise_var, *, target_snr=1):
     snr_current = np.divide(signal_var, noise_var)
 
     if np.isinf(snr_current):
-        raise ValueError("Evidently, noise variance is zero; SNR cannot be calculated; check created noise.")
+        raise ValueError("The noise variance appears to be zero, so the initial SNR "
+                         "cannot be calculated. Please check the created noise.")
 
     factor = np.sqrt(target_snr / snr_current)
 
     if np.isinf(factor):
-        raise ValueError("Evidently, signal variance is zero; SNR cannot be calculated; check created signals.")
+        raise ValueError("The signal variance and thus the initial SNR appear to be "
+                         "zero, so SNR cannot be adjusted. Please check the created "
+                         "signals.")
 
     return factor

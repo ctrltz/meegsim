@@ -120,15 +120,17 @@ def test_get_sensor_space_variance_with_filter(butter_mock, filtfilt_mock):
     butter_mock.assert_called()
     filtfilt_mock.assert_called()
 
-    # Check that fmin and fmax are set to default values
+    # Check that fmin and fmax are set to default values by looking at
+    # the normalized frequencies (second argument of scipy.signal.butter)
     butter_args = butter_mock.call_args
     sfreq = stc.sfreq
-    normalized_fmin = 8.0 / (0.5 * sfreq)
-    normalized_fmax = 12.0 / (0.5 * sfreq)
-    # normalized frequencies are the second argument of scipy.signal.butter
-    expected_wmin, expected_wmax = butter_args.args[1]
-    assert np.isclose(expected_wmin, normalized_fmin), f"Expected fmin to be {normalized_fmin}"
-    assert np.isclose(expected_wmax, normalized_fmax), f"Expected fmax to be {normalized_fmax}"
+    expected_wmin = 8.0 / (0.5 * sfreq)
+    expected_wmax = 12.0 / (0.5 * sfreq)
+    actual_wmin, actual_wmax = butter_args.args[1]
+    assert np.isclose(actual_wmin, expected_wmin), \
+        f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
+    assert np.isclose(actual_wmax, expected_wmax), \
+        f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
 
     assert variance >= 0, "Variance should be non-negative"
 
@@ -145,13 +147,17 @@ def test_get_sensor_space_variance_with_filter_fmin_fmax(butter_mock, filtfilt_m
     butter_mock.assert_called()
     filtfilt_mock.assert_called()
 
-    # Check that fmin and fmax
+    # Check that fmin and fmax are set to custom values by looking at
+    # the normalized frequencies (second argument of scipy.signal.butter)
     butter_args = butter_mock.call_args
     sfreq = stc.sfreq
-    normalized_fmin = 20.0 / (0.5 * sfreq)
-    normalized_fmax = 30.0 / (0.5 * sfreq)
-    assert np.isclose(butter_args[0][1][0], normalized_fmin), f"Expected fmin to be {normalized_fmin}"
-    assert np.isclose(butter_args[0][1][1], normalized_fmax), f"Expected fmax to be {normalized_fmax}"
+    expected_wmin = 20.0 / (0.5 * sfreq)
+    expected_wmax = 30.0 / (0.5 * sfreq)
+    actual_wmin, actual_wmax = butter_args.args[1]
+    assert np.isclose(actual_wmin, expected_wmin), \
+        f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
+    assert np.isclose(actual_wmax, expected_wmax), \
+        f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
 
 
 @pytest.mark.parametrize("target_snr", np.logspace(-6, 6, 10))
@@ -163,7 +169,8 @@ def test_adjust_snr(target_snr):
     expected_result = np.sqrt(target_snr / snr_current)
 
     result = adjust_snr(signal_var, noise_var, target_snr=target_snr)
-    assert np.isclose(result, expected_result), f"Expected {expected_result}, but got {result}"
+    assert np.isclose(result, expected_result), \
+        f"Expected {expected_result}, but got {result}"
 
 
 def test_adjust_snr_default_target():
@@ -175,14 +182,15 @@ def test_adjust_snr_default_target():
     expected_result = np.sqrt(default_snr / snr_current)
 
     result = adjust_snr(signal_var, noise_var)
-    assert np.isclose(result, expected_result), f"Expected {expected_result}, but got {result}"
+    assert np.isclose(result, expected_result), \
+        f"Expected {expected_result}, but got {result}"
 
 
 def test_adjust_snr_zero_signal_var():
     signal_var = 0.0
     noise_var = 5.0
 
-    with pytest.raises(ValueError, match="Evidently, signal variance is zero; SNR cannot be calculated; check created signals."):
+    with pytest.raises(ValueError, match="initial SNR appear to be zero"):
         adjust_snr(signal_var, noise_var)
 
 
@@ -190,6 +198,6 @@ def test_adjust_snr_zero_noise_var():
     signal_var = 10.0
     noise_var = 0.0
 
-    with pytest.raises(ValueError, match="Evidently, noise variance is zero; SNR cannot be calculated; check created noise."):
+    with pytest.raises(ValueError, match="noise variance appears to be zero"):
         adjust_snr(signal_var, noise_var)
 
