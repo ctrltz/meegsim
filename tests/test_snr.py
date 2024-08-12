@@ -193,5 +193,3 @@ def test_adjust_snr_zero_noise_var():
     with pytest.raises(ValueError, match="Evidently, noise variance is zero; SNR cannot be calculated; check created noise."):
         adjust_snr(signal_var, noise_var)
 
-if __name__ == "__main__":
-    pytest.main()
