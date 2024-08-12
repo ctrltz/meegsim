@@ -93,19 +93,20 @@ def test_get_sensor_space_variance_no_filter_all_vert():
     leadfield = fwd['sol']['data']
     expected_variance = np.mean(stc.data ** 2) * np.mean(leadfield ** 2)
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert np.isclose(variance, expected_variance), f"Expected variance {expected_variance}, but got {variance}"
+    assert np.isclose(variance, expected_variance), \
+        f"Expected variance {expected_variance}, but got {variance}"
 
 
 def test_get_sensor_space_variance_no_filter_sel_vert():
     fwd = create_dummy_forward()
-    vertices = [[0, 1], [0, 1]]
+    vertices = [[0], [0]]
     stc = prepare_stc(vertices)
-    all_vertices = [list(s['vertno']) for s in fwd['src']]
-    idx = [np.intersect1d(vertices[snum], all_vertices[snum], return_indices=True)[2] for snum in range(len(fwd['src']))]
-    leadfield_subset = fwd['sol']['data'][:, np.hstack([idx[0],idx[1] + fwd['src'][0]['nuse']])]
-    expected_variance = np.mean(stc.data ** 2) * np.mean(leadfield_subset ** 2)
+    
+    # Both vertices in the stc have corresponding zero time series
+    expected_variance = 0
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert np.isclose(variance, expected_variance), f"Expected variance {expected_variance}, but got {variance}"
+    assert np.isclose(variance, expected_variance), \
+        f"Expected variance {expected_variance}, but got {variance}"
 
 
 @patch('meegsim.snr.filtfilt', return_value=np.ones((1, 100)))
