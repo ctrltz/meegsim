@@ -19,15 +19,17 @@ def create_dummy_sourcespace(vertices):
         n_verts = len(vertices[i])
         vertno = vertices[i]  # Vertices for this hemisphere
         xyz = np.random.rand(n_verts, 3) * 100  # Random positions
+
+        # Explicitly set types to match src objects that are created by MNE
         src_dict = dict(
-            vertno=vertno,
-            rr=xyz,
+            vertno=np.array(vertno),
+            rr=np.array(xyz),
             nn=np.random.rand(n_verts, 3),  # Random normals
             inuse=np.ones(n_verts, dtype=int),  # All vertices in use
-            nuse=n_verts,
-            type=type_src,
-            id=i,
-            np=n_verts
+            nuse=int(n_verts),
+            type=str(type_src),
+            id=int(i),
+            np=int(n_verts)
         )
         src.append(src_dict)
 
@@ -49,7 +51,7 @@ def test_dual_space_basic_functionality():
     dual_src = create_dummy_sourcespace(vertices)
     result = select_random(dual_src, n=2, random_state=42)
     assert len(result) == 2, f"Expected 2 vertices, got {len(result)}"
-    assert all(vert in unpack_vertices([s['vertno'] for s in dual_src]) for vert in result), "Selected vertices are not in the source spaces"
+    assert all(vert in unpack_vertices([list(s['vertno']) for s in dual_src]) for vert in result), "Selected vertices are not in the source spaces"
 
 
 def test_specific_vertices():
@@ -101,7 +103,9 @@ def test_select_random_sort_output():
 
     class MockGenerator:
         def choice(self, a, size=None, replace=False):
-            return initial
+            # NB: rng.choice always returns an array
+            # rows corresponds to different elements
+            return np.array(initial)
 
     vertices = [[0, 1], [0, 1, 2]]
     src = create_dummy_sourcespace(vertices)

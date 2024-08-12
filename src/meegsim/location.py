@@ -46,7 +46,7 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
     if len(src) not in [1, 2]:
         raise ValueError("Src must contain either one (volume) or two (surface) source spaces.")
 
-    src_unpacked = unpack_vertices([s['vertno'] for s in src])
+    src_unpacked = unpack_vertices([list(s['vertno']) for s in src])
 
     vertices = unpack_vertices(vertices) if vertices else src_unpacked
     vertices_not_in_src = set(vertices) - set(src_unpacked)
@@ -57,7 +57,8 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
         raise ValueError("Number of vertices to select exceeds available vertices.")
 
     selected_vertno = rng.choice(vertices, size=n, replace=False)
+    selected_vertno = list(map(tuple, selected_vertno))
     if sort_output:
         selected_vertno = sorted(selected_vertno)        
 
-    return [(vert[0], vert[1]) for vert in selected_vertno]
+    return selected_vertno
