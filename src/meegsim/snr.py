@@ -69,11 +69,17 @@ def adjust_snr(signal_var, noise_var, *, target_snr=1):
     Returns
     -------
     out: float
-        The value that original signal should be scaled (divided) to in order to obtain desired SNR.
+        The value that original signal should be scaled (multiplied) to in order to obtain desired SNR.
     """
 
-    if noise_var == 0:
-        raise ValueError("Noise variance is zero; SNR cannot be calculated.")
+    snr_current = np.divide(signal_var, noise_var)
 
-    snr_current = signal_var / noise_var
-    return np.sqrt(snr_current / target_snr)
+    if np.isinf(snr_current):
+        raise ValueError("Evidently, noise variance is zero; SNR cannot be calculated; check created noise.")
+
+    factor = np.sqrt(target_snr / snr_current)
+
+    if np.isinf(factor):
+        raise ValueError("Evidently, signal variance is zero; SNR cannot be calculated; check created signals.")
+
+    return factor

@@ -90,16 +90,22 @@ def test_get_sensor_space_variance_no_filter_all_vert():
     fwd = create_dummy_forward()
     vertices = [list(np.arange(5)), list(np.arange(5))]
     stc = prepare_stc(vertices)
+    leadfield = fwd['sol']['data']
+    expected_variance = np.mean(stc.data ** 2) * np.mean(leadfield ** 2)
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert variance >= 0, "Variance should be non-negative"
+    assert np.isclose(variance, expected_variance), f"Expected variance {expected_variance}, but got {variance}"
 
 
 def test_get_sensor_space_variance_no_filter_sel_vert():
     fwd = create_dummy_forward()
     vertices = [[0, 1], [0, 1]]
     stc = prepare_stc(vertices)
+    all_vertices = [list(s['vertno']) for s in fwd['src']]
+    idx = [np.intersect1d(vertices[snum], all_vertices[snum], return_indices=True)[2] for snum in range(len(fwd['src']))]
+    leadfield_subset = fwd['sol']['data'][:, np.hstack([idx[0],idx[1] + fwd['src'][0]['nuse']])]
+    expected_variance = np.mean(stc.data ** 2) * np.mean(leadfield_subset ** 2)
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert variance >= 0, "Variance should be non-negative"
+    assert np.isclose(variance, expected_variance), f"Expected variance {expected_variance}, but got {variance}"
 
 
 @patch('meegsim.snr.filtfilt', return_value=np.ones((1, 100)))
@@ -119,8 +125,10 @@ def test_get_sensor_space_variance_with_filter(butter_mock, filtfilt_mock):
     sfreq = stc.sfreq
     normalized_fmin = 8.0 / (0.5 * sfreq)
     normalized_fmax = 12.0 / (0.5 * sfreq)
-    assert np.isclose(butter_args[0][1][0], normalized_fmin), f"Expected fmin to be {normalized_fmin}"
-    assert np.isclose(butter_args[0][1][1], normalized_fmax), f"Expected fmax to be {normalized_fmax}"
+    # normalized frequencies are the second argument of scipy.signal.butter
+    expected_wmin, expected_wmax = butter_args.args[1]
+    assert np.isclose(expected_wmin, normalized_fmin), f"Expected fmin to be {normalized_fmin}"
+    assert np.isclose(expected_wmax, normalized_fmax), f"Expected fmax to be {normalized_fmax}"
 
     assert variance >= 0, "Variance should be non-negative"
 
@@ -145,16 +153,14 @@ def test_get_sensor_space_variance_with_filter_fmin_fmax(butter_mock, filtfilt_m
     assert np.isclose(butter_args[0][1][0], normalized_fmin), f"Expected fmin to be {normalized_fmin}"
     assert np.isclose(butter_args[0][1][1], normalized_fmax), f"Expected fmax to be {normalized_fmax}"
 
-    assert variance >= 0, "Variance should be non-negative"
-
 
 @pytest.mark.parametrize("target_snr", np.logspace(-6, 6, 10))
 def test_adjust_snr(target_snr):
     signal_var = 10.0
     noise_var = 5.0
 
-    snr_current = signal_var / noise_var
-    expected_result = np.sqrt(snr_current / target_snr)
+    snr_current = np.divide(signal_var, noise_var)
+    expected_result = np.sqrt(target_snr / snr_current)
 
     result = adjust_snr(signal_var, noise_var, target_snr=target_snr)
     assert np.isclose(result, expected_result), f"Expected {expected_result}, but got {result}"
@@ -165,8 +171,8 @@ def test_adjust_snr_default_target():
     noise_var = 5.0
 
     default_snr = 1.0
-    snr_current = signal_var / noise_var
-    expected_result = np.sqrt(snr_current / default_snr)
+    snr_current = np.divide(signal_var, noise_var)
+    expected_result = np.sqrt(default_snr / snr_current)
 
     result = adjust_snr(signal_var, noise_var)
     assert np.isclose(result, expected_result), f"Expected {expected_result}, but got {result}"
@@ -176,13 +182,16 @@ def test_adjust_snr_zero_signal_var():
     signal_var = 0.0
     noise_var = 5.0
 
-    result = adjust_snr(signal_var, noise_var)
-    assert np.isclose(result, 0.0), f"Expected 0.0, but got {result}"
+    with pytest.raises(ValueError, match="Evidently, signal variance is zero; SNR cannot be calculated; check created signals."):
+        adjust_snr(signal_var, noise_var)
 
 
 def test_adjust_snr_zero_noise_var():
     signal_var = 10.0
     noise_var = 0.0
 
-    with pytest.raises(ValueError, match="Noise variance is zero; SNR cannot be calculated."):
+    with pytest.raises(ValueError, match="Evidently, noise variance is zero; SNR cannot be calculated; check created noise."):
         adjust_snr(signal_var, noise_var)
+
+if __name__ == "__main__":
+    pytest.main()
