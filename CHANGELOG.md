@@ -10,4 +10,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Waveforms of white noise, narrowband oscillation (white noise filtered in a narrow frequency band) and 1/f noise with adjustable slope ([#8](https://github.com/ctrltz/meegsim/pull/8))
-- Selector of random vertices in the whole source space or in a subset of vertices ([#10](https://github.com/ctrltz/meegsim/pull/8))
+- Selector of random vertices in the whole source space or in a subset of vertices ([#10](https://github.com/ctrltz/meegsim/pull/10))
+- Phase-phase coupling with a constant phase lag or a probabilistic phase lag according to the von Mises distribution ([#11](https://github.com/ctrltz/meegsim/pull/11))
