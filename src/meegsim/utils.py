@@ -1,7 +1,9 @@
 import numpy as np
 import warnings
 
-    
+from scipy.special import i1, i0
+
+
 def combine_stcs(stc1, stc2):
     """
     Combines the data two SourceEstimate objects. If a vertex is present in both 
@@ -135,3 +137,7 @@ def unpack_vertices(vertices_lists):
         for vertno in vertices:
             unpacked_vertices.append((index, vertno))
     return unpacked_vertices
+
+
+def theoretical_plv(kappa):
+    return i1(kappa) / i0(kappa)
