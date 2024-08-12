@@ -101,18 +101,10 @@ def _create_point_sources(
 
     # Here we should also adjust the SNR
     # 2. Adjust the amplitude of each signal source (self._sources) according to the desired SNR (if not None)
-
-    # Flatten the vertices list, keep the source space indices in a separate list
-    src_indices = []
-    vertices_flat = []
-    for src_idx, src_vertno in enumerate(vertices):
-        n_vertno = len(src_vertno)
-        src_indices.extend([src_idx] * n_vertno)
-        vertices_flat.extend(src_vertno)
         
     # Create point sources and save them as a group
     sources = {}
-    for src_idx, vertno, waveform, name in zip(src_indices, vertices_flat, data, names):
+    for (src_idx, vertno), waveform, name in zip(vertices, data, names):
         new_source = PointSource(src_idx, vertno, waveform)
 
         if name is None:
