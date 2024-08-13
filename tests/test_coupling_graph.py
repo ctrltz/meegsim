@@ -1,56 +1,8 @@
 import numpy as np
 import networkx as nx
-from meegsim.coupling_graph import connecting_paths, is_cycle_topology, generate_walkaround_paths
+import pytest
 
-
-def test_is_cycle_topology_cycle_graph():
-    # Create a cycle graph with 5 nodes
-    G = nx.cycle_graph(5)
-    result = is_cycle_topology(G)
-    assert result == True, "Failed on cycle graph: Expected True"
-
-
-def test_is_cycle_topology_path_graph():
-    # Create a path graph with 5 nodes (which is not a cycle)
-    G = nx.path_graph(5)
-    result = is_cycle_topology(G)
-    assert result == False, "Failed on path graph: Expected False"
-
-
-def test_is_cycle_topology_disconnected_graph():
-    # Create a disconnected graph with two components, one of which is a cycle
-    G = nx.Graph()
-    G.add_edges_from([(0, 1), (1, 2), (2, 0), (3, 4)])
-    cycle_component = G.subgraph([0, 1, 2])
-    result = is_cycle_topology(cycle_component)
-    assert result == True, "Failed on disconnected graph's cycle component: Expected True"
-
-    non_cycle_component = G.subgraph([3, 4])
-    result = is_cycle_topology(non_cycle_component)
-    assert result == False, "Failed on disconnected graph's non-cycle component: Expected False"
-
-
-def test_is_cycle_topology_single_node():
-    # Test with a single-node graph
-    G = nx.Graph()
-    G.add_node(0)
-    result = is_cycle_topology(G)
-    assert result == False, "Failed on single-node graph: Expected False"
-
-
-def test_is_cycle_topology_empty_graph():
-    # Test with an empty graph
-    G = nx.Graph()
-    result = is_cycle_topology(G)
-    assert result == False, "Failed on empty graph: Expected False"
-
-
-def test_is_cycle_topology_two_node_cycle():
-    # Test with a two-node cycle (which technically isn't a cycle in the expected sense)
-    G = nx.Graph()
-    G.add_edges_from([(0, 1), (1, 0)])
-    result = is_cycle_topology(G)
-    assert result == False, "Failed on two-node cycle graph: Expected False"
+from meegsim.coupling_graph import connecting_paths, generate_walkaround_paths
 
 
 def test_generate_walkaround_paths_with_start_node():
@@ -91,8 +43,9 @@ def test_connecting_paths_tree_topology():
     edgelist = [(0, 1), (1, 2), (1, 3)]
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
+    coupling_setup = {edge:{'method':'ppc_von_mises','kappa':kappa_list[i],'phase_lag':phase_lag_list[i]} for i, edge in enumerate(edgelist)}
 
-    G, walkaround = connecting_paths(edgelist, kappa_list, phase_lag_list, random_state=42)
+    G, walkaround = connecting_paths(coupling_setup, random_state=42)
 
     assert len(G.edges) == len(edgelist), "Graph edges do not match the edge list"
     assert len(walkaround) == 1, "There should be one walkaround path for one tree topology"
@@ -112,10 +65,11 @@ def test_connecting_paths_with_cycle_topology():
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
 
-    try:
-        connecting_paths(edgelist, kappa_list, phase_lag_list)
-    except ValueError as e:
-        assert str(e) == "The graph contains cycles.", f"Unexpected error message: {e}"
+    coupling_setup = {edge: {'method': 'ppc_von_mises', 'kappa': kappa_list[i], 'phase_lag': phase_lag_list[i]} for
+                      i, edge in enumerate(edgelist)}
+
+    with pytest.raises(ValueError, match="The graph contains cycles. Cycles are not supported."):
+        connecting_paths(coupling_setup)
 
 
 def test_connecting_paths_random_state():
@@ -124,8 +78,10 @@ def test_connecting_paths_random_state():
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
 
-    G1, walkaround1 = connecting_paths(edgelist, kappa_list, phase_lag_list, random_state=42)
-    G2, walkaround2 = connecting_paths(edgelist, kappa_list, phase_lag_list, random_state=42)
+    coupling_setup = {edge: {'method': 'ppc_von_mises', 'kappa': kappa_list[i], 'phase_lag': phase_lag_list[i]} for
+                      i, edge in enumerate(edgelist)}
+
+    G1, walkaround1 = connecting_paths(coupling_setup, random_state=42)
+    G2, walkaround2 = connecting_paths(coupling_setup, random_state=42)
 
     assert walkaround1 == walkaround2, "Walkaround paths should be identical with the same random_state"
-

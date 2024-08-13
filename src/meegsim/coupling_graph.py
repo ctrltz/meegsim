@@ -2,53 +2,6 @@ import random
 import networkx as nx
 
 
-def is_cycle_topology(component):
-    """
-    Check if a given connected component of a graph is a cycle topology.
-
-    A cycle topology is defined as a connected component where:
-    - Every node in the component has exactly two neighbors (degree of 2).
-    - The component contains exactly one cycle.
-
-    Parameters:
-    ----------
-    component : networkx.Graph
-        A connected component of the graph to check.
-
-    Returns:
-    -------
-    out : bool
-        True if the component is a cycle topology, False otherwise.
-    """
-    # Check if every node in the component has a degree of 2
-    degrees = dict(component.degree())
-    if all(degree == 2 for degree in degrees.values()):
-        # Verify if the component is indeed a cycle
-        # A cycle will have exactly one cycle in its cycle_basis
-        return len(nx.cycle_basis(component)) == 1
-    return False
-
-def find_cycle_topologies(graph):
-    """
-    Identify and return all cycle topologies within a graph.
-
-    Parameters:
-    ----------
-    graph : networkx.Graph
-        The graph to analyze.
-
-    Returns:
-    -------
-    out : list of networkx.Graph
-        A list of subgraphs, each representing a cycle topology.
-    """
-    cycle_topologies = []
-    for component in nx.connected_components(graph):
-        subgraph = graph.subgraph(component)
-        if is_cycle_topology(subgraph):
-            cycle_topologies.append(subgraph)
-    return cycle_topologies
-
 def find_tree_topologies(graph):
     """
     Identify and return all tree topologies within a graph.
@@ -101,18 +54,15 @@ def generate_walkaround_paths(tree, start_node=None, random_state=None):
     return list(nx.dfs_edges(tree, source=start_node))
 
 
-def connecting_paths(edgelist, kappa_list, phase_lag_list, random_state=None):
+def connecting_paths(coupling_setup, random_state=None):
     """
     Constructs a graph from the provided edge list and attributes, and identifies walkaround paths in tree topologies.
 
     Parameters:
     -------
-    edgelist : list of tuples
-        A list of edges where each edge is represented as a tuple (node1, node2).
-    kappa_list : list of float
-        A list of weights corresponding to each edge in `edgelist`.
-    phase_lag_list : list of float
-        A list of capacities corresponding to each edge in `edgelist`.
+    coupling_setup : dict
+        with keys being edges (source, target)
+        with values being coupling parameters dict(method='ppc_von_mises', kappa=0.5, phase_lag=1)
     random_state : int or None, optional
         Seed for the random number generator. If start_node is None, the start node will be drawn
         randomly, and results will vary between function calls. default = None.    Returns:
@@ -125,17 +75,17 @@ def connecting_paths(edgelist, kappa_list, phase_lag_list, random_state=None):
     """
     # Build graph
     G = nx.Graph()
-    for i_edge in range(len(edgelist)):
-        G.add_edge(edgelist[i_edge][0], edgelist[i_edge][1], weight=kappa_list[i_edge], capacity=phase_lag_list[i_edge])
+    for node_pair, coupling_param in coupling_setup.items():
+        if coupling_param['method'] == 'ppc_von_mises':
+            G.add_edge(node_pair[0], node_pair[1], weight=coupling_param['kappa'], capacity=coupling_param['phase_lag'])
+        elif coupling_param['method'] == 'constant_phase_shift':
+            G.add_edge(node_pair[0], node_pair[1], capacity=coupling_param['phase_lag'])
+
+    if not nx.is_forest(G):
+        raise ValueError("The graph contains cycles. Cycles are not supported.")
 
     # find tree topologies
     tree_topologies = find_tree_topologies(G)
-    if len(tree_topologies) < len(list(nx.connected_components(G))):
-        cycle_topologies = find_cycle_topologies(G)
-        if len(cycle_topologies) > 0:
-            raise ValueError("The graph contains cycles.")
-        else:
-            raise ValueError("There is some unknown topology in the graph.")
 
     # iterate over tree_topologies
     walkaround = []
