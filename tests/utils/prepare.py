@@ -32,7 +32,8 @@ def prepare_source_space(types, vertices):
             nuse=int(n_verts),
             type=str(src_type),
             id=int(src_id),
-            np=int(n_verts)
+            np=int(n_verts),
+            subject_his_id='meegsim'
         )
         src.append(src_dict)
 

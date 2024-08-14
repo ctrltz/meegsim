@@ -84,6 +84,9 @@ class PointSource(BaseSource):
         ----------
         src: mne.SourceSpaces
             The source space where the point source should be considered.
+        subject: str or None, optional
+            Name of the subject that the stc corresponds to.
+            If None, the subject name from the provided src is used if present.
         
         Returns
         -------
@@ -110,6 +113,10 @@ class PointSource(BaseSource):
                 f"The source space with index {self.src_idx} does not "
                 f"contain the vertex {self.vertno}"
             )
+
+        # Resolve the subject name as done in MNE
+        if subject is None:
+            subject = src[0].get("subject_his_id", None)
 
         data = self.waveform[np.newaxis, :]
         

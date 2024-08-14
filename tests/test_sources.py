@@ -81,10 +81,15 @@ def test_pointsource_to_stc_subject():
         vertices=[[0, 1], [0, 1]]
     )
     s = PointSource(0, 0, waveform, sfreq=250)
+    stc = s.to_stc(src)
+
+    assert stc.subject == 'meegsim', \
+        f"Expected stc.subject to be derived from src, got {stc.subject}"
+    
     stc = s.to_stc(src, subject='mysubject')
 
     assert stc.subject == 'mysubject', \
-        f"Expected stc.sfreq to be mysubject, got {stc.subject}"
+        f"Expected stc.subject to be mysubject, got {stc.subject}"
     
 
 def test_pointsource_to_stc_bad_src_raises():
