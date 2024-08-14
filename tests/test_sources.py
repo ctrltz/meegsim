@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from meegsim.sources import BaseSource, PointSource
+from meegsim.sources import _BaseSource, PointSource
 
 from utils.prepare import prepare_source_space
 
 
 def test_basesource_is_abstract():
     waveform = np.ones((100,))
-    s = BaseSource(waveform, sfreq=250)
+    s = _BaseSource(waveform, sfreq=250)
     with pytest.raises(NotImplementedError, match="in the subclass"):
         s.to_stc()
 

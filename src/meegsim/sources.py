@@ -26,7 +26,7 @@ import mne
 from .utils import combine_stcs, get_sfreq, _extract_hemi
 
 
-class BaseSource:
+class _BaseSource:
     """
     An abstract class representing a source of activity.
     """
@@ -44,7 +44,7 @@ class BaseSource:
         )
 
 
-class PointSource(BaseSource):
+class PointSource(_BaseSource):
     """
     Point source of activity that is located in one of the vertices in
     the source space.
@@ -133,7 +133,7 @@ class PointSource(BaseSource):
         )
 
 
-class PatchSource(BaseSource):
+class PatchSource(_BaseSource):
     def __init__(self):
         pass
 
