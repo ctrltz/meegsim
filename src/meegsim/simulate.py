@@ -1,6 +1,5 @@
-from ._check import check_coupling
 from .configuration import SourceConfiguration
-from .source_groups import _create_point_source_group
+from .source_groups import PointSourceGroup
 from .waveform import one_over_f_noise
 
 
@@ -67,7 +66,7 @@ class SourceSimulator:
         """
             
         next_group_idx = len(self._source_groups)
-        point_sg, names = _create_point_source_group(
+        point_sg = PointSourceGroup.create(
             self.src,
             location, 
             waveform, 
@@ -82,10 +81,10 @@ class SourceSimulator:
                 
         # Store the source group and source names
         self._source_groups.append(point_sg)
-        self._sources.extend(names)
+        self._sources.extend(point_sg.names)
         
         # Return the names of newly added sources
-        return names
+        return point_sg.names
         
     # def add_patch_sources(self, location, waveform, snr=None, patch_corr=None, 
     #                     location_params=None, waveform_params=None, grow_params=None, names=None):
@@ -109,7 +108,7 @@ class SourceSimulator:
         Parameters
         ----------
         location: 
-        waveform: ndarray or callable
+        waveform: np.array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise is used for all noise sources.
         location_params: dict, optional
@@ -125,7 +124,7 @@ class SourceSimulator:
         """
         
         next_group_idx = len(self._noise_groups)
-        noise_sg, names = _create_point_source_group(
+        noise_sg = PointSourceGroup.create(
             self.src,
             location,
             waveform, 
@@ -140,10 +139,10 @@ class SourceSimulator:
 
         # Store the new source group and source names
         self._noise_groups.append(noise_sg)
-        self._sources.extend(names)
+        self._sources.extend(noise_sg.names)
         
         # Return the names of newly added sources
-        return names
+        return noise_sg.names
         
     def set_coupling(self, coupling, method):
         raise NotImplementedError('Coupling is not supported yet')
@@ -153,9 +152,7 @@ class SourceSimulator:
     def simulate(
         self,  
         sfreq, 
-        duration, 
-        src=None,
-        fwd=None,
+        duration,
         random_state=None
     ):
         # Parameters:
@@ -167,8 +164,7 @@ class SourceSimulator:
         return _simulate(
             self._source_groups,
             self._noise_groups,
-            self._coupling,
-            src,
+            self.src,
             sfreq,
             duration,
             random_state=random_state
@@ -178,34 +174,44 @@ class SourceSimulator:
 def _simulate(
     source_groups, 
     noise_groups,
-    coupling,
     src,
     sfreq,
     duration,
-    random_state
+    random_state=None
 ):
     """
     This function describes the simulation workflow.
     """
-    # INIT
+    # Initialize the SourceConfiguration
     sc = SourceConfiguration(src, sfreq, duration, random_state)
 
-    # Simulate noise sources first (important for adjusting the SNR)
-    noise_sources = {}
+    # Simulate all sources independently first (no coupling yet)
+    noise_sources = []
     for ng in noise_groups:
-        sources = ng.simulate(src, sc.times)
-        noise_sources.update({s.name: s for s in sources})
+        noise_sources.extend(ng.simulate(src, sc.times))
+    noise_sources = {s.name: s for s in noise_sources}
 
-    # COUPLING
-    # Here we should also check for possible cycles in the coupling structure
-    # If there are cycles, raise an error
-    # If there are no cycles, traverse the graph and set coupling according to the selected method
-    # Try calling the coupling with the provided parameters but be prepared for mismatches
+    sources = []
+    for sg in source_groups:
+        sources.extend(sg.simulate(src, sc.times))
+    sources = {s.name: s for s in sources}
 
-    # SNR
+    # Setup the desired coupling patterns
+    # The time courses are changed for some of the sources in the process
+
+        # Here we should also check for possible cycles in the coupling structure
+        # If there are cycles, raise an error
+        # If there are no cycles, traverse the graph and set coupling according to the selected method
+        # Try calling the coupling with the provided parameters but be prepared for mismatches
+
+    # Adjust the SNR of sources in each source group
+    # 1. Estimate the noise variance in the specified band
     # fwd_noise = mne.forward.restrict_forward_to_stc(fwd, stc_noise, on_missing='raise')    
     # noise_var = get_sensor_space_variance()
-    # Here we should also adjust the SNR
-    # 2. Adjust the amplitude of each signal source (self._sources) according to the desired SNR (if not None)
+    # 2. Adjust the amplitude of each signal source according to the desired SNR (if not None)
+
+    # Add the sources to the simulated configuration
+    sc._sources = sources
+    sc._noise_sources = noise_sources
 
     return sc

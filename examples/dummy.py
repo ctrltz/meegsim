@@ -7,9 +7,10 @@ import mne
 
 from pathlib import Path
 
-from meegsim.configuration import SourceConfiguration
 from meegsim.location import select_random
+from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
+
 
 # Load the head model
 fs_dir = Path(mne.datasets.fetch_fsaverage('~/mne_data/MNE-fsaverage-data'))
@@ -32,21 +33,22 @@ info.set_montage('standard_1020')
 fwd = mne.convert_forward_solution(fwd, force_fixed=True)
 fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
-sc = SourceConfiguration(src, sfreq, duration, random_state=0)
+sim = SourceSimulator(src)
 
 # Select some vertices randomly (signal/noise does not matter for now)
-sc.add_point_sources(
+sim.add_point_sources(
     location=select_random, 
     waveform=narrowband_oscillation,
     location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
     waveform_params=dict(fmin=8, fmax=12)
 )
-sc.add_noise_sources(
+sim.add_noise_sources(
     location=select_random,
     location_params=dict(n=10, vertices=[[], list(src[1]['vertno'])])
 )
 
-raw, stc = sc.simulate_raw(fwd, info, return_stc=True)
+sc = sim.simulate(sfreq, duration, random_state=0)
+raw = sc.to_raw(fwd, info)
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')
