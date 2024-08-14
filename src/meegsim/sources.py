@@ -27,11 +27,20 @@ from .utils import combine_stcs, _extract_hemi
 
 
 class BaseSource:
+    """
+    An abstract class representing a source of activity.
+    """
+
     def __init__(self, waveform):        
         # Current constraint: one source corresponds to one waveform
         # Point source: the waveform is present in one vertex
         # Patch source: the waveform is mixed with noise in several vertices
         self.waveform = waveform
+
+    def to_stc(self):
+        raise NotImplementedError(
+            'The to_stc() method should be implemented in the subclass.'
+        )
 
 
 class PointSource(BaseSource):
@@ -48,9 +57,24 @@ class PointSource(BaseSource):
         return f'<PointSource | {src_desc} | {self.vertno}>'
 
     def to_stc(self, src, sfreq, subject=None):
+        if self.src_idx >= len(src):
+            raise ValueError(
+                f"The point source cannot be added to the provided src. "
+                f"The point source was assigned to source space {self.src_idx}, "
+                f"which is not present in the provided src object."
+            )
+        
+        if self.vertno not in src[self.src_idx]['vertno']:
+            raise ValueError(
+                f"The point source cannot be added to the provided src. "
+                f"The source space with index {self.src_idx} does not "
+                f"contain the vertex {self.vertno}"
+            )
+
         data = self.waveform[np.newaxis, :]
-        # TODO: won't work with fancy srcs
-        vertices = [[], []]
+        
+        # Create a list of vertices for each src
+        vertices = [[] for _ in src]
         vertices[self.src_idx].append(self.vertno)
 
         return mne.SourceEstimate(
@@ -63,9 +87,8 @@ class PointSource(BaseSource):
 
 
 class PatchSource(BaseSource):
-    def __init__(self, patch_corr):
-        self._label = None
-        self.patch_corr = patch_corr
+    def __init__(self):
+        pass
 
 
 def _create_point_sources(
@@ -107,8 +130,8 @@ def _create_point_sources(
     # Create point sources and save them as a group
     sources = {}
     for (src_idx, vertno), waveform, name in zip(vertices, data, names):
-        new_source = PointSource(src_idx, vertno, waveform)
         hemi = _extract_hemi(src[src_idx])
+        new_source = PointSource(src_idx, vertno, waveform, hemi=hemi)
 
         if name is None:
             src_desc = hemi if hemi else f'src{src_idx}'
