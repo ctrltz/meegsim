@@ -238,7 +238,7 @@ class SourceConfiguration:
             group_sources = [self._sources[name] for name in sg]
             
             # XXX: might need to provide subject as well
-            stc_group = _combine_sources_into_stc(group_sources, self.src, self.sfreq)
+            stc_group = _combine_sources_into_stc(group_sources, self.src)
             stc_combined = combine_stcs(stc_noise, stc_group)
 
         # Multiply the resulting stc by the scaling factor
@@ -257,4 +257,4 @@ class SourceConfiguration:
     def _combine_noise_sources_to_stc(self):
         noise_sources = list(self._noise_sources.values())
         # XXX: might need to provide subject as well
-        return _combine_sources_into_stc(noise_sources, self.src, self.sfreq)
+        return _combine_sources_into_stc(noise_sources, self.src)
