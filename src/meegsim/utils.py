@@ -1,6 +1,9 @@
-import numpy as np    
-    
-    
+import numpy as np
+import warnings
+
+from scipy.special import i1, i0
+
+
 def combine_stcs(stc1, stc2):
     """
     Combines the data two SourceEstimate objects. If a vertex is present in both 
@@ -105,3 +108,36 @@ def get_sfreq(times):
         raise ValueError("Time points are not uniformly spaced.")
 
     return 1 / dt[0]
+  
+
+def unpack_vertices(vertices_lists):
+    """
+    Unpack a list of lists of vertices into a list of tuples.
+
+    Parameters
+    ----------
+    vertices_lists : list of lists
+        A list where each element is a list of vertices correspond to
+        different source spaces (one or two).
+
+    Returns
+    -------
+    list of tuples
+        A list of tuples, where each tuple contains:
+        - index: The index of the source space.
+        - vertno: Vertices in corresponding source space.
+    """
+
+    if isinstance(vertices_lists, list) and not all(isinstance(vertices, list) for vertices in vertices_lists):
+        warnings.warn("Input is not a list of lists. Will be assumed that there is one source space.", UserWarning)
+        vertices_lists = [vertices_lists]
+
+    unpacked_vertices = []
+    for index, vertices in enumerate(vertices_lists):
+        for vertno in vertices:
+            unpacked_vertices.append((index, vertno))
+    return unpacked_vertices
+
+
+def theoretical_plv(kappa):
+    return i1(kappa) / i0(kappa)

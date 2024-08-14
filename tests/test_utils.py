@@ -1,7 +1,39 @@
 import numpy as np
 import mne
+import pytest
 
-from meegsim.utils import combine_stcs, normalize_power
+from meegsim.utils import unpack_vertices, combine_stcs, normalize_power, get_sfreq
+
+
+def test_unpack_single_list():
+    vertices_lists = [[1, 2, 3]]
+    expected_output = [(0, 1), (0, 2), (0, 3)]
+    assert unpack_vertices(vertices_lists) == expected_output
+
+
+def test_unpack_multiple_lists():
+    vertices_lists = [[1, 2], [3, 4]]
+    expected_output = [(0, 1), (0, 2), (1, 3), (1, 4)]
+    assert unpack_vertices(vertices_lists) == expected_output
+
+
+def test_unpack_mixed_empty_non_empty_lists():
+    vertices_lists = [[1, 2], []]
+    expected_output = [(0, 1), (0, 2)]
+    assert unpack_vertices(vertices_lists) == expected_output
+
+
+def test_unpack_warning_for_single_list():
+    with pytest.warns(UserWarning, match="Input is not a list of lists. Will be assumed that there is one source space."):
+        result = unpack_vertices([1, 2, 3])
+    expected_output = [(0, 1), (0, 2), (0, 3)]
+    assert result == expected_output
+
+
+def test_unpack_repeated_vertices():
+    vertices_lists = [[1, 1, 2], [3, 3, 4]]
+    expected_output = [(0, 1), (0, 1), (0, 2), (1, 3), (1, 3), (1, 4)]
+    assert unpack_vertices(vertices_lists) == expected_output
 
 
 def prepare_stc(vertices, num_samples=5):
@@ -53,3 +85,19 @@ def test_normalize_power():
     # Should not change the shape but should change the norm
     assert data.shape == normalized.shape
     assert np.allclose(np.linalg.norm(normalized, axis=1), 1)
+
+
+def test_get_sfreq():
+    sfreq = 250
+    times = np.arange(0, sfreq) / sfreq
+    assert get_sfreq(times) == sfreq
+
+
+def test_get_sfreq_too_few_timepoints_raises():
+    with pytest.raises(ValueError, match='must contain at least two points'):
+        get_sfreq(np.array([0]))
+
+
+def test_get_sfreq_unequal_spacing_raises():
+    with pytest.raises(ValueError, match='not uniformly spaced'):
+        get_sfreq(np.array([0, 0.01, 0.1]))

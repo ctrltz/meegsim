@@ -1,5 +1,5 @@
 """
-Testing the configuration structure with white noise
+Testing the configuration structure
 """
 
 import numpy as np
@@ -8,7 +8,8 @@ import mne
 from pathlib import Path
 
 from meegsim.configuration import SourceConfiguration
-from meegsim.waveform import white_noise
+from meegsim.location import select_random
+from meegsim.waveform import narrowband_oscillation
 
 # Load the head model
 fs_dir = Path(mne.datasets.fetch_fsaverage('~/mne_data/MNE-fsaverage-data'))
@@ -34,12 +35,18 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 sc = SourceConfiguration(src, sfreq, duration, random_state=0)
 
 # Select some vertices randomly (signal/noise does not matter for now)
-source_vertno = np.random.choice(src[0]['vertno'], size=10, replace=False)
-noise_vertno = np.random.choice(src[1]['vertno'], size=10, replace=False)
-
-sc.add_point_sources([source_vertno, []], white_noise)
-sc.add_noise_sources([[], noise_vertno], white_noise)
+sc.add_point_sources(
+    location=select_random, 
+    waveform=narrowband_oscillation,
+    location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
+    waveform_params=dict(fmin=8, fmax=12)
+)
+sc.add_noise_sources(
+    location=select_random,
+    location_params=dict(n=10, vertices=[[], list(src[1]['vertno'])])
+)
 
 raw, stc = sc.simulate_raw(fwd, info, return_stc=True)
-raw.compute_psd().plot()
-input()
+spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
+spec.plot(sphere='eeglab')
+input('Press any key to continue')

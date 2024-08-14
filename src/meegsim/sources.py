@@ -86,14 +86,10 @@ def _create_point_sources(
 
     # Get the corresponding number of time series
     data = waveform(n_vertices, times, random_state=random_state) if callable(waveform) else waveform
-    
-    # Flatten the vertices list, keep the source space indices in a separate list
-    src_indices = map(lambda el: el[0], vertices)
-    vertices_flat = map(lambda el: el[1], vertices)
         
     # Create point sources and save them as a group
     sources = []
-    for src_idx, vertno, waveform, name in zip(src_indices, vertices_flat, data, names):
+    for (src_idx, vertno), waveform, name in zip(vertices, data, names):
         sources.append(PointSource(name, src_idx, vertno, waveform))
         
     return sources
