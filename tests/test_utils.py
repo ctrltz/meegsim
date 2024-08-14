@@ -117,3 +117,21 @@ def test_extract_hemi():
 
     for s, hemi in zip(src, expected_hemis):
         assert _extract_hemi(s) == hemi, f"Failed for {s['type']}"
+
+
+def test_extract_hemi_raises():
+    src = [
+        {'id': 0},   # no 'type'
+        {'type': 'vol'}  # no 'id'
+    ]
+
+    for s in src: 
+        with pytest.raises(ValueError, match='mandatory internal fields'):
+            _extract_hemi(s)
+
+    src = [
+        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN}
+    ]
+
+    with pytest.raises(ValueError, match='Unexpected ID'):
+        _extract_hemi(src[0])
