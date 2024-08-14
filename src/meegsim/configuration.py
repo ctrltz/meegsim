@@ -3,8 +3,8 @@ import mne
 
 from .coupling import COUPLING_FUNCTIONS
 from .snr import get_sensor_space_variance
-from .sources import _create_point_sources
-from .utils import combine_sources_into_stc, combine_stcs
+from .sources import _create_point_sources, _combine_sources_into_stc
+from .utils import combine_stcs
 from .waveform import one_over_f_noise
 
 
@@ -238,7 +238,7 @@ class SourceConfiguration:
             group_sources = [self._sources[name] for name in sg]
             
             # XXX: might need to provide subject as well
-            stc_group = combine_sources_into_stc(group_sources, self.src, self.sfreq)
+            stc_group = _combine_sources_into_stc(group_sources, self.src, self.sfreq)
             stc_combined = combine_stcs(stc_noise, stc_group)
 
         # Multiply the resulting stc by the scaling factor
@@ -257,4 +257,4 @@ class SourceConfiguration:
     def _combine_noise_sources_to_stc(self):
         noise_sources = list(self._noise_sources.values())
         # XXX: might need to provide subject as well
-        return combine_sources_into_stc(noise_sources, self.src, self.sfreq)
+        return _combine_sources_into_stc(noise_sources, self.src, self.sfreq)

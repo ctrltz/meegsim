@@ -23,8 +23,7 @@ Methods:
 import numpy as np
 import mne
 
-from .utils import _extract_hemi
-# from .utils import src_vertno_to_vertices
+from .utils import combine_stcs, _extract_hemi
 
 
 class BaseSource:
@@ -104,22 +103,12 @@ def _create_point_sources(
 
     # Here we should also adjust the SNR
     # 2. Adjust the amplitude of each signal source (self._sources) according to the desired SNR (if not None)
-
-    # Flatten the vertices list, keep the source space indices in a separate list
-    src_indices = []
-    hemis = []
-    vertices_flat = []
-    for src_idx, src_vertno in enumerate(vertices):
-        n_vertno = len(src_vertno)
-        src_indices.extend([src_idx] * n_vertno)
-        hemi = _extract_hemi(src[src_idx])
-        hemis.extend([hemi] * n_vertno)
-        vertices_flat.extend(src_vertno)
         
     # Create point sources and save them as a group
     sources = {}
-    for src_idx, hemi, vertno, waveform, name in zip(src_indices, hemis, vertices_flat, data, names):
-        new_source = PointSource(src_idx, vertno, waveform, hemi=hemi)
+    for (src_idx, vertno), waveform, name in zip(vertices, data, names):
+        new_source = PointSource(src_idx, vertno, waveform)
+        hemi = _extract_hemi(src[src_idx])
 
         if name is None:
             src_desc = hemi if hemi else f'src{src_idx}'
@@ -127,3 +116,17 @@ def _create_point_sources(
         sources[name] = new_source
         
     return sources
+
+
+def _combine_sources_into_stc(sources, src, sfreq):
+    stc_combined = None
+    
+    for s in sources:
+        stc_source = s.to_stc(src, sfreq)
+        if stc_combined is None:
+            stc_combined = stc_source
+            continue
+
+        stc_combined = combine_stcs(stc_combined, stc_source)
+
+    return stc_combined
