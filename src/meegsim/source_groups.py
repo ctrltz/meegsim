@@ -40,6 +40,19 @@ class PointSourceGroup(_BaseSourceGroup):
         self.snr_params = snr_params
         self.names = names
 
+    def __repr__(self):
+        location_desc = 'list'
+        if callable(self.location):
+            location_desc = getattr(self.location.func, '__name__', 'callable')
+        location_desc = f'location={location_desc}'
+
+        waveform_desc = 'array'
+        if callable(self.waveform):
+            waveform_desc = getattr(self.waveform.func, '__name__', 'callable')
+        waveform_desc = f'waveform={waveform_desc}'
+
+        return f'<PointSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>'
+
     def simulate(self, src, times, random_state=None):
         return PointSource.create(
             src, 

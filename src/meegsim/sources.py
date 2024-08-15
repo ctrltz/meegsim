@@ -146,11 +146,19 @@ class PointSource(_BaseSource):
 
         # Get the corresponding number of time series
         data = waveform(n_sources, times, random_state=random_state) if callable(waveform) else waveform
-            
+
         # Create point sources and save them as a group
         sources = []
         for (src_idx, vertno), waveform, name in zip(vertices, data, names):
-            sources.append(cls(name, src_idx, vertno, sfreq, waveform))
+            hemi = _extract_hemi(src[src_idx])
+            sources.append(cls(
+                name=name, 
+                src_idx=src_idx, 
+                vertno=vertno, 
+                waveform=waveform, 
+                sfreq=sfreq, 
+                hemi=hemi
+            ))
             
         return sources        
 
@@ -160,7 +168,7 @@ class PatchSource(_BaseSource):
         pass
 
 
-def _combine_sources_into_stc(sources, src, sfreq):
+def _combine_sources_into_stc(sources, src):
     stc_combined = None
     
     for s in sources:

@@ -62,7 +62,7 @@ class SourceConfiguration:
         noise_sources = list(self._noise_sources.values())
         all_sources = sources + noise_sources
 
-        return _combine_sources_into_stc(all_sources, self.src, self.sfreq)
+        return _combine_sources_into_stc(all_sources, self.src)
 
     def to_raw(self, fwd, info, scaling_factor=1e-6):
         # Parameters:
@@ -80,8 +80,3 @@ class SourceConfiguration:
         # TODO: add sensor space noise (white noise by default but allow customizing?)
                 
         return raw
-
-    def _combine_noise_sources_to_stc(self):
-        noise_sources = list(self._noise_sources.values())
-        # XXX: might need to provide subject as well
-        return _combine_sources_into_stc(noise_sources, self.src)

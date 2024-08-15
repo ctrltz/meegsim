@@ -53,16 +53,16 @@ sim.add_noise_sources(
 )
 
 # Print the source groups to check internal structure
-print(sim._source_groups)
-print(sim._noise_groups)
+print(f'Source groups: {sim._source_groups}')
+print(f'Noise groups: {sim._noise_groups}')
 
 sc = sim.simulate(sfreq, duration, random_state=0)
-raw = sc.to_raw(fwd, info)
 
 # Print the sources to check internal structure
-print(to_json(sc._sources))
+print(f'Simulated sources: {to_json(sc._sources)}')
+print(f'Simulated noise sources: {to_json(sc._noise_sources)}')
 
-raw, stc = sc.simulate_raw(fwd, info, return_stc=True)
+raw = sc.to_raw(fwd, info)
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')

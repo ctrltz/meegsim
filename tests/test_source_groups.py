@@ -22,6 +22,11 @@ def test_basesourcegroup_is_abstract():
         _BaseSourceGroup().simulate()
 
 
+def test_pointsourcegroup_repr():
+    # TODO
+    pass
+
+
 @patch('meegsim.source_groups.check_waveform', return_value='mock waveform')
 @patch('meegsim.source_groups.check_location', return_value=('mock location', 0))
 def test_pointsourcegroup_create_using_arrays(location_mock, waveform_mock):
