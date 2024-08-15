@@ -46,9 +46,6 @@ class SourceConfiguration:
         # Keep track of all added sources, store 'signal' and 'noise' separately to ease the calculation of SNR
         self._sources = {}
         self._noise_sources = {}
-        
-        # Define groups of sources that were defined with one command (should allow reducing the computation)
-        self._source_groups = []
 
     def check_if_exist(self, names):
         missing = [name for name in names if name not in self._sources]

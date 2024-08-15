@@ -5,7 +5,13 @@ from .waveform import one_over_f_noise
 
 class SourceSimulator:
     """
-    Generates SourceConfiguration objects according to the provided input.
+    This class can be used to create a source configuration by adding 
+    point sources (e.g., of narrowband oscillatory activity or 1/f noise.)
+
+    Attributes
+    ----------
+    src: mne.SourceSpaces
+        The source space that contains all candidate source locations.
     """
 
     def __init__(self, src):
@@ -23,7 +29,7 @@ class SourceSimulator:
         self._coupling = {}
 
     def __contains__(self, name):
-        return (name in self._sources or name in self._noise_sources)
+        return name in self._sources
 
     def add_point_sources(
         self, 
@@ -36,11 +42,17 @@ class SourceSimulator:
         names=None
     ):
         """
+        Add point sources to the simulation.
+
         Parameters
         ----------
-        location: list of vertices (should match the format of src) or a callable
-        
-        waveform:
+        location: list or callable
+            Locations of sources can be either specified directly as a list of tuples
+            (index of the src, vertno) or as a function that returns such a list.
+            In the first case, source locations will be the same for every configuration,
+            while in the second configurations might differ (e.g., if the function 
+            returns a random location).
+        waveform: np.array or callable
             Q: should we allow passing an array directly?
             Q: don't set a default waveform here to make user explicitly choose it? or just generate alpha by default?
         
@@ -48,10 +60,10 @@ class SourceSimulator:
             NB: only positive values make sense, raise error if negative ones are provided
         
         location_params: None or dict
-            Keyword arguments that will passed to the location function.
+            Keyword arguments that will be passed to the location function.
         
         waveform_params: None or dict
-            Keyword arguments that will passed to the waveform function.
+            Keyword arguments that will be passed to the waveform function.
         
         snr_params: dict
             fmin and fmax for the frequency band that will be used to adjust SNR.
@@ -105,17 +117,25 @@ class SourceSimulator:
         waveform_params=dict(),
     ):
         """
+        Add noise sources to the simulation. If an adjustment of SNR is needed at
+        some point, these sources will be considered as noise.
+
         Parameters
         ----------
-        location: 
+        location: list or callable
+            Locations of sources can be either specified directly as a list of tuples
+            (index of the src, vertno) or as a function that returns such a list.
+            In the first case, source locations will be the same for every configuration,
+            while in the second configurations might differ (e.g., if the function 
+            returns a random location).
         waveform: np.array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise is used for all noise sources.
         location_params: dict, optional
-            Additional arguments that will provided to the location function.
+            Additional arguments that will be provided to the location function.
             Ignored if location is a list of vertices.
         waveform_params: dict, optional
-            Additional arguments that will provided to the waveform function.
+            Additional arguments that will be provided to the waveform function.
             Ignored if waveform is an array.
 
         Notes
