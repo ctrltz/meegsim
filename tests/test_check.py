@@ -3,7 +3,7 @@ import pytest
 
 from functools import partial
 from meegsim._check import (
-    check_callable, check_vertices_list_of_tuples,
+    check_callable, check_vertices_list_of_tuples, check_vertices_in_src,
     check_location, check_waveform
 )
 
@@ -46,12 +46,31 @@ def test_check_vertices_list_of_tuples_raises():
     with pytest.raises(ValueError, match="to be a list or a tuple, does not hold for element 1"):
         check_vertices_list_of_tuples([(0, 1), 1])
 
-    with pytest.raises(ValueError, match="contain 2 values, does not hold for element 2"):
+    with pytest.raises(ValueError, match="contain 2 values, does not hold for element \(1, 2, 3\)"):
         check_vertices_list_of_tuples([(0, 1), (0, 2), (1, 2, 3)])
 
 
 def test_check_vertices_in_src():
-    pass
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+
+    # should pass
+    check_vertices_in_src([(0, 0), (0, 1), (1, 0), (1, 1)], src)
+
+
+def test_check_vertices_in_src_raises():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+
+    with pytest.raises(ValueError, match='Vertex \(2, 0\) belongs to'):
+        check_vertices_in_src([(0, 0), (1, 0), (2, 0)], src)
+
+    with pytest.raises(ValueError, match='Vertex \(0, 2\) is not present'):
+        check_vertices_in_src([(0, 0), (0, 1), (0, 2)], src)
 
 
 def test_check_location_using_arrays():
@@ -108,6 +127,16 @@ def test_check_waveform_with_arrays():
         "The provided waveform was changed"
     
 
+def test_check_waveform_array_bad_shape_raises():
+    waveform = np.ones((5, 100))
+    with pytest.raises(ValueError, match="number of sources"):
+        check_waveform(
+            waveform, 
+            dict(),     
+            n_sources=2        # expected 2 sources but will get 5
+        )
+
+
 def test_check_waveform_using_callables():
     def waveform_fun(n_series, times, value=0, random_state=None):
         # return constant time series equal to the provided value
@@ -123,3 +152,24 @@ def test_check_waveform_using_callables():
         "Expected the waveform function to be converted to a partial object"
     assert checked.keywords['value'] == 1, \
         "The provided value of the keyword argument was changed"
+
+
+def test_check_waveform_callable_bad_shape_raises():
+    def waveform_fun(n_series, times, random_state=None):
+        # return constant time series, ignore the requested size
+        return np.ones((5, 100))
+    
+    # raises an error since 1000 samples are requested when testing the waveform function
+    with pytest.raises(ValueError, match="number of samples"):
+        check_waveform(
+            waveform_fun, 
+            dict(),     
+            n_sources=5        
+        )
+
+    with pytest.raises(ValueError, match="number of sources"):
+        check_waveform(
+            waveform_fun, 
+            dict(),     
+            n_sources=2       # expected 2 sources, will get 5 
+        )

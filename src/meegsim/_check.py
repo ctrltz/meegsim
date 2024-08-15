@@ -78,11 +78,11 @@ def check_vertices_list_of_tuples(vertices):
         if not isinstance(el, list | tuple):
             raise ValueError(f"Expected each element of the vertices list to "
                              f"be a list or a tuple, does not hold for "
-                             f"element {i}: {el}")
+                             f"element {el}")
 
         if len(el) != 2:
             raise ValueError(f"Expected each element of the vertices list to "
-                             f"contain 2 values, does not hold for element {i}: {el}")
+                             f"contain 2 values, does not hold for element {el}")
 
 
 def check_vertices_in_src(vertices, src):
@@ -101,14 +101,14 @@ def check_vertices_in_src(vertices, src):
     ValueError
         In case any vertex is not present in the provided src.
     """
-    for i, (src_idx, vertno) in enumerate(vertices):
+    for i, v in enumerate(vertices):
+        src_idx, vertno = v
         if src_idx >= len(src):
-            raise ValueError(f"Vertex {i} belongs to the source space {src_idx}, "
+            raise ValueError(f"Vertex {v} belongs to the source space {src_idx}, "
                              f"which is not present in the provided src")
         
         if vertno not in src[src_idx]['vertno']:
-            raise ValueError(f"Vertex {i} (vertno={vertno}) is not present in "
-                             f"the provided src[{src_idx}]")
+            raise ValueError(f"Vertex {v} is not present in the provided src[{src_idx}]")
 
 
 def check_location(location, location_params, src):
