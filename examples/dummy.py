@@ -2,6 +2,7 @@
 Testing the configuration structure
 """
 
+import json
 import numpy as np
 import mne
 
@@ -10,6 +11,11 @@ from pathlib import Path
 from meegsim.configuration import SourceConfiguration
 from meegsim.location import select_random
 from meegsim.waveform import narrowband_oscillation
+
+
+def to_json(sources):
+    return json.dumps({k: str(s) for k, s in sources.items()}, indent=4)
+
 
 # Load the head model
 fs_dir = Path(mne.datasets.fetch_fsaverage('~/mne_data/MNE-fsaverage-data'))
@@ -45,6 +51,10 @@ sc.add_noise_sources(
     location=select_random,
     location_params=dict(n=10, vertices=[[], list(src[1]['vertno'])])
 )
+
+# Print the sources to check internal structure
+print(to_json(sc._sources))
+print(to_json(sc._noise_sources))
 
 raw, stc = sc.simulate_raw(fwd, info, return_stc=True)
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
