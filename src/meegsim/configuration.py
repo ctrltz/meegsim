@@ -71,8 +71,25 @@ class SourceConfiguration:
         #   All source time courses get multiplied by this number before projecting to sensor space.
         #   It looks a bit random in Mina's codes so I think we should attach some physical meaning (e.g., X nA/m) to it.
         
+<<<<<<< HEAD
         # Multiply the combined stc by the scaling factor
         stc_combined = self.to_stc() * scaling_factor
+=======
+        # Combine all noise sources
+        stc_noise = self._combine_noise_sources_to_stc()
+
+        # Combine all sources into one stc
+        stc_combined = stc_noise
+        for sg in self._source_groups:
+            group_sources = [self._sources[name] for name in sg]
+            
+            # XXX: might need to provide subject as well
+            stc_group = _combine_sources_into_stc(group_sources, self.src)
+            stc_combined = combine_stcs(stc_noise, stc_group)
+
+        # Multiply the resulting stc by the scaling factor
+        stc_combined *= scaling_factor
+>>>>>>> master
     
         # Project to sensor space and return
         raw = mne.apply_forward_raw(fwd, stc_combined, info)
@@ -84,4 +101,4 @@ class SourceConfiguration:
     def _combine_noise_sources_to_stc(self):
         noise_sources = list(self._noise_sources.values())
         # XXX: might need to provide subject as well
-        return _combine_sources_into_stc(noise_sources, self.src, self.sfreq)
+        return _combine_sources_into_stc(noise_sources, self.src)

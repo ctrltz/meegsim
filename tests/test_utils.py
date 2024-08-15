@@ -2,7 +2,10 @@ import numpy as np
 import mne
 import pytest
 
-from meegsim.utils import unpack_vertices, combine_stcs, normalize_power, get_sfreq
+from mne._fiff.constants import FIFF
+from meegsim.utils import (
+    _extract_hemi, unpack_vertices, combine_stcs, normalize_power, get_sfreq
+)
 
 
 def test_unpack_single_list():
@@ -101,3 +104,34 @@ def test_get_sfreq_too_few_timepoints_raises():
 def test_get_sfreq_unequal_spacing_raises():
     with pytest.raises(ValueError, match='not uniformly spaced'):
         get_sfreq(np.array([0, 0.01, 0.1]))
+    
+
+def test_extract_hemi():
+    src = mne.SourceSpaces([
+        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_LEFT_HEMI},
+        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_RIGHT_HEMI},
+        {'type': 'vol', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN},
+        {'type': 'discrete', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN},
+    ])
+    expected_hemis = ['lh', 'rh', None, None]
+
+    for s, hemi in zip(src, expected_hemis):
+        assert _extract_hemi(s) == hemi, f"Failed for {s['type']}"
+
+
+def test_extract_hemi_raises():
+    src = [
+        {'id': 0},   # no 'type'
+        {'type': 'vol'}  # no 'id'
+    ]
+
+    for s in src: 
+        with pytest.raises(ValueError, match='mandatory internal fields'):
+            _extract_hemi(s)
+
+    src = [
+        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN}
+    ]
+
+    with pytest.raises(ValueError, match='Unexpected ID'):
+        _extract_hemi(src[0])
