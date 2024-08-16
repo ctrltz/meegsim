@@ -83,6 +83,35 @@ class PointSourceGroup(_BaseSourceGroup):
         """
         Check the provided input for all fields and create a source group that
         would store this information.
+
+        Parameters
+        ----------
+        src: mne.SourceSpaces
+            The source space that contains all candidate source locations.
+        location: list or callable
+            The location provided by the user.
+        waveform: list of callable
+            The waveform provided by the user.
+        snr: 
+            TODO: fix when finalizing SNR 
+        location_params: dict, optional
+            Additional keyword arguments for the location function.
+        waveform_params: dict, optional
+            Additional keyword arguments for the waveform function.
+        snr_params:
+            TODO: fix when finalizing SNR
+        names:
+            The names of sources provided by the user.
+        group:
+            The name of the source group. Only used for generating the names
+            of sources automatically.
+        existing:
+            The names of sources that were already taken.
+
+        Returns
+        -------
+        group: PointSourceGroup
+            A source group object with checked and preprocessed user input.
         """
 
         location, n_sources = check_location(location, location_params, src)
