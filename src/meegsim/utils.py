@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import warnings
 
-from mne._fiff.constants import FIFF
+from mne.io.constants import FIFF
 from scipy.special import i1, i0
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 import mne
 
-from mne._fiff.constants import FIFF
+from mne.io.constants import FIFF
 
 
 def prepare_source_space(types, vertices):
