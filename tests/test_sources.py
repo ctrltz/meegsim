@@ -23,7 +23,7 @@ def test_basesource_is_abstract():
 )
 def test_pointsource_repr(src_idx, vertno, hemi):
     # Waveform is not required for repr, leaving it empty
-    s = PointSource(src_idx, vertno, np.array([]), sfreq=250, hemi=hemi)
+    s = PointSource('mysource', src_idx, vertno, np.array([]), sfreq=250, hemi=hemi)
 
     if hemi is None:
         assert f'src[{src_idx}]' in repr(s)
@@ -31,6 +31,7 @@ def test_pointsource_repr(src_idx, vertno, hemi):
         assert hemi in repr(s)
 
     assert str(vertno) in repr(s)
+    assert 'mysource' in repr(s)
 
 
 @pytest.mark.parametrize(
@@ -45,7 +46,7 @@ def test_pointsource_to_stc(src_idx, vertno):
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource(src_idx, vertno, waveform, sfreq=100)
+    s = PointSource('mysource', src_idx, vertno, waveform, sfreq=100)
     stc = s.to_stc(src)
 
     assert stc.data.shape[0] == 1, \
@@ -63,7 +64,7 @@ def test_pointsource_to_stc_sfreq(sfreq):
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource(0, 0, waveform, sfreq=sfreq)
+    s = PointSource('mysource', 0, 0, waveform, sfreq=sfreq)
     stc = s.to_stc(src)
 
     assert stc.sfreq == sfreq, \
@@ -76,7 +77,7 @@ def test_pointsource_to_stc_subject():
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource(0, 0, waveform, sfreq=250)
+    s = PointSource('mysource', 0, 0, waveform, sfreq=250)
     stc = s.to_stc(src)
 
     assert stc.subject == 'meegsim', \
@@ -96,7 +97,7 @@ def test_pointsource_to_stc_bad_src_raises():
     )
 
     # src[2] is out of range
-    s = PointSource(2, 0, waveform, sfreq=250)
+    s = PointSource('mysource', 2, 0, waveform, sfreq=250)
     with pytest.raises(ValueError, match="not present in the provided src"):
         s.to_stc(src, subject='mysubject')
 
@@ -109,6 +110,6 @@ def test_pointsource_to_stc_bad_vertno_raises():
     )
 
     # vertex 2 is not in src[0]
-    s = PointSource(0, 2, waveform, sfreq=250)
+    s = PointSource('mysource', 0, 2, waveform, sfreq=250)
     with pytest.raises(ValueError, match="does not contain the vertex"):
         s.to_stc(src, subject='mysubject')

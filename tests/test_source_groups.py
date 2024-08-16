@@ -22,9 +22,31 @@ def test_basesourcegroup_is_abstract():
         _BaseSourceGroup().simulate()
 
 
-def test_pointsourcegroup_repr():
-    # TODO
-    pass
+def test_pointsourcegroup_repr_no_callables():
+    point_sg = PointSourceGroup(4, [(0, 0)], np.array([0]), None, dict(), [])
+    assert '4 sources' in repr(point_sg)
+    assert 'location=list' in repr(point_sg)
+    assert 'waveform=array' in repr(point_sg)
+
+
+def test_pointsourcegroup_repr_with_callables():
+    def my_location(x):
+        return x
+    
+    def my_waveform(x):
+        return x
+
+    point_sg = PointSourceGroup(
+        4, 
+        partial(my_location, x=1), 
+        partial(my_waveform, x=1), 
+        None,
+        dict(),
+        []
+    )
+    assert '4 sources' in repr(point_sg)
+    assert 'location=my_location' in repr(point_sg)
+    assert 'waveform=my_waveform' in repr(point_sg)
 
 
 @patch('meegsim.source_groups.check_waveform', return_value='mock waveform')

@@ -28,9 +28,6 @@ class SourceSimulator:
         # Store all coupling edges
         self._coupling = {}
 
-    def __contains__(self, name):
-        return name in self._sources
-
     def add_point_sources(
         self, 
         location, 

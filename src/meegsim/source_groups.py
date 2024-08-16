@@ -43,11 +43,13 @@ class PointSourceGroup(_BaseSourceGroup):
     def __repr__(self):
         location_desc = 'list'
         if callable(self.location):
+            # extract the name of the function from the partial object if possible
             location_desc = getattr(self.location.func, '__name__', 'callable')
         location_desc = f'location={location_desc}'
 
         waveform_desc = 'array'
         if callable(self.waveform):
+            # extract the name of the function from the partial object if possible
             waveform_desc = getattr(self.waveform.func, '__name__', 'callable')
         waveform_desc = f'waveform={waveform_desc}'
 

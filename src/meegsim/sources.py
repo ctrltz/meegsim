@@ -60,7 +60,7 @@ class PointSource(_BaseSource):
     def __repr__(self):
         # Use human readable names of hemispheres if possible
         src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
-        return f'<PointSource | {src_desc} | {self.vertno}>'
+        return f'<PointSource | {self.name} | {src_desc} | {self.vertno}>'
 
     def to_stc(self, src, subject=None):
         """

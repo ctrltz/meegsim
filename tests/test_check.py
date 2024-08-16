@@ -4,7 +4,7 @@ import pytest
 from functools import partial
 from meegsim._check import (
     check_callable, check_vertices_list_of_tuples, check_vertices_in_src,
-    check_location, check_waveform
+    check_location, check_waveform, check_names
 )
 
 from utils.prepare import prepare_source_space
@@ -173,3 +173,54 @@ def test_check_waveform_callable_bad_shape_raises():
             dict(),     
             n_sources=2       # expected 2 sources, will get 5 
         )
+
+
+@pytest.mark.parametrize(
+    "group,n_sources", 
+    [
+        ('group1', 3),
+        ('group2', 6)
+    ]
+)
+def test_check_names_autogenerate(group, n_sources):
+    names = check_names(None, group, n_sources, [])
+    assert len(names) == n_sources
+    assert all([f'auto-{group}-s' in name for name in names])
+
+
+def test_check_names_should_pass():
+    initial = ['m1-lh', 'm1-rh', 's1-lh', 's1-rh']
+    names = check_names(initial, '', 4, ['v1-lh', 'v1-rh'])
+    assert names == initial
+
+
+def test_check_names_wrong_number():
+    with pytest.raises(ValueError, match='does not match the number of defined'):
+        check_names(['a', 'b', 'c'], '', 5, [])
+
+
+def test_check_names_non_unique():
+    with pytest.raises(ValueError, match='should be unique'):
+        check_names(['a', 'a', 'b'], '', 3, [])
+
+
+def test_check_names_wrong_type():
+    with pytest.raises(ValueError, match='to be strings, got int: 1'):
+        check_names(['a', 'b', 1], '', 3, [])
+    with pytest.raises(ValueError, match='to be strings, got list'):
+        check_names(['a', 'b', ['c', 'd']], '', 3, [])
+
+
+def test_check_names_empty():
+    with pytest.raises(ValueError, match='should not be empty'):
+        check_names(['a', 'b', ''], '', 3, [])
+
+
+def test_check_names_auto():
+    with pytest.raises(ValueError, match='Name auto-s1 should not start with auto'):
+        check_names(['a', 'b', 'auto-s1'], '', 3, [])
+
+
+def test_check_names_already_exists():
+    with pytest.raises(ValueError, match='Name s1 is already taken'):
+        check_names(['a', 'b', 's1'], '', 3, ['s1'])
