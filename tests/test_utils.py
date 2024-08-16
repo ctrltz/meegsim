@@ -2,7 +2,7 @@ import numpy as np
 import mne
 import pytest
 
-from mne._fiff.constants import FIFF
+from mne.io.constants import FIFF
 from meegsim.utils import (
     _extract_hemi, unpack_vertices, combine_stcs, normalize_power, get_sfreq
 )
