@@ -140,12 +140,14 @@ class PointSource(_BaseSource):
         # Get the list of vertices (directly from the provided input or through the function)
         vertices = location(src, random_state=random_state) if callable(location) else location
         if len(vertices) != n_sources:
-            raise ValueError('The number of sources does not match')
-
-        # what if custom location functions produce non-unique values? we might need to warn the user or forbid it
+            raise ValueError('The number of sources in location does not match')
 
         # Get the corresponding number of time series
         data = waveform(n_sources, times, random_state=random_state) if callable(waveform) else waveform
+        if data.shape[0] != n_sources:
+            raise ValueError('The number of sources in waveform does not match')
+        if data.shape[1] != len(times):
+            raise ValueError('The number of samples in waveform does not match')
 
         # Create point sources and save them as a group
         sources = []

@@ -11,7 +11,6 @@ for SourceSimulator:
 
 import numpy as np
 
-from collections.abc import Sized
 from functools import partial
 
 from .utils import logger

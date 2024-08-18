@@ -2,7 +2,6 @@ import numpy as np
 import mne
 
 from .sources import _combine_sources_into_stc
-from .utils import combine_stcs
 
 
 class SourceConfiguration:
@@ -47,20 +46,13 @@ class SourceConfiguration:
         self._sources = {}
         self._noise_sources = {}
 
-    def check_if_exist(self, names):
-        missing = [name for name in names if name not in self._sources]
-        if missing:
-            raise ValueError(f"The configuration contains no sources with the following names: {', '.join(missing)}")
-
-    def get_waveforms(self, names):
-        self.check_if_exist(names)
-        waveforms = [self._sources[name].waveform for name in names]
-        return np.vstack(waveforms)
-
     def to_stc(self):
         sources = list(self._sources.values()) 
         noise_sources = list(self._noise_sources.values())
         all_sources = sources + noise_sources
+
+        if not all_sources:
+            raise ValueError('No sources were added to the configuration.')
 
         return _combine_sources_into_stc(all_sources, self.src)
 

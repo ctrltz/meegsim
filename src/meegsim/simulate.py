@@ -178,6 +178,9 @@ class SourceSimulator:
         duration,
         random_state=None
     ):
+        if not (self._source_groups or self._noise_groups):
+            raise ValueError('No sources were added to the configuration.')
+
         return _simulate(
             self._source_groups,
             self._noise_groups,
