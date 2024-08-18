@@ -69,12 +69,12 @@ def check_vertices_list_of_tuples(vertices):
         If any violation of the format is detected.
     """
 
-    if not isinstance(vertices, list | tuple):
+    if not isinstance(vertices, (list, tuple)):
         raise ValueError(f"Expected vertices to be a list or a tuple, "
                          f" got {type(vertices)}")
     
     for i, el in enumerate(vertices):
-        if not isinstance(el, list | tuple):
+        if not isinstance(el, (list, tuple)):
             raise ValueError(f"Expected each element of the vertices list to "
                              f"be a list or a tuple, does not hold for "
                              f"element {el}")
