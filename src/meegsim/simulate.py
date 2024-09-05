@@ -50,8 +50,9 @@ class SourceSimulator:
             while in the second configurations might differ (e.g., if the function 
             returns a random location).
         waveform: np.array or callable
-            Q: should we allow passing an array directly?
-            Q: don't set a default waveform here to make user explicitly choose it? or just generate alpha by default?
+            Waveforms of source activity provided either directly in an array (fixed
+            for every configuration) or as a function that generates the waveforms
+            (but differ between configurations if the generation is random). 
         snr: None (do not adjust SNR), float (same SNR for all sources), or array (one value per source)
             TODO: fix when finalizing SNR
             NB: only positive values make sense, raise error if negative ones are provided
