@@ -4,7 +4,7 @@ import pytest
 from functools import partial
 from mock import patch
 from meegsim.source_groups import (
-    _BaseSourceGroup, PointSourceGroup
+    _BaseSourceGroup, PointSourceGroup, generate_names
 )
 
 from utils.prepare import prepare_source_space
@@ -15,6 +15,19 @@ def check_all_mocks(sg, mocks):
         mock.assert_called()
         assert getattr(sg, field) == f'mock {field}', \
             f"Value of {field} was stored incorrectly"
+
+
+@pytest.mark.parametrize(
+    "group,n_sources", 
+    [
+        ('group1', 3),
+        ('group2', 6)
+    ]
+)
+def test_generate_names(group, n_sources):
+    names = generate_names(group, n_sources)
+    assert len(names) == n_sources
+    assert all([f'auto-{group}-s' in name for name in names])
 
 
 def test_basesourcegroup_is_abstract():

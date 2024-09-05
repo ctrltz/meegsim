@@ -10,6 +10,27 @@ from ._check import (
 from .sources import PointSource
 
 
+def generate_names(group, n_sources):
+    """
+    Automatically generate names for sources belonging to the group.
+
+    Parameters
+    ----------
+    group: str
+        The name of the source group.
+    n_sources: int
+        The number of sources in the group.
+
+    Returns
+    -------
+    names: list
+        The auto-generated names in the format 'auto-G-sX', where G is the group name,
+        and X is the index of the source in the group.
+    """
+    
+    return [f'auto-{group}-s{idx}' for idx in range(n_sources)]
+
+
 class _BaseSourceGroup:
     def simulate(self):
         raise NotImplementedError(
@@ -114,11 +135,17 @@ class PointSourceGroup(_BaseSourceGroup):
             A source group object with checked and preprocessed user input.
         """
 
+        # Check the user input
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
         snr_params = check_snr_params(snr_params)
-        names = check_names(names, group, n_sources, existing)
+
+        # Auto-generate or check the provided source names
+        if not names:
+            names = generate_names(group, n_sources)
+        else:
+            check_names(names, n_sources, existing)
 
         return cls(n_sources, location, waveform, snr, snr_params, names)
 
