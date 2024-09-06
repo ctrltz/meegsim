@@ -33,6 +33,10 @@ dev = [
     "pytest",
     "pytest-cov"
 ]
+docs = [
+    "pydata-sphinx-theme",
+    "sphinx"
+]
 
 [tool.pytest.ini_options]
 pythonpath = "."
