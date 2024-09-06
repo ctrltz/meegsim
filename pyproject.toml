@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "meegsim"
-version = "0.0.1"
+version = "0.0.1dev"
 authors = [
   { name="Nikolai Kapralov", email="kapralov@cbs.mpg.de" },
   { name="Alina Studenova", email="studenova@cbs.mpg.de" },
