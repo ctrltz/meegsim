@@ -1,8 +1,12 @@
+import logging
 import numpy as np
 import warnings
 
 from mne.io.constants import FIFF
 from scipy.special import i1, i0
+
+
+logger = logging.getLogger('meegsim')
 
 
 def combine_stcs(stc1, stc2):

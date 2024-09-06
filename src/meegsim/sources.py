@@ -1,23 +1,8 @@
 """
-Classes that store all information about simulated sources and their groups.
-Advantage of this approach over stc: in stc, we can only have one time series per vertex, 
-so if point sources coincide or patches overlap, we lose access to the original time series.
-
-Information to store:
-    * src_idx - which hemisphere or source space the source belongs to
-    * location, location_params - as provided by the user
-    * waveform, waveform_params - as provided by the user
-    * snr, snr_params - as provided by the user
-    * _data - actual generated time series
-    * _vertices - actual generated positions (vertno) of sources
-
-    * patch_corr - correlation between vertices of the patch
-	
-Methods:
-	* generate - executes location and waveform functions if needed
-	* data (property) - return self._data (if needed, calls generate before that)
-	* vertices (property) - returns self._vertices (if needed, calls generate before that)
-	* to_stc (property) - ready-to-use mne.SourceEstimate object with data and vertices properly filled
+Classes that store all information about simulated sources.
+Advantage of this approach over stc: in stc, we can only have one time series 
+per vertex, so if point sources coincide or patches overlap, we lose access 
+to the original time series.
 """
 
 import numpy as np
@@ -63,17 +48,19 @@ class PointSource(_BaseSource):
         Human-readable name of the hemisphere (e.g, lh or rh).
     """
 
-    def __init__(self, src_idx, vertno, waveform, sfreq, hemi=None):
+    def __init__(self, name, src_idx, vertno, waveform, sfreq, hemi=None):
         super().__init__(waveform, sfreq)
 
+        self.name = name
         self.src_idx = src_idx
         self.vertno = vertno
+        self.sfreq = sfreq
         self.hemi = hemi
 
     def __repr__(self):
         # Use human readable names of hemispheres if possible
         src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
-        return f'<PointSource | {src_desc} | {self.vertno}>'
+        return f'<PointSource | {self.name} | {src_desc} | {self.vertno}>'
 
     def to_stc(self, src, subject=None):
         """
@@ -132,63 +119,55 @@ class PointSource(_BaseSource):
             subject=subject
         )
 
+    @classmethod
+    def create(
+        cls,
+        src,
+        times,
+        n_sources,
+        location,
+        waveform,
+        names,
+        random_state=None
+    ):
+        """
+        This function creates point sources according to the provided input.
+        """
+
+        # Get the sampling frequency
+        sfreq = get_sfreq(times)
+
+        # Get the list of vertices (directly from the provided input or through the function)
+        vertices = location(src, random_state=random_state) if callable(location) else location
+        if len(vertices) != n_sources:
+            raise ValueError('The number of sources in location does not match')
+
+        # Get the corresponding number of time series
+        data = waveform(n_sources, times, random_state=random_state) if callable(waveform) else waveform
+        if data.shape[0] != n_sources:
+            raise ValueError('The number of sources in waveform does not match')
+        if data.shape[1] != len(times):
+            raise ValueError('The number of samples in waveform does not match')
+
+        # Create point sources and save them as a group
+        sources = []
+        for (src_idx, vertno), waveform, name in zip(vertices, data, names):
+            hemi = _extract_hemi(src[src_idx])
+            sources.append(cls(
+                name=name, 
+                src_idx=src_idx, 
+                vertno=vertno, 
+                waveform=waveform, 
+                sfreq=sfreq, 
+                hemi=hemi
+            ))
+            
+        return sources        
+
 
 class PatchSource(_BaseSource):
     def __init__(self):
         pass
-
-
-def _create_point_sources(
-    src, 
-    times, 
-    location, 
-    waveform, 
-    snr=None, 
-    location_params=None, 
-    waveform_params=None, 
-    random_state=None, 
-    names=None,
-    name_prefix=''
-):
-    """
-    This function creates point sources according to the provided input.
-    """
-
-    # Get the sampling frequency
-    sfreq = get_sfreq(times)
-
-    # Get the list of vertices (directly from the provided input or through the function)
-    vertices = location(src, random_state=random_state, **location_params) if callable(location) else location
-    # TODO: check that the format of vertices matches src	  
-    n_vertices = sum([len(vs) for vs in vertices])
-
-    # Check the provided names, broadcast to match the number of vertices
-    if names is None:
-        names = [None] * n_vertices
-    if len(names) != n_vertices:
-        raise ValueError('The number of provided source names does not match the number of generated source locations')
-
-    # Get the corresponding number of time series
-    data = waveform(n_vertices, times, random_state=random_state, **waveform_params) if callable(waveform) else waveform
-    if data.shape != (n_vertices, len(times)):
-        # TODO: split into two errors with more informative messages?
-        raise ValueError('The provided array/function for source waveform does not match other simulation parameters')
-
-    # Here we should also adjust the SNR
-    # 2. Adjust the amplitude of each signal source (self._sources) according to the desired SNR (if not None)
-        
-    # Create point sources and save them as a group
-    sources = {}
-    for (src_idx, vertno), waveform, name in zip(vertices, data, names):
-        hemi = _extract_hemi(src[src_idx])
-        new_source = PointSource(src_idx, vertno, waveform, sfreq, hemi=hemi)
-
-        if name is None:
-            src_desc = hemi if hemi else f'src{src_idx}'
-            name = f'{name_prefix}{src_desc}-{vertno}'
-        sources[name] = new_source
-        
-    return sources
 
 
 def _combine_sources_into_stc(sources, src):
