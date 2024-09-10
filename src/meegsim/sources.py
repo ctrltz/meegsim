@@ -166,8 +166,149 @@ class PointSource(_BaseSource):
 
 
 class PatchSource(_BaseSource):
-    def __init__(self):
-        pass
+    """
+    Patch source of activity that is located in one of the vertices in
+    the source space.
+
+    Attributes
+    ----------
+    src_idx: int
+        The index of source space that the patch source belong to.
+    vertno: int
+        The vertex that the patch source correspond to
+    waveform: np.array
+        The waveform of source activity.
+    sfreq: float
+        The sampling frequency of the activity time course.
+    hemi: str or None, optional
+        Human-readable name of the hemisphere (e.g, lh or rh).
+    """
+
+    def __init__(self, name, src_idx, vertno, waveform, sfreq, extent, hemi=None):
+        super().__init__(waveform, sfreq)
+
+        self.name = name
+        self.src_idx = src_idx
+        self.vertno = vertno
+        self.sfreq = sfreq
+        self.extent = extent
+        self.hemi = hemi
+
+    def __repr__(self):
+        # Use human readable names of hemispheres if possible
+        src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
+        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno}>'
+
+    def to_stc(self, src, subject=None):
+        """
+        Convert the patch source into a SourceEstimate object in the context
+        of the provided SourceSpaces.
+
+        Parameters
+        ----------
+        src: mne.SourceSpaces
+            The source space where the patch source should be considered.
+        subject: str or None, optional
+            Name of the subject that the stc corresponds to.
+            If None, the subject name from the provided src is used if present.
+
+        Returns
+        -------
+        stc: mne.SourceEstimate
+            SourceEstimate that corresponds to the provided src and contains
+            one active vertex.
+
+        Raises
+        ------
+        ValueError
+            If the patch source does not exist in the provided src.
+        """
+
+        if self.src_idx >= len(src):
+            raise ValueError(
+                f"The patch source cannot be added to the provided src. "
+                f"The patch source was assigned to source space {self.src_idx}, "
+                f"which is not present in the provided src object."
+            )
+
+        if self.vertno not in src[self.src_idx]['vertno']:
+            raise ValueError(
+                f"The patch source cannot be added to the provided src. "
+                f"The source space with index {self.src_idx} does not "
+                f"contain the vertex {self.vertno}"
+            )
+
+        # Resolve the subject name as done in MNE
+        if subject is None:
+            subject = src[0].get("subject_his_id", None)
+
+        # find vertices
+        patch = mne.grow_labels(subject, self.vertno, self.extent, self.src_idx, subjects_dir=None)[0]
+
+        # prune vertices
+        patch_vertices = [vert for vert in patch.vertices if vert in src[self.src_idx]['vertno']]
+
+        data = np.tile(self.waveform[np.newaxis, :], (len(patch_vertices), 1))
+
+        # Create a list of vertices for each src
+        vertices = [[] for _ in src]
+
+        vertices[self.src_idx].extend(patch_vertices)
+
+        return mne.SourceEstimate(
+            data=data,
+            vertices=vertices,
+            tmin=0,
+            tstep=1.0 / self.sfreq,
+            subject=subject
+        )
+
+    @classmethod
+    def create(
+            cls,
+            src,
+            times,
+            n_sources,
+            location,
+            waveform,
+            names,
+            extent,
+            random_state=None
+    ):
+        """
+        This function creates patch sources according to the provided input.
+        """
+
+        # Get the sampling frequency
+        sfreq = get_sfreq(times)
+
+        # Get the list of vertices (directly from the provided input or through the function)
+        vertices = location(src, random_state=random_state) if callable(location) else location
+        if len(vertices) != n_sources:
+            raise ValueError('The number of sources in location does not match')
+
+        # Get the corresponding number of time series
+        data = waveform(n_sources, times, random_state=random_state) if callable(waveform) else waveform
+        if data.shape[0] != n_sources:
+            raise ValueError('The number of sources in waveform does not match')
+        if data.shape[1] != len(times):
+            raise ValueError('The number of samples in waveform does not match')
+
+        # Create patch sources and save them as a group
+        sources = []
+        for (src_idx, vertno), waveform, name in zip(vertices, data, names):
+            hemi = _extract_hemi(src[src_idx])
+            sources.append(cls(
+                name=name,
+                src_idx=src_idx,
+                vertno=vertno,
+                waveform=waveform,
+                sfreq=sfreq,
+                hemi=hemi,
+                extent=extent
+            ))
+
+        return sources
 
 
 def _combine_sources_into_stc(sources, src):

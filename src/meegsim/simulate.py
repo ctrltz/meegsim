@@ -1,5 +1,5 @@
 from .configuration import SourceConfiguration
-from .source_groups import PointSourceGroup
+from .source_groups import PointSourceGroup, PatchSourceGroup
 from .waveform import one_over_f_noise
 
 
@@ -95,16 +95,47 @@ class SourceSimulator:
         # Return the names of newly added sources
         return point_sg.names
         
-    # def add_patch_sources(self, location, waveform, snr=None, patch_corr=None, 
-    #                     location_params=None, waveform_params=None, grow_params=None, names=None):
-    #     """
-    #     Parameters
-    #     ----------
-    #     patch_corr: None or float between 0 and 1
-    #         if None, all vertices contain the same signal
-    #         otherwise, all vertices contain the same signal plus noise
-    #         NB: probably lower priority for now
-    #     """
+    def add_patch_sources(
+        self,
+        location,
+        waveform,
+        snr=None,
+        location_params=dict(),
+        waveform_params=dict(),
+        snr_params=dict(),
+        extent=None,
+        names=None
+        ):
+        """
+        Parameters
+        ----------
+        patch_corr: None or float between 0 and 1
+            if None, all vertices contain the same signal
+            otherwise, all vertices contain the same signal plus noise
+            NB: probably lower priority for now
+        """
+
+        next_group_idx = len(self._source_groups)
+        patch_sg = PatchSourceGroup.create(
+            self.src,
+            location,
+            waveform,
+            snr=snr,
+            location_params=location_params,
+            waveform_params=waveform_params,
+            extent=extent,
+            snr_params=snr_params,
+            names=names,
+            group=f'sg{next_group_idx}',
+            existing=self._sources
+        )
+
+        # Store the source group and source names
+        self._source_groups.append(patch_sg)
+        self._sources.extend(patch_sg.names)
+
+        # Return the names of newly added sources
+        return patch_sg.names
 
     def add_noise_sources(
         self, 

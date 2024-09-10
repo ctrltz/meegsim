@@ -18,9 +18,9 @@ def to_json(sources):
 
 
 # Load the head model
-fs_dir = Path(mne.datasets.fetch_fsaverage('~/mne_data/MNE-fsaverage-data'))
-fwd_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-fwd.fif'
-src_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-src.fif'
+fs_dir = Path('/data/hu_studenova/mne_data/MNE-fsaverage-data/fsaverage/')
+fwd_path = fs_dir / 'bem' / 'fsaverage-oct6-fwd.fif'
+src_path = fs_dir / 'bem' / 'fsaverage-oct6-src.fif'
 src = mne.read_source_spaces(src_path)
 fwd = mne.read_forward_solution(fwd_path)
 
@@ -41,11 +41,18 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 sim = SourceSimulator(src)
 
 # Select some vertices randomly (signal/noise does not matter for now)
-sim.add_point_sources(
-    location=select_random, 
+# sim.add_point_sources(
+#     location=select_random,
+#     waveform=narrowband_oscillation,
+#     location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
+#     waveform_params=dict(fmin=8, fmax=12)
+# )
+sim.add_patch_sources(
+    location=select_random,
     waveform=narrowband_oscillation,
-    location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
-    waveform_params=dict(fmin=8, fmax=12)
+    location_params=dict(n=1, vertices=[list(src[0]['vertno']), []]),
+    waveform_params=dict(fmin=8, fmax=12),
+    extent=3
 )
 sim.add_noise_sources(
     location=select_random,
