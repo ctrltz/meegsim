@@ -184,3 +184,50 @@ def unpack_vertices(vertices_lists):
 
 def theoretical_plv(kappa):
     return i1(kappa) / i0(kappa)
+
+
+def compute_triangle_areas(vertices, triangles):
+    """Compute the area of each triangle in the mesh."""
+    v0 = vertices[triangles[:, 0]]
+    v1 = vertices[triangles[:, 1]]
+    v2 = vertices[triangles[:, 2]]
+    return 0.5 * np.linalg.norm(np.cross(v1 - v0, v2 - v0), axis=1)
+
+def grow_patch(coordinates, triangles, start_vertex, *, patch_size=0.0001):
+    """Grow a patch from a start_vertex with the area constraint."""
+
+    from queue import Queue
+
+    # Compute areas for each triangle
+    triangle_areas = compute_triangle_areas(coordinates, triangles)
+
+    # Initialize patch with the start vertex
+    patch = set([start_vertex])
+    vertex_queue = Queue()
+    vertex_queue.put(start_vertex)
+
+    # Track accumulated area
+    accumulated_area = 0.0
+
+    while not vertex_queue.empty() and accumulated_area < patch_size:
+        current_vertex = vertex_queue.get()
+
+        # Find the triangles that include the current vertex
+        connected_triangles = np.any(triangles == current_vertex, axis=1)
+
+        # Sum up the area of these triangles
+        for tri_idx in np.where(connected_triangles)[0]:
+            tri_area = triangle_areas[tri_idx]
+
+            if accumulated_area + tri_area <= patch_size:
+                accumulated_area += tri_area
+                # Add new vertices connected by this triangle
+                new_vertices = triangles[tri_idx]
+                for vertex in new_vertices:
+                    if vertex not in patch:
+                        patch.add(vertex)
+                        vertex_queue.put(vertex)
+            else:
+                break
+
+    return list(patch)

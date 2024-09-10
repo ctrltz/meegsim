@@ -1,6 +1,8 @@
 from .configuration import SourceConfiguration
-from .source_groups import PointSourceGroup
+from .source_groups import PointSourceGroup, generate_names
 from .waveform import one_over_f_noise
+from .utils import grow_patch
+import numpy as np
 
 
 class SourceSimulator:
@@ -95,16 +97,57 @@ class SourceSimulator:
         # Return the names of newly added sources
         return point_sg.names
         
-    # def add_patch_sources(self, location, waveform, snr=None, patch_corr=None, 
-    #                     location_params=None, waveform_params=None, grow_params=None, names=None):
-    #     """
-    #     Parameters
-    #     ----------
-    #     patch_corr: None or float between 0 and 1
-    #         if None, all vertices contain the same signal
-    #         otherwise, all vertices contain the same signal plus noise
-    #         NB: probably lower priority for now
-    #     """
+    def add_patch_sources(
+            self,
+            location,
+            waveform,
+            snr=None,
+            location_params=dict(),
+            waveform_params=dict(),
+            snr_params=dict(),
+            names=None,
+            patch_corr=None,
+            grow_params=dict()):
+        """
+        Parameters
+        ----------
+        patch_corr: None or float between 0 and 1
+            if None, all vertices contain the same signal
+            otherwise, all vertices contain the same signal plus noise
+            NB: probably lower priority for now
+        """
+
+        next_group_idx = len(self._source_groups)
+        vertices = location(self.src, **location_params) if callable(location) else location
+        src_idx = vertices[0][0]
+        vertno = vertices[0][1]
+        vertno_patch = grow_patch(self.src[src_idx]['rr'], self.src[src_idx]['use_tris'], vertno, **grow_params)
+        vert_tuple = [(src_idx, vert) for idx in range(len(self.src)) if idx == src_idx for vert in vertno_patch]
+        # fix waveform
+        if 'random_state' not in waveform_params:
+            waveform_params.update(random_state=np.random.randint(0, 2**32 - 1))
+        if not names:
+            names = generate_names(f'sg{next_group_idx}', len(vertno_patch))
+            names = [name.replace('auto', 'patch', 1) for name in names]
+        point_sg = PointSourceGroup.create(
+            self.src,
+            vert_tuple,
+            waveform,
+            snr=snr,
+            location_params=location_params,
+            waveform_params=waveform_params,
+            snr_params=snr_params,
+            names=names,
+            group=f'sg{next_group_idx}',
+            existing=self._sources
+        )
+
+        # Store the source group and source names
+        self._source_groups.append(point_sg)
+        self._sources.extend(point_sg.names)
+
+        # Return the names of newly added sources
+        return point_sg.names
 
     def add_noise_sources(
         self, 
