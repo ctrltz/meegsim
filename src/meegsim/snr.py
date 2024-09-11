@@ -52,7 +52,7 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     return stc_var
 
 
-def adjust_snr(signal_var, noise_var, *, target_snr=1):
+def adjust_snr(signal_var, noise_var, target_snr):
     """
     Derive the signal amplitude that allows obtaining target SNR
 
@@ -66,8 +66,8 @@ def adjust_snr(signal_var, noise_var, *, target_snr=1):
         Variance of the simulated noise with respect to leadfield. Can be obtained with
         a function snr.get_sensor_space_variance.
 
-    target_snr: float, optional
-        Value of a desired SNR for the signal. default = 1.
+    target_snr: float
+        Value of a desired SNR for the signal.
 
     Returns
     -------

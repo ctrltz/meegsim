@@ -1,4 +1,8 @@
+from mne.forward import restrict_forward_to_stc
+
 from .configuration import SourceConfiguration
+from .snr import get_sensor_space_variance, adjust_snr
+from .sources import _combine_sources_into_stc
 from .source_groups import PointSourceGroup
 from .waveform import one_over_f_noise
 
@@ -27,6 +31,10 @@ class SourceSimulator:
 
         # Store all coupling edges
         self._coupling = {}
+
+        # Keep track whether SNR of any source should be adjusted
+        # If yes, then a forward model is required for simulation
+        self.is_snr_adjusted = False
 
     def add_point_sources(
         self, 
@@ -92,6 +100,10 @@ class SourceSimulator:
         self._source_groups.append(point_sg)
         self._sources.extend(point_sg.names)
         
+        # Check if SNR should be adjusted
+        if point_sg.snr is not None:
+            self.is_snr_adjusted = True
+
         # Return the names of newly added sources
         return point_sg.names
         
@@ -177,10 +189,15 @@ class SourceSimulator:
         self,  
         sfreq, 
         duration,
+        fwd=None,
         random_state=None
     ):
         if not (self._source_groups or self._noise_groups):
             raise ValueError('No sources were added to the configuration.')
+
+        if self.is_snr_adjusted and fwd is None:
+            raise ValueError('A forward model is required for the adjustment '
+                             'of SNR.')
 
         return _simulate(
             self._source_groups,
@@ -188,6 +205,7 @@ class SourceSimulator:
             self.src,
             sfreq,
             duration,
+            fwd=fwd,
             random_state=random_state
         )
 
@@ -198,6 +216,7 @@ def _simulate(
     src,
     sfreq,
     duration,
+    fwd,
     random_state=None
 ):
     """
@@ -225,11 +244,32 @@ def _simulate(
         # If there are no cycles, traverse the graph and set coupling according to the selected method
         # Try calling the coupling with the provided parameters but be prepared for mismatches
 
+    # Get the stc and leadfield of all noise sources
+    stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
+
     # Adjust the SNR of sources in each source group
-    # 1. Estimate the noise variance in the specified band
-    # fwd_noise = mne.forward.restrict_forward_to_stc(fwd, stc_noise, on_missing='raise')    
-    # noise_var = get_sensor_space_variance()
-    # 2. Adjust the amplitude of each signal source according to the desired SNR (if not None)
+    for sg in source_groups:
+        if sg.snr is None:
+            continue
+
+        # Estimate the noise variance in the specified frequency band
+        fmin, fmax = sg.snr_params['fmin'], sg.snr_params['fmax']
+        noise_var = get_sensor_space_variance(stc_noise, fwd, 
+                                              fmin=fmin, fmax=fmax, filter=True)
+        
+        # Adjust the amplitude of each source in the group to match the target SNR
+        for name, target_snr in zip(sg.names, sg.snr):
+            s = sources[name]
+
+            # NOTE: taking a safer approach for now and filtering
+            # even if the signal is already a narrowband oscillation
+            signal_var = get_sensor_space_variance(s.to_stc(src), fwd,
+                                                   fmin=fmin, fmax=fmax, filter=True)
+
+            # NOTE: patch sources might require more complex calculations
+            # if the within-patch correlation is not equal to 1
+            amp = adjust_snr(signal_var, noise_var, target_snr)
+            s.waveform *= amp
 
     # Add the sources to the simulated configuration
     sc._sources = sources

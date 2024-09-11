@@ -3,7 +3,6 @@ Testing the configuration structure
 """
 
 import json
-import numpy as np
 import mne
 
 from pathlib import Path
@@ -45,7 +44,9 @@ sim.add_point_sources(
     location=select_random, 
     waveform=narrowband_oscillation,
     location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
-    waveform_params=dict(fmin=8, fmax=12)
+    waveform_params=dict(fmin=8, fmax=12),
+    snr=5, 
+    snr_params=dict(fmin=8, fmax=12)
 )
 sim.add_noise_sources(
     location=select_random,
@@ -56,7 +57,7 @@ sim.add_noise_sources(
 print(f'Source groups: {sim._source_groups}')
 print(f'Noise groups: {sim._noise_groups}')
 
-sc = sim.simulate(sfreq, duration, random_state=0)
+sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=0)
 
 # Print the sources to check internal structure
 print(f'Simulated sources: {to_json(sc._sources)}')

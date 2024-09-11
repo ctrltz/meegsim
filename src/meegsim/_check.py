@@ -257,20 +257,34 @@ def check_names(names, n_sources, existing):
         raise ValueError('All names should be unique')
 
 
-def check_snr(snr, n_vertices):
-    if snr is not None:
-        raise NotImplementedError('Adjustment of SNR is not supported yet')
-        # TODO: check that the number of SNR values matches the number of vertices
-        # or it is a single SNR value that can be applied to all vertices
+def check_snr(snr, n_sources):
+    if snr is None:
+        return None
+    
+    snr = np.ravel(np.array(snr))
+    if snr.size != 1 and snr.size != n_sources:
+        raise ValueError(
+            f'Expected either one SNR value that applies to all sources or '
+            f'one SNR value for each of the {n_sources} sources, got {snr.size}'
+        )
+    
+    if snr.size == 1:
+        snr = np.tile(snr, (n_sources,))
     
     return snr
 
 
-def check_snr_params(snr_params):
-    # TODO: we could try to extract fmin and fmax from waveform_params but
-    # not sure how confusing will it be, a dedicated waveform class could be
-    # easier to understand
-    pass
+def check_snr_params(snr_params, snr):
+    if snr is None:
+        return snr_params
+    
+    if 'fmin' not in snr_params or 'fmax' not in snr_params:
+        raise ValueError(
+            'No frequency band was defined for the adjustment of SNR. '
+            'Please add fmin and fmax to the snr_params dictionary.'
+        )
+    
+    return snr_params
 
 
 def check_coupling():
