@@ -1,21 +1,5 @@
 """
-All waveform functions should accept the following arguments:
-    * the shape of time series to generate (number of time series, time samples)
-    * all waveform-specific arguments should be keyword-only
-    * ideally, random_state (to allow reproducibility, still need to test how it would work)
-
-This can be achieved with the following template:
-
-def waveform_fn(n_series, times, *, kwarg1='aaa', kwarg2='bbb'):
-    pass
-    
-Waveforms currently in mind:
-    * narrowband_oscillation (a.k.a. filtered white noise)
-    * one_over_f_noise
-    * white_noise (for sensor space noise)
-
-Waveforms that are not urgent to have but could in principle be useful:
-    * non-sinusoidal stuff (harmonics, peak-trough asymmetry)
+Template waveforms: narrowband oscillation, white and 1/f noise
 """
 
 import colorednoise as cn
