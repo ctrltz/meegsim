@@ -1,5 +1,3 @@
-from mne.forward import restrict_forward_to_stc
-
 from .configuration import SourceConfiguration
 from .snr import get_sensor_space_variance, adjust_snr
 from .sources import _combine_sources_into_stc
