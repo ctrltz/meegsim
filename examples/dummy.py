@@ -50,9 +50,9 @@ sim = SourceSimulator(src)
 sim.add_patch_sources(
     location=select_random,
     waveform=narrowband_oscillation,
-    location_params=dict(n=1, vertices=[list(src[0]['vertno']), []]),
+    location_params=dict(n=2, vertices=[list(src[0]['vertno']), []]),
     waveform_params=dict(fmin=8, fmax=12),
-    extent=3
+    extents=[3, 2]
 )
 sim.add_noise_sources(
     location=select_random,
@@ -70,6 +70,6 @@ print(f'Simulated sources: {to_json(sc._sources)}')
 print(f'Simulated noise sources: {to_json(sc._noise_sources)}')
 
 raw = sc.to_raw(fwd, info)
-spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
+spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')

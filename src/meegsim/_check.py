@@ -12,6 +12,7 @@ for SourceSimulator:
 import numpy as np
 
 from functools import partial
+import warnings
 
 from .utils import logger
 
@@ -281,3 +282,28 @@ def check_coupling():
     #     raise ValueError(f"The configuration contains no sources with the following names: {', '.join(missing)}")
     # self.check_if_exist([name1, name2])
     pass
+
+
+def check_extents(extents):
+    # Check if extents is actually a list
+    if not isinstance(extents, list):
+        raise ValueError("Extent must be a list of numbers.")
+
+    for extent in extents:
+        if extent is not None:
+            # Check if each extent is a number
+            if not isinstance(extent, (int, float)):
+                raise ValueError(f"Extent {extent} must be a number.")
+
+            # Check if each extent is positive
+            if extent <= 0:
+                raise ValueError(f"Extent {extent} must be a positive number.")
+
+            # Issue a warning if any extent exceeds 1000 mm
+            if extent > 1000:
+                warnings.warn(
+                    f"The extent {extent} (radius in mm) is more than 1000 mm. "
+                    "Are you sure that the patch is supposed to be that big?",
+                    UserWarning)
+
+    return extents

@@ -5,7 +5,8 @@ defined by the user until we actually start simulating the data.
 
 from ._check import (
     check_location, check_waveform, 
-    check_snr, check_snr_params, check_names
+    check_snr, check_snr_params, check_names,
+    check_extents
 )
 from .sources import PointSource, PatchSource
 
@@ -158,7 +159,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             waveform,
             snr,
             snr_params,
-            extent,
+            extents,
             names
     ):
         super().__init__()
@@ -173,7 +174,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         self.snr = snr
         self.snr_params = snr_params
         self.names = names
-        self.extent = extent
+        self.extents = extents
 
     def __repr__(self):
         location_desc = 'list'
@@ -198,7 +199,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             self.location,
             self.waveform,
             self.names,
-            self.extent,
+            self.extents,
             random_state=random_state
         )
 
@@ -212,7 +213,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             location_params,
             waveform_params,
             snr_params,
-            extent,
+            extents,
             names,
             group,
             existing
@@ -237,6 +238,8 @@ class PatchSourceGroup(_BaseSourceGroup):
             Additional keyword arguments for the waveform function.
         snr_params:
             TODO: fix when finalizing SNR
+        extents: list
+            Extents (radius in mm) of each patch provided by the user.
         names:
             The names of sources provided by the user.
         group:
@@ -256,6 +259,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
         snr_params = check_snr_params(snr_params)
+        extents = check_extents(extents)
 
         # Auto-generate or check the provided source names
         if not names:
@@ -263,6 +267,6 @@ class PatchSourceGroup(_BaseSourceGroup):
         else:
             check_names(names, n_sources, existing)
 
-        return cls(n_sources, location, waveform, snr, snr_params, extent, names)
+        return cls(n_sources, location, waveform, snr, snr_params, extents, names)
 
 

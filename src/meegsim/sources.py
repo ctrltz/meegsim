@@ -175,21 +175,26 @@ class PatchSource(_BaseSource):
     src_idx: int
         The index of source space that the patch source belong to.
     vertno: int
-        The vertex that the patch source correspond to
+        The central vertex of  the patch.
+    patch_vertno: list
+        The vertices that the patch sources correspond to including the central vertex.
     waveform: np.array
         The waveform of source activity.
     sfreq: float
         The sampling frequency of the activity time course.
+    extent: float
+        Extents (radius in mm) of the patch, defines the number of vertices in patch_vertno.
     hemi: str or None, optional
         Human-readable name of the hemisphere (e.g, lh or rh).
     """
 
-    def __init__(self, name, src_idx, vertno, waveform, sfreq, extent, hemi=None):
+    def __init__(self, name, src_idx, vertno, patch_vertno, waveform, sfreq, extent=None, hemi=None):
         super().__init__(waveform, sfreq)
 
         self.name = name
         self.src_idx = src_idx
         self.vertno = vertno
+        self.patch_vertno = patch_vertno
         self.sfreq = sfreq
         self.extent = extent
         self.hemi = hemi
@@ -197,7 +202,7 @@ class PatchSource(_BaseSource):
     def __repr__(self):
         # Use human readable names of hemispheres if possible
         src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
-        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno}>'
+        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno} | {self.patch_vertno}>'
 
     def to_stc(self, src, subject=None):
         """
@@ -242,18 +247,15 @@ class PatchSource(_BaseSource):
         if subject is None:
             subject = src[0].get("subject_his_id", None)
 
-        # find vertices
-        patch = mne.grow_labels(subject, self.vertno, self.extent, self.src_idx, subjects_dir=None)[0]
-
-        # prune vertices
-        patch_vertices = [vert for vert in patch.vertices if vert in src[self.src_idx]['vertno']]
-
-        data = np.tile(self.waveform[np.newaxis, :], (len(patch_vertices), 1))
-
         # Create a list of vertices for each src
         vertices = [[] for _ in src]
 
-        vertices[self.src_idx].extend(patch_vertices)
+        if self.extent is not None:
+            vertices[self.src_idx].extend(self.patch_vertno)
+            data = np.tile(self.waveform[np.newaxis, :], (len(self.patch_vertno), 1))
+        else:  # if locations ia a label
+            vertices[self.src_idx].append(self.vertno)
+            data = self.waveform
 
         return mne.SourceEstimate(
             data=data,
@@ -272,7 +274,7 @@ class PatchSource(_BaseSource):
             location,
             waveform,
             names,
-            extent,
+            extents,
             random_state=None
     ):
         """
@@ -294,14 +296,33 @@ class PatchSource(_BaseSource):
         if data.shape[1] != len(times):
             raise ValueError('The number of samples in waveform does not match')
 
+        # check if extents is a list, otherwise make it a list
+        if not isinstance(extents, list):
+            extents = [extents]
+
+        # find patch vertices
+        subject = src[0].get("subject_his_id", None)
+        patch_vertices = []
+        for isource, extent in enumerate(extents):
+            if extent is not None:
+                src_idx = vertices[isource][0]
+                vertno = vertices[isource][1]
+                patch = mne.grow_labels(subject, vertno, extent, src_idx, subjects_dir=None)[0]
+                # prune vertices
+                patch_vertno = [vert for vert in patch.vertices if vert in src[src_idx]['vertno']]
+                patch_vertices.append(patch_vertno)
+            else: # if locations is a label
+                patch_vertices.append([])
+
         # Create patch sources and save them as a group
         sources = []
-        for (src_idx, vertno), waveform, name in zip(vertices, data, names):
+        for (src_idx, vertno), patch_vertno, waveform, name, extent in zip(vertices, patch_vertices, data, names, extents):
             hemi = _extract_hemi(src[src_idx])
             sources.append(cls(
                 name=name,
                 src_idx=src_idx,
                 vertno=vertno,
+                patch_vertno=patch_vertno,
                 waveform=waveform,
                 sfreq=sfreq,
                 hemi=hemi,
