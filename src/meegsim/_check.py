@@ -258,6 +258,24 @@ def check_names(names, n_sources, existing):
 
 
 def check_snr(snr, n_sources):
+    """
+    Check the user input for SNR: it can either be None (no adjustment of SNR),
+    a single float value that applies to all sources or an array of values
+    with one for each source.
+
+    Parameters
+    ----------
+    snr: None, float, or array
+        The provided value for SNR
+    n_sources: int
+        The number of sources.
+    
+    Raises
+    ------
+    ValueError
+        If the provided SNR value does not follow the requirements described above.
+    """
+
     if snr is None:
         return None
     
@@ -268,6 +286,11 @@ def check_snr(snr, n_sources):
             f'one SNR value for each of the {n_sources} sources, got {snr.size}'
         )
     
+    # Only positive values make sense, raise error if negative ones are provided
+    if np.any(snr < 0):
+        raise ValueError('Each SNR value should be positive')
+
+    # Broadcast to all sources if a single value was provided
     if snr.size == 1:
         snr = np.tile(snr, (n_sources,))
     
@@ -275,14 +298,33 @@ def check_snr(snr, n_sources):
 
 
 def check_snr_params(snr_params, snr):
+    """
+    Check the user input for SNR parameters: if the SNR is adjusted (i.e., not None),
+    then fmin and fmax should be present in the dictionary to define a frequency band.
+
+    Parameters
+    ----------
+    snr_params: dict
+        The provided dictionary with parameters of the SNR adjustment.
+    snr: None, float, or array
+        The provided value for SNR
+    
+    Raises
+    ------
+    ValueError
+        If the provided snr_params dictionary does not have the necessary parameters.
+    """
     if snr is None:
         return snr_params
     
     if 'fmin' not in snr_params or 'fmax' not in snr_params:
         raise ValueError(
-            'No frequency band was defined for the adjustment of SNR. '
+            'Frequency band limits are required for the adjustment of SNR. '
             'Please add fmin and fmax to the snr_params dictionary.'
         )
+    
+    if snr_params['fmin'] < 0 or snr_params['fmax'] < 0:
+        raise ValueError('Frequency limits should be positive')
     
     return snr_params
 
