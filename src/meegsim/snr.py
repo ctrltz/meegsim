@@ -45,11 +45,17 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     else:
         stc_data = stc.data
 
-    fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, on_missing='ignore')
+    fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
+                                                       on_missing='raise')
     leadfield_restict = fwd_restrict['sol']['data']
 
-    stc_var = np.mean(stc_data ** 2) * np.mean(leadfield_restict ** 2)
-    return stc_var
+    n_samples = stc_data.shape[1]
+    n_sensors = leadfield_restict.shape[0]
+    source_cov = (stc_data @ stc_data.T) / n_samples
+    sensor_cov = leadfield_restict @ source_cov @ leadfield_restict.T
+    sensor_var = np.trace(sensor_cov) / n_sensors
+
+    return sensor_var
 
 
 def adjust_snr(signal_var, noise_var, target_snr):
