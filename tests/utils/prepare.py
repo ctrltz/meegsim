@@ -38,3 +38,54 @@ def prepare_source_space(types, vertices):
         src.append(src_dict)
 
     return mne.SourceSpaces(src)
+
+
+def prepare_forward(n_channels, n_sources, 
+                    ch_names=None, ch_types=None, sfreq=250):
+
+    assert n_sources % 2 == 0, "Only even number of sources is supported"
+
+    # Create a dummy info structure
+    if ch_names is None:
+        ch_names = [f'EEG{i+1}' for i in range(n_channels)]
+    if ch_types is None:
+        ch_types = ['eeg'] * n_channels
+    info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
+
+    # Generate random source space data (e.g., forward operator)
+    fwd_data = np.random.randn(n_channels, n_sources)
+
+    # Create a dummy source space
+    lh_vertno = np.arange(n_sources // 2)
+    rh_vertno = np.arange(n_sources // 2)
+
+    src = prepare_source_space(['surf', 'surf'], [lh_vertno, rh_vertno])
+
+    # Generate random source positions
+    source_rr = np.random.rand(n_sources, 3)
+
+    # Generate random source orientations
+    source_nn = np.random.randn(n_sources, 3)
+    source_nn /= np.linalg.norm(source_nn, axis=1, keepdims=True)
+
+    # Create a forward solution
+    forward = {
+        'sol': {'data': fwd_data},
+        '_orig_sol': fwd_data,
+        'sol_grad': None,
+        'info': info,
+        'source_ori': 1,
+        'surf_ori': True,
+        'nsource': n_sources,
+        'nchan': n_channels,
+        'coord_frame': 1,
+        'src': src,
+        'source_rr': source_rr,
+        'source_nn': source_nn,
+        '_orig_source_ori': 1
+    }
+
+    # Convert the dictionary to an mne.Forward object
+    fwd = mne.Forward(**forward)
+
+    return fwd

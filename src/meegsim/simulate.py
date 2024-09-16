@@ -213,7 +213,7 @@ class SourceSimulator:
             The source configuration, which contains the defined sources and 
             their corresponding waveforms.
         """
-        
+
         if not (self._source_groups or self._noise_groups):
             raise ValueError('No sources were added to the configuration.')
 
@@ -266,19 +266,21 @@ def _simulate(
         # If there are no cycles, traverse the graph and set coupling according to the selected method
         # Try calling the coupling with the provided parameters but be prepared for mismatches
 
-    # Get the stc and leadfield of all noise sources
-    stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
-
     # Adjust the SNR of sources in each source group
+    stc_noise = None
     for sg in source_groups:
         if sg.snr is None:
             continue
+
+        # Get the stc and leadfield of all noise sources
+        # Store outside the loop to avoid recalculation
+        if stc_noise is None:
+            stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
 
         # Estimate the noise variance in the specified frequency band
         fmin, fmax = sg.snr_params['fmin'], sg.snr_params['fmax']
         noise_var = get_sensor_space_variance(stc_noise, fwd, 
                                               fmin=fmin, fmax=fmax, filter=True)
-        
         # Adjust the amplitude of each source in the group to match the target SNR
         for name, target_snr in zip(sg.names, sg.snr):
             s = sources[name]

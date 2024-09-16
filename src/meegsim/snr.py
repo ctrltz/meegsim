@@ -32,18 +32,15 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
         Variance with respect to leadfield.
     """
 
+    stc_data = stc.data
     if filter:
-        if fmin is None:
-            warnings.warn("fmin was None. Setting fmin to 8 Hz", UserWarning)
-            fmin = 8.
-        if fmax is None:
-            warnings.warn("fmax was None. Setting fmax to 12 Hz", UserWarning)
-            fmax = 12.
+        if fmin is None or fmax is None:
+            raise ValueError(
+                'Frequency band limits are required for the adjustment of SNR.'
+            )
 
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype='bandpass')
-        stc_data = filtfilt(b, a, stc.data, axis=1)
-    else:
-        stc_data = stc.data
+        stc_data = filtfilt(b, a, stc_data, axis=1)        
 
     fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
                                                        on_missing='raise')

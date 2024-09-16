@@ -2,13 +2,13 @@ import meegsim
 import numpy as np
 import pytest
 
-from collections import namedtuple
 from mock import patch, Mock
 
 from meegsim.simulate import SourceSimulator, _simulate
 from meegsim.source_groups import PointSourceGroup
 
-from utils.prepare import prepare_source_space
+from utils.mocks import MockPointSource
+from utils.prepare import prepare_source_space, prepare_forward
 
 
 def test_sourcesimulator_add_point_sources():
@@ -91,6 +91,47 @@ def test_sourcesimulator_add_noise_sources():
         f"Expected eight sources to be created, got {len(sim._sources)}"
 
 
+def test_sourcesimulator_is_snr_adjusted():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    sim = SourceSimulator(src)
+
+    # Add noise sources
+    sim.add_noise_sources(
+        [(0, 0), (0, 1), (1, 0), (1, 1)],
+        np.ones((4, 100))
+    )
+
+    # SNR should not be adjusted yet
+    assert not sim.is_snr_adjusted
+
+    # Add point sources WITHOUT adjustment of SNR
+    sim.add_point_sources(
+        [(0, 0), (0, 1), (1, 0), (1, 1)],
+        np.ones((4, 100))
+    )
+
+    # SNR should not be adjusted yet
+    assert not sim.is_snr_adjusted
+
+    # Add point sources WITH adjustment of SNR
+    sim.add_point_sources(
+        [(0, 0), (0, 1), (1, 0), (1, 1)],
+        np.ones((4, 100)),
+        snr=10,
+        snr_params=dict(fmin=8, fmax=12)
+    )
+
+    # SNR should be adjusted now
+    assert sim.is_snr_adjusted
+
+    # Forward model is required for simulations
+    with pytest.raises(ValueError, match="A forward model"):
+        sim.simulate(sfreq=100, duration=30)
+    
+
 def test_sourcesimulator_simulate_empty_raises():
     src = prepare_source_space(
         types=['surf', 'surf'],
@@ -126,11 +167,19 @@ def test_sourcesimulator_simulate(simulate_mock):
 def test_simulate():
     # return mock PointSource's
     # noise sources are created first (1 + 3), then actual sources (2)
-    MockSource = namedtuple("MockSource", ['name'])
     simulate_mock = Mock(side_effect=[
-        [MockSource(name='s1')],
-        [MockSource(name='s4'), MockSource(name='s5'), MockSource(name='s6')],
-        [MockSource(name='s2'), MockSource(name='s3')],
+        [
+            MockPointSource(name='s1')
+        ],
+        [
+            MockPointSource(name='s4'), 
+            MockPointSource(name='s5'), 
+            MockPointSource(name='s6')
+        ],
+        [
+            MockPointSource(name='s2'), 
+            MockPointSource(name='s3')
+        ],
     ])
 
     src = prepare_source_space(
@@ -141,18 +190,18 @@ def test_simulate():
     # some dummy data - 2 sources + (1 + 3 = 4) noise sources expected
     source_groups = [
         PointSourceGroup(2, [(0, 0), (0, 1)], 
-                         np.ones((2, 100)), None, dict(), []),
+                         np.ones((2, 100)), None, dict(), ['s2', 's3']),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), []),
+        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), ['s1']),
         PointSourceGroup(3, [(0, 0), (0, 1), (1, 0)], 
-                         np.ones((3, 100)), None, dict(), []),
+                         np.ones((3, 100)), None, dict(), ['s4', 's5', 's6']),
     ]
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
         sc = _simulate(source_groups, noise_groups, src, 
-                       sfreq=250, duration=30, random_state=0)
+                       sfreq=250, duration=30, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
             f"Expected three calls of PointSourceGroup.simulate method"
@@ -164,3 +213,45 @@ def test_simulate():
         assert len(sc._sources) == 2, f"Expected 2 sources, got {len(sc._sources)}"
         assert len(sc._noise_sources) == 4, \
             f"Expected 4 sources, got {len(sc._noise_sources)}"
+
+
+@patch('meegsim.simulate.adjust_snr', return_value=2.)
+def test_simulate_snr_adjustment(adjust_snr_mock):
+    # return mock PointSource's - 1 noise source, 1 signal source    
+    simulate_mock = Mock(side_effect=[
+        [MockPointSource(name='n1')],
+        [MockPointSource(name='s1')]
+    ])
+
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    fwd = prepare_forward(5, 4)
+
+    # Define source groups
+    source_groups = [
+        PointSourceGroup(
+            n_sources=1, 
+            location=[(0, 0)], 
+            waveform=np.ones((1, 100)), 
+            snr=np.array([5.]), 
+            snr_params=dict(fmin=8, fmax=12), 
+            names=['s1']
+        ),
+    ]
+    noise_groups = [
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ['n1']),
+    ]
+
+    with patch.object(meegsim.source_groups.PointSourceGroup,
+                      'simulate', simulate_mock):
+        sc = _simulate(source_groups, noise_groups, src, 
+                       sfreq=100, duration=1, fwd=fwd, random_state=0)
+        
+        # Check the SNR adjustment was performed
+        adjust_snr_mock.assert_called()
+
+        # Check that the amplitude of the source was adjusted
+        target = sc._sources['s1']
+        assert np.all(target.waveform == 2)
