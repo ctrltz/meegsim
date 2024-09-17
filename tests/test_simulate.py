@@ -200,7 +200,7 @@ def test_simulate():
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
-        sc = _simulate(source_groups, noise_groups, src, 
+        sc = _simulate(source_groups, noise_groups, False, src, 
                        sfreq=250, duration=30, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
@@ -215,8 +215,8 @@ def test_simulate():
             f"Expected 4 sources, got {len(sc._noise_sources)}"
 
 
-@patch('meegsim.simulate.adjust_snr', return_value=2.)
-def test_simulate_snr_adjustment(adjust_snr_mock):
+@patch('meegsim.simulate._setup_snr', return_value = [])
+def test_simulate_snr_adjustment(setup_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source    
     simulate_mock = Mock(side_effect=[
         [MockPointSource(name='n1')],
@@ -246,12 +246,11 @@ def test_simulate_snr_adjustment(adjust_snr_mock):
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
-        sc = _simulate(source_groups, noise_groups, src, 
+        sc = _simulate(source_groups, noise_groups, True, src, 
                        sfreq=100, duration=1, fwd=fwd, random_state=0)
         
-        # Check the SNR adjustment was performed
-        adjust_snr_mock.assert_called()
+        # Check that the SNR adjustment was performed
+        setup_snr_mock.assert_called()
 
-        # Check that the amplitude of the source was adjusted
-        target = sc._sources['s1']
-        assert np.all(target.waveform == 2)
+        # Check that the result (empty list in the mock) was saved as is
+        assert not sc._sources

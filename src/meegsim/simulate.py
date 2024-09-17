@@ -1,6 +1,5 @@
 from .configuration import SourceConfiguration
-from .snr import get_sensor_space_variance, adjust_snr
-from .sources import _combine_sources_into_stc
+from .snr import _setup_snr
 from .source_groups import PointSourceGroup
 from .waveform import one_over_f_noise
 
@@ -224,6 +223,7 @@ class SourceSimulator:
         return _simulate(
             self._source_groups,
             self._noise_groups,
+            self.is_snr_adjusted,
             self.src,
             sfreq,
             duration,
@@ -235,6 +235,7 @@ class SourceSimulator:
 def _simulate(
     source_groups, 
     noise_groups,
+    is_snr_adjusted,
     src,
     sfreq,
     duration,
@@ -266,34 +267,9 @@ def _simulate(
         # If there are no cycles, traverse the graph and set coupling according to the selected method
         # Try calling the coupling with the provided parameters but be prepared for mismatches
 
-    # Adjust the SNR of sources in each source group
-    stc_noise = None
-    for sg in source_groups:
-        if sg.snr is None:
-            continue
-
-        # Get the stc and leadfield of all noise sources
-        # Store outside the loop to avoid recalculation
-        if stc_noise is None:
-            stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
-
-        # Estimate the noise variance in the specified frequency band
-        fmin, fmax = sg.snr_params['fmin'], sg.snr_params['fmax']
-        noise_var = get_sensor_space_variance(stc_noise, fwd, 
-                                              fmin=fmin, fmax=fmax, filter=True)
-        # Adjust the amplitude of each source in the group to match the target SNR
-        for name, target_snr in zip(sg.names, sg.snr):
-            s = sources[name]
-
-            # NOTE: taking a safer approach for now and filtering
-            # even if the signal is already a narrowband oscillation
-            signal_var = get_sensor_space_variance(s.to_stc(src), fwd,
-                                                   fmin=fmin, fmax=fmax, filter=True)
-
-            # NOTE: patch sources might require more complex calculations
-            # if the within-patch correlation is not equal to 1
-            amp = adjust_snr(signal_var, noise_var, target_snr)
-            s.waveform *= amp
+    # Adjust the SNR if needed
+    if is_snr_adjusted:
+        sources = _setup_snr(src, fwd, sources, source_groups, noise_sources)
 
     # Add the sources to the simulated configuration
     sc._sources = sources
