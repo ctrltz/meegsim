@@ -43,7 +43,15 @@ def test_connecting_paths_tree_topology():
     edgelist = [(0, 1), (1, 2), (1, 3)]
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
-    coupling_setup = {edge:{'method':'ppc_von_mises','kappa':kappa_list[i],'phase_lag':phase_lag_list[i]} for i, edge in enumerate(edgelist)}
+
+    coupling_setup = {
+        edge: {
+            'method': 'ppc_von_mises', 
+            'kappa': kappa_list[i], 
+            'phase_lag': phase_lag_list[i]
+        } 
+        for i, edge in enumerate(edgelist)
+    }
 
     G, walkaround = connecting_paths(coupling_setup, random_state=42)
 
