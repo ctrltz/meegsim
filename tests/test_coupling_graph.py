@@ -47,7 +47,7 @@ def test_connecting_paths_tree_topology():
 
     G, walkaround = connecting_paths(coupling_setup, random_state=42)
 
-    assert len(G.edges) == len(edgelist), "Graph edges do not match the edge list"
+    assert list(G.edges) == edgelist, "Graph edges do not match the edge list"
     assert len(walkaround) == 1, "There should be one walkaround path for one tree topology"
 
     # Convert lists to sets of frozensets to account for order invariance
