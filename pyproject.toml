@@ -19,8 +19,9 @@ classifiers = [
 ]
 dependencies = [
     "colorednoise",
+    "harmoni",
     "mne",
-    "harmoni"
+    "networkx"
 ]
 
 [project.urls]
