@@ -65,8 +65,14 @@ def test_connecting_paths_with_cycle_topology():
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
 
-    coupling_setup = {edge: {'method': 'ppc_von_mises', 'kappa': kappa_list[i], 'phase_lag': phase_lag_list[i]} for
-                      i, edge in enumerate(edgelist)}
+    coupling_setup = {
+        edge: {
+            'method': 'ppc_von_mises', 
+            'kappa': kappa_list[i], 
+            'phase_lag': phase_lag_list[i]
+        } 
+        for i, edge in enumerate(edgelist)
+    }
 
     with pytest.raises(ValueError, match="The graph contains cycles. Cycles are not supported."):
         connecting_paths(coupling_setup)
@@ -78,10 +84,16 @@ def test_connecting_paths_random_state():
     kappa_list = [0.1, 0.2, 0.3]
     phase_lag_list = [0.5, 0.6, 0.7]
 
-    coupling_setup = {edge: {'method': 'ppc_von_mises', 'kappa': kappa_list[i], 'phase_lag': phase_lag_list[i]} for
-                      i, edge in enumerate(edgelist)}
+    coupling_setup = {
+        edge: {
+            'method': 'ppc_von_mises', 
+            'kappa': kappa_list[i], 
+            'phase_lag': phase_lag_list[i]
+        } 
+        for i, edge in enumerate(edgelist)
+    }
 
-    G1, walkaround1 = connecting_paths(coupling_setup, random_state=42)
-    G2, walkaround2 = connecting_paths(coupling_setup, random_state=42)
+    _, walkaround1 = connecting_paths(coupling_setup, random_state=42)
+    _, walkaround2 = connecting_paths(coupling_setup, random_state=42)
 
     assert walkaround1 == walkaround2, "Walkaround paths should be identical with the same random_state"
