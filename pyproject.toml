@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "meegsim"
-version = "0.0.1"
+version = "0.0.1dev"
 authors = [
   { name="Nikolai Kapralov", email="kapralov@cbs.mpg.de" },
   { name="Alina Studenova", email="studenova@cbs.mpg.de" },
@@ -18,6 +18,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "colorednoise",
+    "harmoni",
     "mne",
     "networkx"
 ]
@@ -28,7 +30,13 @@ Issues = "https://github.com/ctrltz/meegsim/issues"
 
 [project.optional-dependencies]
 dev = [
-    "pytest"
+    "mock",
+    "pytest",
+    "pytest-cov"
+]
+docs = [
+    "pydata-sphinx-theme",
+    "sphinx"
 ]
 
 [tool.pytest.ini_options]
@@ -36,3 +44,4 @@ pythonpath = "."
 testpaths = [
     "tests",
 ]
+addopts = "--cov=src/meegsim --cov-report term-missing"
