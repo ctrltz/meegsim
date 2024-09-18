@@ -143,7 +143,7 @@ def test_sourcesimulator_simulate_empty_raises():
         sim.simulate(sfreq=250, duration=30, random_state=0)
 
 
-@patch('meegsim.simulate._simulate', return_value=0)
+@patch('meegsim.simulate._simulate', return_value=([], []))
 def test_sourcesimulator_simulate(simulate_mock):
     src = prepare_source_space(
         types=['surf', 'surf'],
@@ -200,8 +200,11 @@ def test_simulate():
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
-        sc = _simulate(source_groups, noise_groups, False, src, 
-                       sfreq=250, duration=30, fwd=None, random_state=0)
+        sfreq = 100
+        duration = 5
+        times = np.arange(0, sfreq * duration) / sfreq
+        sources, noise_sources = _simulate(source_groups, noise_groups, False, src, 
+                                           times=times, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
             f"Expected three calls of PointSourceGroup.simulate method"
@@ -210,9 +213,9 @@ def test_simulate():
                          for kall in simulate_mock.call_args_list]
         assert all(random_states), "random_state was not passed correctly"
 
-        assert len(sc._sources) == 2, f"Expected 2 sources, got {len(sc._sources)}"
-        assert len(sc._noise_sources) == 4, \
-            f"Expected 4 sources, got {len(sc._noise_sources)}"
+        assert len(sources) == 2, f"Expected 2 sources, got {len(sources)}"
+        assert len(noise_sources) == 4, \
+            f"Expected 4 sources, got {len(noise_sources)}"
 
 
 @patch('meegsim.simulate._setup_snr', return_value = [])
@@ -246,11 +249,14 @@ def test_simulate_snr_adjustment(setup_snr_mock):
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
-        sc = _simulate(source_groups, noise_groups, True, src, 
-                       sfreq=100, duration=1, fwd=fwd, random_state=0)
+        sfreq = 100
+        duration = 5
+        times = np.arange(0, sfreq * duration) / sfreq
+        sources, noise_sources = _simulate(source_groups, noise_groups, True, src, 
+                                           times=times, fwd=fwd, random_state=0)
         
         # Check that the SNR adjustment was performed
         setup_snr_mock.assert_called()
 
         # Check that the result (empty list in the mock) was saved as is
-        assert not sc._sources
+        assert not sources
