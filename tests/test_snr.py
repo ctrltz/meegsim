@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from meegsim.snr import _get_sensor_space_variance, _adjust_snr, _setup_snr
+from meegsim.snr import get_sensor_space_variance, amplitude_adjustment, _adjust_snr
 from meegsim.source_groups import PointSourceGroup
 
 from utils.mocks import MockPointSource
@@ -30,7 +30,7 @@ def test_get_sensor_space_variance_no_filter():
     # Since the leadfield values are opposite for these vertices, the
     # activity should cancel out in sensor space
     expected_variance = 0.
-    variance = _get_sensor_space_variance(stc, fwd, filter=False)
+    variance = get_sensor_space_variance(stc, fwd, filter=False)
     assert np.isclose(variance, expected_variance), \
         f"Expected variance {expected_variance}, but got {variance}"
 
@@ -42,7 +42,7 @@ def test_get_sensor_space_variance_no_filter_sel_vert():
     
     # Both vertices in the stc have corresponding zero time series
     expected_variance = 0
-    variance = _get_sensor_space_variance(stc, fwd, filter=False)
+    variance = get_sensor_space_variance(stc, fwd, filter=False)
     assert np.isclose(variance, expected_variance), \
         f"Expected variance {expected_variance}, but got {variance}"
 
@@ -53,7 +53,7 @@ def test_get_sensor_space_variance_with_filter(butter_mock, filtfilt_mock):
     fwd = prepare_forward(5, 10)
     vertices = [[0, 1], [0, 1]]
     stc = prepare_stc(vertices)
-    variance = _get_sensor_space_variance(stc, fwd, fmin=8, fmax=12, filter=True)
+    variance = get_sensor_space_variance(stc, fwd, fmin=8, fmax=12, filter=True)
 
     # Check that butter and filtfilt were called
     butter_mock.assert_called()
@@ -80,7 +80,7 @@ def test_get_sensor_space_variance_with_filter_fmin_fmax(butter_mock, filtfilt_m
     fwd = prepare_forward(5, 10)
     vertices = [[0, 1], [0, 1]]
     stc = prepare_stc(vertices)
-    _get_sensor_space_variance(stc, fwd, filter=True, fmin=20., fmax=30.)
+    get_sensor_space_variance(stc, fwd, filter=True, fmin=20., fmax=30.)
 
     # Check that butter and filtfilt were called
     butter_mock.assert_called()
@@ -105,48 +105,48 @@ def test_get_sensor_space_variance_no_fmin_fmax():
     stc = prepare_stc(vertices)
 
     # No filtering required - should pass
-    _get_sensor_space_variance(stc, fwd, filter=False)
+    get_sensor_space_variance(stc, fwd, filter=False)
 
     # No fmin
     with pytest.raises(ValueError, match="Frequency band limits are required"):
-        _get_sensor_space_variance(stc, fwd, fmax=12, filter=True)
+        get_sensor_space_variance(stc, fwd, fmax=12, filter=True)
 
     # No fmax
     with pytest.raises(ValueError, match="Frequency band limits are required"):
-        _get_sensor_space_variance(stc, fwd, fmin=8, filter=True)
+        get_sensor_space_variance(stc, fwd, fmin=8, filter=True)
 
 
 @pytest.mark.parametrize("target_snr", np.logspace(-6, 6, 10))
-def test_adjust_snr(target_snr):
+def test_amplitude_adjustment(target_snr):
     signal_var = 10.0
     noise_var = 5.0
 
     snr_current = np.divide(signal_var, noise_var)
     expected_result = np.sqrt(target_snr / snr_current)
 
-    result = _adjust_snr(signal_var, noise_var, target_snr=target_snr)
+    result = amplitude_adjustment(signal_var, noise_var, target_snr=target_snr)
     assert np.isclose(result, expected_result), \
         f"Expected {expected_result}, but got {result}"
 
 
-def test_adjust_snr_zero_signal_var():
+def test_amplitude_adjustment_zero_signal_var():
     signal_var = 0.0
     noise_var = 5.0
 
     with pytest.raises(ValueError, match="initial SNR appear to be zero"):
-        _adjust_snr(signal_var, noise_var, target_snr=1)
+        amplitude_adjustment(signal_var, noise_var, target_snr=1)
 
 
-def test_adjust_snr_zero_noise_var():
+def test_amplitude_adjustment_zero_noise_var():
     signal_var = 10.0
     noise_var = 0.0
 
     with pytest.raises(ValueError, match="noise variance appears to be zero"):
-        _adjust_snr(signal_var, noise_var, target_snr=1)
+        amplitude_adjustment(signal_var, noise_var, target_snr=1)
 
 
-@patch('meegsim.snr._adjust_snr', return_value=2.)
-def test_setup_snr(adjust_snr_mock):
+@patch('meegsim.snr.amplitude_adjustment', return_value=2.)
+def test_adjust_snr(adjust_snr_mock):
     src = prepare_source_space(
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
@@ -171,7 +171,7 @@ def test_setup_snr(adjust_snr_mock):
         'n1': MockPointSource(name='n1')
     }
 
-    sources = _setup_snr(src, fwd, sources, source_groups, noise_sources)
+    sources = _adjust_snr(src, fwd, sources, source_groups, noise_sources)
 
     # Check the SNR adjustment was performed
     adjust_snr_mock.assert_called()

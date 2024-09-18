@@ -43,7 +43,7 @@ def prepare_source_space(types, vertices):
 def prepare_forward(n_channels, n_sources, 
                     ch_names=None, ch_types=None, sfreq=250):
 
-    assert n_sources % 2 == 0, "Only even number of sources is supported"
+    assert n_sources % 2 == 0, "Only an even number of sources is supported"
 
     # Create a dummy info structure
     if ch_names is None:

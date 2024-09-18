@@ -266,14 +266,14 @@ def check_snr(snr, n_sources):
     Parameters
     ----------
     snr: None, float, or array
-        The provided value for SNR
+        The provided value(s) for SNR
     n_sources: int
         The number of sources.
     
     Raises
     ------
     ValueError
-        If the provided SNR value does not follow the requirements described above.
+        If the provided SNR value(s) do not follow the format described above.
     """
 
     if snr is None:

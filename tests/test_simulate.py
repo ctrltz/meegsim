@@ -218,7 +218,7 @@ def test_simulate():
             f"Expected 4 sources, got {len(noise_sources)}"
 
 
-@patch('meegsim.simulate._setup_snr', return_value = [])
+@patch('meegsim.simulate._adjust_snr', return_value = [])
 def test_simulate_snr_adjustment(setup_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source    
     simulate_mock = Mock(side_effect=[

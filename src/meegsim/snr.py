@@ -6,7 +6,7 @@ from scipy.signal import butter, filtfilt
 from .sources import _combine_sources_into_stc
 
 
-def _get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
+def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     """
     Estimate the sensor space variance of the provided stc
 
@@ -43,9 +43,15 @@ def _get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype='bandpass')
         stc_data = filtfilt(b, a, stc_data, axis=1)        
 
-    fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
-                                                       on_missing='raise')
-    leadfield_restict = fwd_restrict['sol']['data']
+    try:
+        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
+                                                           on_missing='raise')
+        leadfield_restict = fwd_restrict['sol']['data']
+    except ValueError:   
+        raise ValueError(
+            'The provided forward model does not contain some of the '
+            'simulated sources, so the SNR cannot be adjusted.'
+        )
 
     n_samples = stc_data.shape[1]
     n_sensors = leadfield_restict.shape[0]
@@ -56,7 +62,7 @@ def _get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     return sensor_var
 
 
-def _adjust_snr(signal_var, noise_var, target_snr):
+def amplitude_adjustment(signal_var, noise_var, target_snr):
     """
     Derive the signal amplitude that allows obtaining target SNR
 
@@ -75,8 +81,9 @@ def _adjust_snr(signal_var, noise_var, target_snr):
 
     Returns
     -------
-    out: float
-        The value that original signal should be scaled (multiplied) to in order to obtain desired SNR.
+    amp: float
+        The amplitude of the signal that allows obtaining the desired SNR.
+        The original signal should be multiplied by this value.
     """
 
     snr_current = np.divide(signal_var, noise_var)
@@ -95,7 +102,7 @@ def _adjust_snr(signal_var, noise_var, target_snr):
     return factor
 
 
-def _setup_snr(src, fwd, sources, source_groups, noise_sources):
+def _adjust_snr(src, fwd, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
     stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
 
@@ -106,20 +113,21 @@ def _setup_snr(src, fwd, sources, source_groups, noise_sources):
         
         # Estimate the noise variance in the specified frequency band
         fmin, fmax = sg.snr_params['fmin'], sg.snr_params['fmax']
-        noise_var = _get_sensor_space_variance(stc_noise, fwd, 
+        noise_var = get_sensor_space_variance(stc_noise, fwd, 
                                               fmin=fmin, fmax=fmax, filter=True)
+
         # Adjust the amplitude of each source in the group to match the target SNR
         for name, target_snr in zip(sg.names, sg.snr):
             s = sources[name]
 
             # NOTE: taking a safer approach for now and filtering
             # even if the signal is already a narrowband oscillation
-            signal_var = _get_sensor_space_variance(s.to_stc(src), fwd,
+            signal_var = get_sensor_space_variance(s.to_stc(src), fwd,
                                                    fmin=fmin, fmax=fmax, filter=True)
 
             # NOTE: patch sources might require more complex calculations
             # if the within-patch correlation is not equal to 1
-            amp = _adjust_snr(signal_var, noise_var, target_snr)
+            amp = amplitude_adjustment(signal_var, noise_var, target_snr)
             s.waveform *= amp
 
     return sources

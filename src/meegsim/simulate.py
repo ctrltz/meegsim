@@ -1,5 +1,5 @@
 from .configuration import SourceConfiguration
-from .snr import _setup_snr
+from .snr import _adjust_snr
 from .source_groups import PointSourceGroup
 from .waveform import one_over_f_noise
 
@@ -276,6 +276,6 @@ def _simulate(
 
     # Adjust the SNR if needed
     if is_snr_adjusted:
-        sources = _setup_snr(src, fwd, sources, source_groups, noise_sources)
+        sources = _adjust_snr(src, fwd, sources, source_groups, noise_sources)
 
     return sources, noise_sources
