@@ -70,7 +70,10 @@ def prepare_forward(n_channels, n_sources,
 
     # Create a forward solution
     forward = {
-        'sol': {'data': fwd_data},
+        'sol': {
+            'data': fwd_data,
+            'row_names': ch_names
+        },
         '_orig_sol': fwd_data,
         'sol_grad': None,
         'info': info,
