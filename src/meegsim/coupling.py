@@ -128,7 +128,25 @@ COUPLING_PARAMETERS = {
 
 def _coupling_dispatcher(waveform, coupling_params, times, random_state):
     """
-    
+    This function dispatches the call to the correct coupling method.
+
+    Parameters
+    ----------
+    waveform: array-like
+        The input waveform.
+    coupling_params: dict
+        Coupling parameters, including the name of the method that should
+        be used to set up coupling.
+    times: array-like
+        Time points of all samples in the waveform.
+    random_state: int or None
+        Random state that can fixed to ensure reproducibility of results.
+
+    Returns
+    -------
+    output: array-like
+        The output waveform which is coupled to the input according to the
+        provided parameters. 
     """
 
     # Extract method name to find the corresponding coupling function
