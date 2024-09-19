@@ -4,7 +4,9 @@ from unittest.mock import patch
 
 import pytest
 
-from meegsim.snr import get_sensor_space_variance, amplitude_adjustment, _adjust_snr
+from meegsim.snr import (
+    get_sensor_space_variance, amplitude_adjustment_factor, _adjust_snr
+)
 from meegsim.source_groups import PointSourceGroup
 
 from utils.mocks import MockPointSource
@@ -117,14 +119,14 @@ def test_get_sensor_space_variance_no_fmin_fmax():
 
 
 @pytest.mark.parametrize("target_snr", np.logspace(-6, 6, 10))
-def test_amplitude_adjustment(target_snr):
+def test_amplitude_adjustment_factor(target_snr):
     signal_var = 10.0
     noise_var = 5.0
 
     snr_current = np.divide(signal_var, noise_var)
     expected_result = np.sqrt(target_snr / snr_current)
 
-    result = amplitude_adjustment(signal_var, noise_var, target_snr=target_snr)
+    result = amplitude_adjustment_factor(signal_var, noise_var, target_snr=target_snr)
     assert np.isclose(result, expected_result), \
         f"Expected {expected_result}, but got {result}"
 
@@ -134,7 +136,7 @@ def test_amplitude_adjustment_zero_signal_var():
     noise_var = 5.0
 
     with pytest.raises(ValueError, match="initial SNR appear to be zero"):
-        amplitude_adjustment(signal_var, noise_var, target_snr=1)
+        amplitude_adjustment_factor(signal_var, noise_var, target_snr=1)
 
 
 def test_amplitude_adjustment_zero_noise_var():
@@ -142,10 +144,10 @@ def test_amplitude_adjustment_zero_noise_var():
     noise_var = 0.0
 
     with pytest.raises(ValueError, match="noise variance appears to be zero"):
-        amplitude_adjustment(signal_var, noise_var, target_snr=1)
+        amplitude_adjustment_factor(signal_var, noise_var, target_snr=1)
 
 
-@patch('meegsim.snr.amplitude_adjustment', return_value=2.)
+@patch('meegsim.snr.amplitude_adjustment_factor', return_value=2.)
 def test_adjust_snr(adjust_snr_mock):
     src = prepare_source_space(
         types=['surf', 'surf'],
