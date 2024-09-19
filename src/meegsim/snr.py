@@ -62,9 +62,9 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     return sensor_var
 
 
-def amplitude_adjustment(signal_var, noise_var, target_snr):
+def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     """
-    Derive the signal amplitude that allows obtaining target SNR
+    Derive the adjustment factor for signal amplitude that allows obtaining the target SNR
 
     Parameters
     ----------
@@ -81,9 +81,8 @@ def amplitude_adjustment(signal_var, noise_var, target_snr):
 
     Returns
     -------
-    amp: float
-        The amplitude of the signal that allows obtaining the desired SNR.
-        The original signal should be multiplied by this value.
+    factor: float
+        The original signal should be multiplied by this value to obtain the desired SNR.
     """
 
     snr_current = np.divide(signal_var, noise_var)
@@ -127,7 +126,7 @@ def _adjust_snr(src, fwd, sources, source_groups, noise_sources):
 
             # NOTE: patch sources might require more complex calculations
             # if the within-patch correlation is not equal to 1
-            amp = amplitude_adjustment(signal_var, noise_var, target_snr)
-            s.waveform *= amp
+            factor = amplitude_adjustment_factor(signal_var, noise_var, target_snr)
+            s.waveform *= factor
 
     return sources
