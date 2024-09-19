@@ -138,5 +138,5 @@ def _coupling_dispatcher(waveform, coupling_params, times, random_state):
         raise ValueError(f"Coupling method '{method}' is not supported")
     
     coupling_fn = COUPLING_FUNCTIONS[method]
-    return coupling_fn(waveform, get_sfreq(sfreq), **coupling_params, 
+    return coupling_fn(waveform, get_sfreq(times), **coupling_params, 
                        random_state=random_state)
