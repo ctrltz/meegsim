@@ -1,8 +1,10 @@
 import networkx as nx
 import numpy as np
 
+from .coupling import _coupling_dispatcher
 
-def generate_walkaround_paths(tree, start_node=None, random_state=None):
+
+def traverse_tree(tree, start_node=None, random_state=None):
     """
     Generate a list of walkaround paths in a tree starting from start_node.
 
@@ -22,7 +24,7 @@ def generate_walkaround_paths(tree, start_node=None, random_state=None):
 
     Returns:
     -------
-    out : list of lists of int
+    out : list of tuples
         A list of pairs of nodes representing walkaround paths.
     """
 
@@ -34,7 +36,7 @@ def generate_walkaround_paths(tree, start_node=None, random_state=None):
     return list(nx.dfs_edges(tree, source=start_node))
 
 
-def connecting_paths(coupling_setup, random_state=None):
+def generate_walkaround(coupling_setup, random_state=None):
     """
     Constructs a graph from the provided edge list and attributes, and identifies walkaround paths in tree topologies.
 
@@ -49,11 +51,9 @@ def connecting_paths(coupling_setup, random_state=None):
         
     Returns
     -------
-    out : tuple (G, walkaround)
-        - G : networkx.Graph
-            The constructed graph with edges, weights, and capacities.
-        - walkaround : list of lists
-            A list of walkaround paths for each tree topology in the graph. Each walkaround path is a list of node pairs.
+    walkaround : list of tuples
+        A list of coupling edges (source, target) ordered in a way that guarantees the 
+        desired coupling for all the edges.
     """
 
     # Build graph
@@ -69,9 +69,35 @@ def connecting_paths(coupling_setup, random_state=None):
         subgraph = G.subgraph(component)
 
         # build the path starting from random node
-        walkaround_paths = generate_walkaround_paths(subgraph, start_node=None, 
-                                                     random_state=random_state)
-        walkaround.append(walkaround_paths)
+        walkaround_paths = traverse_tree(subgraph, start_node=None, 
+                                         random_state=random_state)
+        walkaround.extend(walkaround_paths)
 
-    return G, walkaround
+    return walkaround
 
+
+def _set_coupling(sources, coupling, times, random_state=None):
+    walkaround = generate_walkaround(coupling, random_state=random_state)
+
+    for name1, name2 in walkaround:
+        # Get the sources by their names
+        s1, s2 = sources[name1], sources[name2]
+        
+        # Get the corresponding coupling parameters
+        # NOTE: for now, we assume undirected connectivity, so the edges might
+        # get reversed during walkaround (i.e., (0, 1) was defined but (1, 0)
+        # was required for the correct traversal of the coupling graph).
+        # 
+        # As a temporary fix, we restore the original order here. 
+        # A long-term solution should address the directed vs. undirected type 
+        # of connectivity more specifically for built-in functions as well.
+        edge = (name1, name2)
+        if edge not in coupling:
+            edge = (name2, name1)
+        coupling_params = coupling[edge]
+
+        # Adjust the waveform of s2 to be coupled with s1
+        s2.waveform = _coupling_dispatcher(s1.waveform, coupling_params,
+                                           times, random_state=random_state)
+
+    return sources

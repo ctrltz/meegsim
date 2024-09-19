@@ -6,8 +6,8 @@ import json
 import mne
 import numpy as np
 
+from harmoni.extratools import compute_plv
 from pathlib import Path
-from scipy.signal import butter, filtfilt
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
@@ -31,8 +31,6 @@ duration = 60
 seed = 1234
 target_snr = 20
 
-b, a = butter(4, 2 * np.array([8, 12]) / sfreq, 'bandpass')
-
 # Channel info
 montage = mne.channels.make_standard_montage('standard_1020')
 ch_names = [ch for ch in montage.ch_names if ch not in ['O9', 'O10']]
@@ -45,37 +43,30 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
 sim = SourceSimulator(src)
 
-# Add noise sources
-sim.add_noise_sources(
-    location=select_random,
-    location_params=dict(n=10)
-)
-
-sc_noise = sim.simulate(sfreq, duration, random_state=seed)
-raw_noise = sc_noise.to_raw(fwd, info)
-
 # Select some vertices randomly
 sim.add_point_sources(
     location=select_random,
     waveform=narrowband_oscillation,
-    location_params=dict(n=1),
+    location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
-    snr=target_snr,
-    snr_params=dict(fmin=8, fmax=12)
+    names=['s1', 's2', 's3']
 )
 
-sc_full = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
-raw_full = sc_full.to_raw(fwd, info)
+# Set coupling
+sim.set_coupling(coupling={
+    ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
+    ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
+}, method='ppc_von_mises', fmin=8, fmax=12)
 
-n_samples = sc_full.times.size
-noise_data = filtfilt(b, a, raw_noise.get_data())
-cov_raw_noise = (noise_data @ noise_data.T) / n_samples
-full_data = filtfilt(b, a, raw_full.get_data())
-cov_raw_full = (full_data @ full_data.T) / n_samples
-snr = np.mean(np.diag(cov_raw_full)) / np.mean(np.diag(cov_raw_noise)) - 1
-print(f'Target SNR = {target_snr:.2f}')
-print(f'Actual SNR = {snr:.2f}')
+print(sim._coupling)
 
-spec = raw_full.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
+sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
+stc = sc.to_stc()
+raw = sc.to_raw(fwd, info)
+
+print('PLV:', compute_plv(stc.data, stc.data, n=1, m=1))
+print('iPLV:', compute_plv(stc.data, stc.data, n=1, m=1, plv_type='imag'))
+
+spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')

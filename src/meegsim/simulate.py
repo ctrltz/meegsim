@@ -1,4 +1,6 @@
+from ._check import check_coupling
 from .configuration import SourceConfiguration
+from .coupling_graph import _set_coupling
 from .snr import _adjust_snr
 from .source_groups import PointSourceGroup
 from .waveform import one_over_f_noise
@@ -105,17 +107,6 @@ class SourceSimulator:
 
         # Return the names of newly added sources
         return point_sg.names
-        
-    # def add_patch_sources(self, location, waveform, snr=None, patch_corr=None, 
-    #                     location_params=None, waveform_params=None, grow_params=None, names=None):
-    #     """
-    #     Parameters
-    #     ----------
-    #     patch_corr: None or float between 0 and 1
-    #         if None, all vertices contain the same signal
-    #         otherwise, all vertices contain the same signal plus noise
-    #         NB: probably lower priority for now
-    #     """
 
     def add_noise_sources(
         self, 
@@ -179,10 +170,32 @@ class SourceSimulator:
         # Return the names of newly added sources
         return noise_sg.names
         
-    def set_coupling(self, coupling, method):
-        raise NotImplementedError('Coupling is not supported yet')
-        # coupling = check_coupling(coupling, method)
-        # self._coupling.update(coupling)
+    def set_coupling(self, coupling, **common_params):
+        """
+        Set coupling between sources that were added to the simulator.
+
+        Parameters
+        ----------
+        coupling: dict
+            Dictionary that define the coupling edges and parameters. It should
+            contain tuples (source, target) as keys, where source and target are
+            names of sources that were added to the simulator. The values should be
+            dictionary with keyword arguments of the coupling method.
+        **common_params: dict, optional
+            The name of the method that should be used to simulate the coupled waveform.
+
+        Examples
+        --------
+        sim.set_coupling(coupling={
+            ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
+            ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
+        }, method='ppc_von_mises', fmin=8, fmax=12)
+        """
+
+        for coupling_edge, coupling_params in coupling.items():
+            params = check_coupling(coupling_edge, coupling_params, common_params, 
+                                    self._sources, self._coupling)
+            self._coupling[coupling_edge] = params
         
     def simulate(
         self,  
@@ -228,6 +241,7 @@ class SourceSimulator:
         sources, noise_sources = _simulate(
             self._source_groups,
             self._noise_groups,
+            self._coupling,
             self.is_snr_adjusted,
             self.src,
             sc.times,
@@ -245,6 +259,7 @@ class SourceSimulator:
 def _simulate(
     source_groups, 
     noise_groups,
+    coupling,
     is_snr_adjusted,
     src,
     times,
@@ -268,11 +283,8 @@ def _simulate(
 
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
-
-        # Here we should also check for possible cycles in the coupling structure
-        # If there are cycles, raise an error
-        # If there are no cycles, traverse the graph and set coupling according to the selected method
-        # Try calling the coupling with the provided parameters but be prepared for mismatches
+    if coupling:
+        sources = _set_coupling(sources, coupling, times, random_state=random_state)
 
     # Adjust the SNR if needed
     if is_snr_adjusted:

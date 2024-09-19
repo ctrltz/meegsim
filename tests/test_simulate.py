@@ -203,7 +203,7 @@ def test_simulate():
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, noise_sources = _simulate(source_groups, noise_groups, False, src, 
+        sources, noise_sources = _simulate(source_groups, noise_groups, {}, False, src, 
                                            times=times, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
@@ -252,7 +252,7 @@ def test_simulate_snr_adjustment(setup_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, noise_sources = _simulate(source_groups, noise_groups, True, src, 
+        sources, noise_sources = _simulate(source_groups, noise_groups, {}, True, src, 
                                            times=times, fwd=fwd, random_state=0)
         
         # Check that the SNR adjustment was performed

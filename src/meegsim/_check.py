@@ -13,6 +13,7 @@ import numpy as np
 
 from functools import partial
 
+from .coupling import COUPLING_PARAMETERS
 from .utils import logger
 
 
@@ -329,11 +330,43 @@ def check_snr_params(snr_params, snr):
     return snr_params
 
 
-def check_coupling():
-    # coupling_edge = list(coupling.keys())[0]
-    # coupling_params = list(coupling.values())[0]
-    # name1, name2 = coupling_edge[0]
-    # if missing:
-    #     raise ValueError(f"The configuration contains no sources with the following names: {', '.join(missing)}")
-    # self.check_if_exist([name1, name2])
-    pass
+def check_name_exists(name, existing):
+    if name not in existing:
+        raise ValueError(f'Source {name} was not defined yet')
+
+
+def check_coupling_params(method, coupling_params, coupling_edge):
+    for param in COUPLING_PARAMETERS[method]:
+        if param not in coupling_params:
+            raise ValueError(
+                f'The {param} parameter is required for the {method} method '
+                f'but was not defined for the {coupling_edge} coupling edge.'
+            )
+
+
+def check_coupling(coupling_edge, coupling_params, common_params, names, existing):
+    # Check that both source names already exist
+    source, target = coupling_edge
+    check_name_exists(source, names)
+    check_name_exists(target, names)
+
+    # Check that this coupling edge has not been already added
+    if coupling_edge in existing:
+        raise ValueError(
+            f'The coupling edge {coupling_edge} already exists in the '
+            f'simulation, and multiple definitions are not allowed.'
+        )
+    
+    # Add common parameters to the edge-specific ones
+    params = coupling_params.copy()
+    params.update(common_params)
+
+    # Check that the coupling method was defined
+    if 'method' not in params:
+        raise ValueError(f'Coupling method was not defined for the edge {coupling_edge}')
+    
+    # Check that all required coupling parameters were specified for the selected method
+    method = params['method']
+    check_coupling_params(method, params, coupling_edge)
+    
+    return params

@@ -3,13 +3,14 @@ Methods for setting the coupling between two signals
 """
 
 import numpy as np
-import warnings
 
 from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
 
+from .utils import get_sfreq
 
-def constant_phase_shift(waveform, phase_lag, *, m=1, n=1):
+
+def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None):
     """
     Generate time series that is phase coupled to input time series. Phase coupling is deterministic.
 
@@ -17,6 +18,10 @@ def constant_phase_shift(waveform, phase_lag, *, m=1, n=1):
     ----------
     waveform : array-like
         The input signal to be processed. It can be a real or complex time series.
+
+    sfreq: float
+        Sampling frequency of the signal, in Hz. This argument is not used in this
+        function but is accepted for consistency with other coupling methods.
 
     phase_lag : float
         Constant phase lag to apply to the waveform in radians.
@@ -26,6 +31,10 @@ def constant_phase_shift(waveform, phase_lag, *, m=1, n=1):
 
     n : int, optional
         Base frequency harmonic, default = 1.
+
+    random_state: None, optional
+        This parameter is accepted for consistency with other coupling functions
+        but not used since no randomness is involved.
 
     Returns
     -------
@@ -42,7 +51,7 @@ def constant_phase_shift(waveform, phase_lag, *, m=1, n=1):
     return np.real(waveform_coupled)
 
 
-def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax=None, random_state=None):
+def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, random_state=None):
     """
     Generate time series that is phase coupled to input time series. Phase coupling is probabilistic
     and based on von Mises distribution.
@@ -53,29 +62,29 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
     waveform : array-like
         The input signal to be processed. It can be a real or complex time series.
 
-    fs : float
+    sfreq : float
         Sampling frequency (in Hz).
 
     phase_lag : float
         Average phase lag to apply to the waveform in radians.
 
-    kappa : float, optional
+    kappa : float
         Concentration parameter of the von Mises distribution. With higher kappa, phase angles
         are more concentrated around the mean direction, which translates to the coupled waveform having phase shifts
         that are consistently close to the specified phase_lag. With lower kappa, phase lags along the time series
         will vary substantially. default = 1.
+
+    fmin: float
+        Lower cutoff frequency of the base frequency harmonic (in Hz). default = None.
+
+    fmax: float
+        Upper cutoff frequency of the base frequency harmonic (in Hz). default = None.
 
     m : int, optional
         Harmonic of interest for phase coupling, default = 1.
 
     n : int, optional
         Base frequency harmonic, default = 1.
-
-    fmin: float, optional
-        Lower cutoff frequency of the base frequency harmonic (in Hz). default = None.
-
-    fmax: float, optional
-        Upper cutoff frequency of the base frequency harmonic (in Hz). default = None.
 
     random_state : int or None, optional
         Seed for the random number generator. If None, it will be drawn
@@ -91,27 +100,43 @@ def ppc_von_mises(waveform, fs, phase_lag, *, kappa=1, m=1, n=1, fmin=None, fmax
     if not np.iscomplexobj(waveform):
         waveform = hilbert(waveform)
 
-    if fmin is None:
-        warnings.warn("fmin was None. Setting fmin to 8 Hz", UserWarning)
-        fmin = 8.
-    if fmax is None:
-        warnings.warn("fmax was None. Setting fmax to 12 Hz", UserWarning)
-        fmax = 12.
-
     waveform_amp = np.abs(waveform)
     waveform_angle = np.angle(waveform)
     n_samples = len(waveform)
 
     ph_distr = vonmises.rvs(kappa, loc=phase_lag, size=n_samples, random_state=random_state)
     tmp_waveform = np.real(waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * ph_distr))
-    b, a = butter(N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / fs * 2, btype='bandpass')
+    b, a = butter(N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / sfreq * 2, btype='bandpass')
     tmp_waveform = filtfilt(b, a, tmp_waveform)
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 
     return np.real(waveform_coupled)
 
 
+# This dictionary contains all built-in methods for simulating coupled time series
 COUPLING_FUNCTIONS = {
     'constant_phase_shift': constant_phase_shift,
     'ppc_von_mises': ppc_von_mises,
 }
+
+# This dictionary contains all required parameters for the built-in coupling methods
+COUPLING_PARAMETERS = {
+    'constant_phase_shift': ['phase_lag'],
+    'ppc_von_mises': ['kappa', 'phase_lag', 'fmin', 'fmax']
+}
+
+
+def _coupling_dispatcher(waveform, coupling_params, times, random_state):
+    """
+    
+    """
+
+    # Extract method name to find the corresponding coupling function
+    method = coupling_params.pop('method')
+
+    if method not in COUPLING_FUNCTIONS:
+        raise ValueError(f"Coupling method '{method}' is not supported")
+    
+    coupling_fn = COUPLING_FUNCTIONS[method]
+    return coupling_fn(waveform, get_sfreq(sfreq), **coupling_params, 
+                       random_state=random_state)
