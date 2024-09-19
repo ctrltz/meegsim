@@ -3,10 +3,11 @@ Testing the configuration structure
 """
 
 import json
-import numpy as np
 import mne
+import numpy as np
 
 from pathlib import Path
+from scipy.signal import butter, filtfilt
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
@@ -27,6 +28,10 @@ fwd = mne.read_forward_solution(fwd_path)
 # Simulation parameters
 sfreq = 250
 duration = 60
+seed = 1234
+target_snr = 20
+
+b, a = butter(4, 2 * np.array([8, 12]) / sfreq, 'bandpass')
 
 # Channel info
 montage = mne.channels.make_standard_montage('standard_1020')
@@ -40,29 +45,37 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
 sim = SourceSimulator(src)
 
-# Select some vertices randomly (signal/noise does not matter for now)
-sim.add_point_sources(
-    location=select_random, 
-    waveform=narrowband_oscillation,
-    location_params=dict(n=10, vertices=[list(src[0]['vertno']), []]),
-    waveform_params=dict(fmin=8, fmax=12)
-)
+# Add noise sources
 sim.add_noise_sources(
     location=select_random,
-    location_params=dict(n=10, vertices=[[], list(src[1]['vertno'])])
+    location_params=dict(n=10)
 )
 
-# Print the source groups to check internal structure
-print(f'Source groups: {sim._source_groups}')
-print(f'Noise groups: {sim._noise_groups}')
+sc_noise = sim.simulate(sfreq, duration, random_state=seed)
+raw_noise = sc_noise.to_raw(fwd, info)
 
-sc = sim.simulate(sfreq, duration, random_state=0)
+# Select some vertices randomly
+sim.add_point_sources(
+    location=select_random,
+    waveform=narrowband_oscillation,
+    location_params=dict(n=1),
+    waveform_params=dict(fmin=8, fmax=12),
+    snr=target_snr,
+    snr_params=dict(fmin=8, fmax=12)
+)
 
-# Print the sources to check internal structure
-print(f'Simulated sources: {to_json(sc._sources)}')
-print(f'Simulated noise sources: {to_json(sc._noise_sources)}')
+sc_full = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
+raw_full = sc_full.to_raw(fwd, info)
 
-raw = sc.to_raw(fwd, info)
-spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
+n_samples = sc_full.times.size
+noise_data = filtfilt(b, a, raw_noise.get_data())
+cov_raw_noise = (noise_data @ noise_data.T) / n_samples
+full_data = filtfilt(b, a, raw_full.get_data())
+cov_raw_full = (full_data @ full_data.T) / n_samples
+snr = np.mean(np.diag(cov_raw_full)) / np.mean(np.diag(cov_raw_noise)) - 1
+print(f'Target SNR = {target_snr:.2f}')
+print(f'Actual SNR = {snr:.2f}')
+
+spec = raw_full.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')

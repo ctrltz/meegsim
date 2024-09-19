@@ -113,14 +113,14 @@ class PointSourceGroup(_BaseSourceGroup):
             The location provided by the user.
         waveform: list of callable
             The waveform provided by the user.
-        snr: 
-            TODO: fix when finalizing SNR 
+        snr: None, float, or array
+            The SNR values provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
         waveform_params: dict, optional
             Additional keyword arguments for the waveform function.
-        snr_params:
-            TODO: fix when finalizing SNR
+        snr_params: dict, optional
+            Additional parameters for the adjustment of SNR.
         names:
             The names of sources provided by the user.
         group:
@@ -139,7 +139,7 @@ class PointSourceGroup(_BaseSourceGroup):
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
-        snr_params = check_snr_params(snr_params)
+        snr_params = check_snr_params(snr_params, snr)
 
         # Auto-generate or check the provided source names
         if not names:
