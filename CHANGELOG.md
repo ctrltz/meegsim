@@ -13,5 +13,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Waveforms of white noise, narrowband oscillation (white noise filtered in a narrow frequency band) and 1/f noise with adjustable slope ([#8](https://github.com/ctrltz/meegsim/pull/8))
 - Random vertices in the whole source space or in a subset of vertices as location for point sources ([#10](https://github.com/ctrltz/meegsim/pull/10))
 - Adjustment of the SNR of the point sources based on sensor space power ([#9](https://github.com/ctrltz/meegsim/pull/9), [#31](https://github.com/ctrltz/meegsim/pull/31))
-- Phase-phase coupling with a constant phase lag or a probabilistic phase lag according to the von Mises distribution ([#11](https://github.com/ctrltz/meegsim/pull/11))
-- Traversal of the coupling graph to ensure that the coupling is set up correctly when multiple connectivity edges are defined ([#12](https://github.com/ctrltz/meegsim/pull/12))
+- Phase-phase coupling with a constant phase lag or a probabilistic phase lag according to the von Mises distribution ([#11](https://github.com/ctrltz/meegsim/pull/11), [#34](https://github.com/ctrltz/meegsim/pull/34))
+- Traversal of the coupling graph to ensure that the coupling is set up correctly when multiple connectivity edges are defined ([#12](https://github.com/ctrltz/meegsim/pull/12), [#34](https://github.com/ctrltz/meegsim/pull/34))
