@@ -116,7 +116,7 @@ def test_set_coupling(generate_mock, coupling_mock):
     }
     times = np.arange(100) / 100
 
-    sources = _set_coupling(sources, coupling, times)
+    sources = _set_coupling(sources, coupling, times, random_state=None)
 
     # Check that the coupled waveforms were saved correctly
     assert sources['s2'].waveform == 1
