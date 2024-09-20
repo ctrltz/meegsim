@@ -4,7 +4,8 @@ import pytest
 from functools import partial
 from meegsim._check import (
     check_callable, check_vertices_list_of_tuples, check_vertices_in_src,
-    check_location, check_waveform, check_names, check_snr, check_snr_params
+    check_location, check_waveform, check_names, check_snr, check_snr_params,
+    check_if_source_exists, check_coupling, check_coupling_params
 )
 
 from utils.prepare import prepare_source_space
@@ -262,3 +263,96 @@ def test_check_names_auto():
 def test_check_names_already_exists():
     with pytest.raises(ValueError, match='Name s1 is already taken'):
         check_names(['a', 'b', 's1'], 3, ['s1'])
+
+
+def test_check_if_source_exists_should_pass():
+    existing = ['aaa', 'bbb']
+    check_if_source_exists('aaa', existing)
+
+
+def test_check_if_source_exists_should_raise():
+    existing = ['aaa', 'bbb']
+    with pytest.raises(ValueError, match='Source ccc'):
+        check_if_source_exists('ccc', existing)
+
+
+def test_check_coupling_params_should_pass():
+    edge = ('0', '1')
+    method = 'ppc_von_mises'
+    coupling_params = dict(
+        phase_lag=0,
+        kappa=1,
+        fmin=8,
+        fmax=12
+    )
+
+    check_coupling_params(method, coupling_params, edge)
+
+
+def test_check_coupling_params_should_raise():
+    edge = ('0', '1')
+    method = 'ppc_von_mises'
+    coupling_params = dict(
+        phase_lag=0,
+        kappa=1,
+        fmin=8,
+    )
+    expected_message = 'The fmax parameter is required for the ppc_von_mises method'
+
+    with pytest.raises(ValueError, match=expected_message):
+        check_coupling_params(method, coupling_params, edge)
+
+
+def test_check_coupling_should_pass():
+    sources = ['a', 'b', 'c', 'd']
+    existing = {}
+    coupling_params = {'kappa': 1, 'phase_lag': 0}
+    common = {'method': 'ppc_von_mises', 'fmin': 8, 'fmax': 12}
+
+    params = check_coupling(('a', 'b'), coupling_params, common, sources, existing)
+
+    # Check that common params was added to the dictionary
+    assert 'method' in params
+    assert 'fmin' in params
+    assert 'fmax' in params
+
+
+def test_check_coupling_bad_source_name():
+    sources = ['a', 'b', 'c', 'd']
+
+    # Bad target node
+    with pytest.raises(ValueError, match="Source e was not defined yet"):
+        check_coupling(('a', 'e'), {}, {}, sources, {})
+
+    # Bad source node
+    with pytest.raises(ValueError, match="Source f was not defined yet"):
+        check_coupling(('f', 'b'), {}, {}, sources, {})
+
+
+def test_check_coupling_edge_already_exists():
+    sources = ['a', 'b', 'c', 'd']
+    existing = {
+        ('a', 'b'): dict(),
+    }
+
+    with pytest.raises(ValueError, match="multiple definitions are not allowed"):
+        check_coupling(('a', 'b'), {}, {}, sources, existing)
+
+
+def test_check_coupling_no_method_defined():
+    sources = ['a', 'b', 'c', 'd']
+    existing = {}
+    coupling_params = {'kappa': 1, 'phase_lag': 0}
+
+    with pytest.raises(ValueError, match="method was not defined"):
+        check_coupling(('a', 'b'), coupling_params, {}, sources, existing)
+
+
+def test_check_coupling_bad_params():
+    sources = ['a', 'b', 'c', 'd']
+    existing = {}
+    coupling_params = {'kappa': 1, 'phase_lag': 0, 'fmin': 8}
+    common = {'method': 'ppc_von_mises'}
+
+    with pytest.raises(ValueError, match="The fmax parameter is required"):
+        check_coupling(('a', 'b'), coupling_params, common, sources, existing)

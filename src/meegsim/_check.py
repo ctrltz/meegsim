@@ -330,7 +330,7 @@ def check_snr_params(snr_params, snr):
     return snr_params
 
 
-def check_name_exists(name, existing):
+def check_if_source_exists(name, existing):
     if name not in existing:
         raise ValueError(f'Source {name} was not defined yet')
 
@@ -347,8 +347,8 @@ def check_coupling_params(method, coupling_params, coupling_edge):
 def check_coupling(coupling_edge, coupling_params, common_params, names, existing):
     # Check that both source names already exist
     source, target = coupling_edge
-    check_name_exists(source, names)
-    check_name_exists(target, names)
+    check_if_source_exists(source, names)
+    check_if_source_exists(target, names)
 
     # Check that this coupling edge has not been already added
     if coupling_edge in existing:
