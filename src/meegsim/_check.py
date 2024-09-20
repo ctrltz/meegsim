@@ -331,11 +331,45 @@ def check_snr_params(snr_params, snr):
 
 
 def check_if_source_exists(name, existing):
+    """
+    Check if a source exists when trying to set the coupling.
+    
+    Parameters
+    ----------
+    name: str
+        The name of the source to be checked.
+    existing: list of str
+        The name of all existing sources
+
+    Raises
+    ------
+    ValueError
+        If the provided source name is not in the list of existing ones.
+    """
     if name not in existing:
         raise ValueError(f'Source {name} was not defined yet')
 
 
 def check_coupling_params(method, coupling_params, coupling_edge):
+    """
+    Check whether all required coupling parameters were provided for the
+    selected method.
+    
+    Parameters
+    ----------
+    method: str
+        The name of the coupling method.
+    coupling_params: dict
+        The coupling parameters for the selected method.
+    coupling_edge: tuple
+        The coupling edge that the provided parameters apply to.
+        It is only used to be more specific in the error message.
+
+    Raises
+    ------
+    ValueError
+        If the provided dictionary does not contain all required parameters.
+    """
     for param in COUPLING_PARAMETERS[method]:
         if param not in coupling_params:
             raise ValueError(
@@ -345,6 +379,30 @@ def check_coupling_params(method, coupling_params, coupling_edge):
 
 
 def check_coupling(coupling_edge, coupling_params, common_params, names, existing):
+    """
+    Check whether the provided coupling edge and parameters are valid.
+    
+    Parameters
+    ----------
+    coupling_edge: tuple
+        The coupling edge (source, target) that the provided parameters apply to.
+    coupling_params: dict
+        The coupling parameters that were defined for this edge specifically.
+    common_params: dict
+        The coupling parameters that were defined for all edges.
+    names: list of str
+        The names of sources that exist in the simulation.
+    existing: dict
+        The coupling that already was added to the simulation
+
+    Raises
+    ------
+    ValueError
+        If source or target do not exist in the simulation.
+        If the coupling edge was defined previously.
+        If the coupling method or any of the required parameters for the method
+        are not provided.
+    """
     # Check that both source names already exist
     source, target = coupling_edge
     check_if_source_exists(source, names)
