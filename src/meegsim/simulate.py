@@ -179,13 +179,19 @@ class SourceSimulator:
         coupling: dict
             Dictionary that define the coupling edges and parameters. It should
             contain tuples (source, target) as keys, where source and target are
-            names of sources that were added to the simulator. The values should be
-            dictionary with keyword arguments of the coupling method.
+            names of sources that already exist in the simulator. 
+            
+            The values should be dictionaries with keyword arguments of the coupling 
+            method. Use this dictionary to define edge-specific parameters.
         **common_params: dict, optional
-            The name of the method that should be used to simulate the coupled waveform.
+            Additional coupling parameters that apply to each edge defined in the 
+            coupling dictionary.
 
         Examples
         --------
+        In the example below, `method`, `fmin`, `fmax` values apply to both 
+        coupling edges, while `kappa` and `phase_lag` are edge-specific.
+        
         sim.set_coupling(coupling={
             ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
             ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)

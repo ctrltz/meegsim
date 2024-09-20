@@ -76,7 +76,27 @@ def generate_walkaround(coupling_setup, random_state=None):
     return walkaround
 
 
-def _set_coupling(sources, coupling, times, random_state=None):
+def _set_coupling(sources, coupling, times, random_state):
+    """
+    This function traverses the coupling graph and executes the simulation
+    of coupling for each edge in the graph.
+
+    Parameters
+    ----------
+    sources: dict
+        Simulated sources.
+    coupling: dict.
+        The coupling to be added.
+    times: array-like
+        The time points for all samples in the waveform.
+    random_state: int or None
+        The random state that could be fixed to ensure reproducibility.
+
+    Returns
+    -------
+    sources: dict
+        Simulated sources with waveforms adjusted according to the desired coupling.
+    """
     walkaround = generate_walkaround(coupling, random_state=random_state)
 
     for name1, name2 in walkaround:
