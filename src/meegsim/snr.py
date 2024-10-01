@@ -1,12 +1,13 @@
 import numpy as np
 import mne
+import warnings
 
 from scipy.signal import butter, filtfilt
 
 from .sources import _combine_sources_into_stc
 
 
-def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
+def get_sensor_space_variance(stc, fwd, info=None, fmin=None, fmax=None, filter=False):
     """
     Estimate the sensor space variance of the provided stc
 
@@ -33,7 +34,29 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
         Variance with respect to leadfield.
     """
 
-    stc_data = stc.data
+    if info is None:
+        info = fwd["info"]
+
+    try:
+        with warnings.catch_warnings():
+            # Suppress the warnings about the scale of the data as
+            # it is irrelevant at this point
+            warnings.simplefilter('ignore', RuntimeWarning)
+
+            raw = mne.forward.apply_forward_raw(fwd, stc, info,
+                                                verbose=False)
+    except ValueError as e:
+        if "likely due to forward calculations" in str(e):
+            # Re-phrase the error in case some sources are missing
+            raise ValueError(
+                'The provided forward model does not contain some of the '
+                'simulated sources, so the SNR cannot be adjusted.'
+            )
+        else:
+            # Otherwise re-raise the original exception 
+            raise
+
+    raw_data = raw.get_data()
     if filter:
         if fmin is None or fmax is None:
             raise ValueError(
@@ -41,23 +64,10 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
             )
 
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype='bandpass')
-        stc_data = filtfilt(b, a, stc_data, axis=1)        
+        raw_data = filtfilt(b, a, raw_data, axis=1)        
 
-    try:
-        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
-                                                           on_missing='raise')
-        leadfield_restict = fwd_restrict['sol']['data']
-    except ValueError:   
-        raise ValueError(
-            'The provided forward model does not contain some of the '
-            'simulated sources, so the SNR cannot be adjusted.'
-        )
-
-    n_samples = stc_data.shape[1]
-    n_sensors = leadfield_restict.shape[0]
-    source_cov = (stc_data @ stc_data.T) / n_samples
-    sensor_cov = leadfield_restict @ source_cov @ leadfield_restict.T
-    sensor_var = np.trace(sensor_cov) / n_sensors
+    # Take mean over both axes to get mean variance of all sensors
+    sensor_var = np.mean(raw_data ** 2)
 
     return sensor_var
 
@@ -101,7 +111,7 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     return factor
 
 
-def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
+def _adjust_snr(src, fwd, info, tstep, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
     stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
 

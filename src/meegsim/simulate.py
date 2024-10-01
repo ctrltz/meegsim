@@ -1,3 +1,5 @@
+import warnings
+
 from .configuration import SourceConfiguration
 from .snr import _adjust_snr
 from .source_groups import PointSourceGroup
@@ -190,6 +192,7 @@ class SourceSimulator:
         sfreq, 
         duration,
         fwd=None,
+        info=None,
         random_state=None
     ):
         """
@@ -222,6 +225,11 @@ class SourceSimulator:
             raise ValueError('A forward model is required for the adjustment '
                              'of SNR.')
 
+        if fwd is not None and info is None:
+            warnings.warn(
+                'The info object was taken from fwd.'
+            )
+
         # Initialize the SourceConfiguration
         sc = SourceConfiguration(self.src, sfreq, duration, random_state=random_state)
 
@@ -233,6 +241,7 @@ class SourceSimulator:
             self.src,
             sc.times,
             fwd=fwd,
+            info=info,
             random_state=random_state
         )
 
@@ -250,6 +259,7 @@ def _simulate(
     src,
     times,
     fwd,
+    info,
     random_state=None
 ):
     """
@@ -278,6 +288,6 @@ def _simulate(
     # Adjust the SNR if needed
     if is_snr_adjusted:
         tstep = times[1] - times[0]
-        sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+        sources = _adjust_snr(src, fwd, info, tstep, sources, source_groups, noise_sources)
 
     return sources, noise_sources

@@ -204,7 +204,8 @@ def test_simulate():
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, noise_sources = _simulate(source_groups, noise_groups, False, src, 
-                                           times=times, fwd=None, random_state=0)
+                                           times=times, fwd=None, info=None, 
+                                           random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
             f"Expected three calls of PointSourceGroup.simulate method"
@@ -253,7 +254,8 @@ def test_simulate_snr_adjustment(setup_snr_mock):
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, noise_sources = _simulate(source_groups, noise_groups, True, src, 
-                                           times=times, fwd=fwd, random_state=0)
+                                           times=times, fwd=fwd, info=None,
+                                           random_state=0)
         
         # Check that the SNR adjustment was performed
         setup_snr_mock.assert_called()
