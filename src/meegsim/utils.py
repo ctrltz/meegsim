@@ -128,13 +128,13 @@ def get_sfreq(times):
     """
     Calculate the sampling frequency of a sequence of time points.
 
-    Parameters:
+    Parameters
     ----------
     times: ndarray
         A sequence of time points assumed to be uniformly spaced.
 
-    Returns:
-    ----------
+    Returns
+    -------
     out : float
         The sampling frequency
     """

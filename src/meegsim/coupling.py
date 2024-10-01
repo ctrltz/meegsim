@@ -1,20 +1,10 @@
 """
 Methods for setting the coupling between two signals
-All methods should accept the following arguments:
-  * time series of signal 1
-  * coupling parameters
-  * ideally, random_state (to allow reproducibility, still need to test how it would work)
-  
-All methods should return the time series of signals 1 and 2.
-
-Methods currently in mind:
-  * shifted copy (optionally with noise to control coupling parameters - later)
-  * phase phase coupling using von Mises distribution (within-frequency for now?)
 """
-import warnings
 
 import numpy as np
-import pytest
+import warnings
+
 from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
 

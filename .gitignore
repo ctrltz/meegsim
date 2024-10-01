@@ -5,3 +5,9 @@ __pycache__
 # Pytest
 .coverage
 .pytest_cache
+
+# Sphinx
+_build/
+
+# Build
+dist/

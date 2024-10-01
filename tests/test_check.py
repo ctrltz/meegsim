@@ -4,7 +4,7 @@ import pytest
 from functools import partial
 from meegsim._check import (
     check_callable, check_vertices_list_of_tuples, check_vertices_in_src,
-    check_location, check_waveform, check_names
+    check_location, check_waveform, check_names, check_snr, check_snr_params
 )
 
 from utils.prepare import prepare_source_space
@@ -173,6 +173,58 @@ def test_check_waveform_callable_bad_shape_raises():
             dict(),     
             n_sources=2       # expected 2 sources, will get 5 
         )
+
+
+def test_check_snr_is_none_passes():
+    snr = check_snr(None, 5)
+    assert snr is None
+
+
+@pytest.mark.parametrize("n_sources", [1, 5, 10])
+def test_check_snr_float_passes(n_sources):
+    snr = check_snr(1., n_sources)
+    assert snr.size == n_sources
+    assert np.all(snr == 1.)
+
+
+def test_check_snr_array_valid_shape_passes():
+    initial = [1, 2, 3, 4, 5]
+    snr = check_snr(initial, 5)
+    assert np.array_equal(snr, initial)
+
+
+def test_check_snr_array_invalid_shape_raises():
+    initial = [1, 2, 3, 4, 5]
+    with pytest.raises(ValueError, match="of the 3 sources, got 5"):
+        check_snr(initial, 3)
+
+
+def test_check_snr_negative_snr_raises():
+    with pytest.raises(ValueError, match="Each SNR value should be positive"):
+        check_snr([-1, 0, 1], 3)
+
+
+def test_check_snr_params_snr_is_none():
+    snr_params = check_snr_params(dict(), None)
+    assert not snr_params
+
+
+def test_check_snr_params_no_fmin():
+    with pytest.raises(ValueError, match="Please add fmin and fmax"):
+        check_snr_params(dict(fmax=12.), snr=1.)
+
+
+def test_check_snr_params_no_fmax():
+    with pytest.raises(ValueError, match="Please add fmin and fmax"):
+        check_snr_params(dict(fmin=8.), snr=1.)
+
+
+def test_check_snr_params_negative_fmin_fmax():
+    with pytest.raises(ValueError, match="Frequency limits should be positive"):
+        check_snr_params(dict(fmin=-8., fmax=12.), snr=1.)
+        
+    with pytest.raises(ValueError, match="Frequency limits should be positive"):
+        check_snr_params(dict(fmin=8., fmax=-12.), snr=1.)
 
 
 def test_check_names_should_pass():

@@ -3,10 +3,11 @@ Testing the configuration structure
 """
 
 import json
-import numpy as np
 import mne
+import numpy as np
 
 from pathlib import Path
+from scipy.signal import butter, filtfilt
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
@@ -59,20 +60,26 @@ sim.add_patch_sources(
 )
 sim.add_noise_sources(
     location=select_random,
-    location_params=dict(n=10, vertices=[[], list(src[1]['vertno'])])
+    location_params=dict(n=10)
 )
 
-# Print the source groups to check internal structure
-print(f'Source groups: {sim._source_groups}')
-print(f'Noise groups: {sim._noise_groups}')
+sc_noise = sim.simulate(sfreq, duration)
+raw_noise = sc_noise.to_raw(fwd, info)
 
-sc = sim.simulate(sfreq, duration, random_state=0)
+# Select some vertices randomly
+sim.add_point_sources(
+    location=select_random,
+    waveform=narrowband_oscillation,
+    location_params=dict(n=1),
+    waveform_params=dict(fmin=8, fmax=12),
+    snr=target_snr,
+    snr_params=dict(fmin=8, fmax=12)
+)
 
-# Print the sources to check internal structure
-print(f'Simulated sources: {to_json(sc._sources)}')
-print(f'Simulated noise sources: {to_json(sc._noise_sources)}')
+sc_full = sim.simulate(sfreq, duration, fwd=fwd)
+raw_full = sc_full.to_raw(fwd, info)
 
-raw = sc.to_raw(fwd, info)
+raw = sc_full.to_raw(fwd, info)
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
 input('Press any key to continue')
