@@ -38,6 +38,7 @@ class SourceConfiguration:
         self.duration = duration
         self.n_samples = self.sfreq * self.duration
         self.times = np.arange(self.n_samples) / self.sfreq
+        self.tstep = self.times[1] - self.times[0]
         
         # Random state (for reproducibility)
         self.random_state = random_state
@@ -54,7 +55,7 @@ class SourceConfiguration:
         if not all_sources:
             raise ValueError('No sources were added to the configuration.')
 
-        return _combine_sources_into_stc(all_sources, self.src)
+        return _combine_sources_into_stc(all_sources, self.src, self.tstep)
 
     def to_raw(self, fwd, info, scaling_factor=1e-6):
         # Parameters:

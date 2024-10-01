@@ -28,8 +28,8 @@ def test_sourceconfiguration_to_stc_noise_only():
 
     sc = SourceConfiguration(src, sfreq=250, duration=30)
     sc._noise_sources = {
-        'n1': PointSource('n1', 0, 0, np.ones((250 * 30,)), sfreq=250),
-        'n2': PointSource('n2', 0, 1, np.ones((250 * 30,)), sfreq=250),
+        'n1': PointSource('n1', 0, 0, np.ones((250 * 30,))),
+        'n2': PointSource('n2', 0, 1, np.ones((250 * 30,))),
     }
     stc = sc.to_stc()
     assert stc.data.shape[0] == 2, 'Expected two sources in stc'
@@ -43,8 +43,8 @@ def test_sourceconfiguration_to_stc_signal_only():
 
     sc = SourceConfiguration(src, sfreq=250, duration=30)
     sc._sources = {
-        's1': PointSource('s1', 0, 0, np.ones((250 * 30,)), sfreq=250),
-        's2': PointSource('s2', 0, 1, np.ones((250 * 30,)), sfreq=250),
+        's1': PointSource('s1', 0, 0, np.ones((250 * 30,))),
+        's2': PointSource('s2', 0, 1, np.ones((250 * 30,))),
     }
     stc = sc.to_stc()
     assert stc.data.shape[0] == 2, 'Expected two sources in stc'
@@ -58,10 +58,10 @@ def test_sourceconfiguration_to_stc_signal_and_noise():
 
     sc = SourceConfiguration(src, sfreq=250, duration=30)
     sc._sources = {
-        's1': PointSource('s1', 0, 0, np.ones((250 * 30,)), sfreq=250),
+        's1': PointSource('s1', 0, 0, np.ones((250 * 30,))),
     }
     sc._noise_sources = {
-        'n1': PointSource('n1', 0, 1, np.ones((250 * 30,)), sfreq=250),
+        'n1': PointSource('n1', 0, 1, np.ones((250 * 30,))),
     }
     stc = sc.to_stc()
     assert stc.data.shape[0] == 2, 'Expected two sources in stc'
@@ -76,10 +76,10 @@ def test_sourceconfiguration_to_raw(apply_forward_mock):
 
     sc = SourceConfiguration(src, sfreq=250, duration=30)
     sc._sources = {
-        's1': PointSource('s1', 0, 0, np.ones((250 * 30,)), sfreq=250),
+        's1': PointSource('s1', 0, 0, np.ones((250 * 30,))),
     }
     sc._noise_sources = {
-        'n1': PointSource('n1', 0, 1, np.ones((250 * 30,)), sfreq=250),
+        'n1': PointSource('n1', 0, 1, np.ones((250 * 30,))),
     }
 
     raw = sc.to_raw([], [])

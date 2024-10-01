@@ -182,5 +182,19 @@ def unpack_vertices(vertices_lists):
     return unpacked_vertices
 
 
+def vertices_to_mne(vertices, src, sort=True):
+    """
+    Convert the vertices to the MNE format (list of lists).
+    """
+
+    packed_vertices = [[] for _ in src]
+    for src_idx in np.unique(vertices[:, 0]):
+        src_vertices = vertices[vertices[:, 0] == src_idx, :]
+        src_vertno = list(src_vertices[:, 1])
+        packed_vertices[src_idx] = src_vertno
+
+    return packed_vertices
+
+
 def theoretical_plv(kappa):
     return i1(kappa) / i0(kappa)

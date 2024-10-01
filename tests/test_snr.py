@@ -172,8 +172,9 @@ def test_adjust_snr(adjust_snr_mock):
     noise_sources = {
         'n1': MockPointSource(name='n1')
     }
+    tstep = 0.01
 
-    sources = _adjust_snr(src, fwd, sources, source_groups, noise_sources)
+    sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
 
     # Check the SNR adjustment was performed
     adjust_snr_mock.assert_called()
