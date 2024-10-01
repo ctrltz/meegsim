@@ -140,7 +140,7 @@ class PointSourceGroup(_BaseSourceGroup):
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
-        snr_params = check_snr_params(snr_params)
+        snr_params = check_snr_params(snr_params, snr)
 
         # Auto-generate or check the provided source names
         if not names:
@@ -258,8 +258,8 @@ class PatchSourceGroup(_BaseSourceGroup):
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
-        snr_params = check_snr_params(snr_params)
-        extents = check_extents(extents)
+        snr_params = check_snr_params(snr_params,snr)
+        extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names
         if not names:

@@ -27,6 +27,7 @@ fwd = mne.read_forward_solution(fwd_path)
 # Simulation parameters
 sfreq = 250
 duration = 60
+target_snr = 20
 
 # Channel info
 montage = mne.channels.make_standard_montage('standard_1020')
@@ -52,7 +53,9 @@ sim.add_patch_sources(
     waveform=narrowband_oscillation,
     location_params=dict(n=2, vertices=[list(src[0]['vertno']), []]),
     waveform_params=dict(fmin=8, fmax=12),
-    extents=[3, 2]
+    snr=target_snr,
+    snr_params=dict(fmin=8, fmax=12),
+    extents=3
 )
 sim.add_noise_sources(
     location=select_random,

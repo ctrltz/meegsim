@@ -120,7 +120,8 @@ class SourceSimulator:
         waveform: np.array or callable
             Waveforms of source activity provided either directly in an array (fixed
             for every configuration) or as a function that generates the waveforms
-            (but differ between configurations if the generation is random).
+            (but differ between configurations if the generation is random). For each vertex in the patch,
+            same waveform will be propagated.
         snr: None (do not adjust SNR), float (same SNR for all sources), or array (one value per source)
             TODO: fix when finalizing SNR
             NB: only positive values make sense, raise error if negative ones are provided
@@ -287,7 +288,7 @@ def _simulate(
 
     # Adjust the SNR of sources in each source group
     # 1. Estimate the noise variance in the specified band
-    # fwd_noise = mne.forward.restrict_forward_to_stc(fwd, stc_noise, on_missing='raise')    
+    # fwd_noise = mne.forward.restrict_forward_to_stc(fwd, stc_noise, on_missing='raise')
     # noise_var = get_sensor_space_variance()
     # 2. Adjust the amplitude of each signal source according to the desired SNR (if not None)
 

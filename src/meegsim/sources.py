@@ -9,6 +9,7 @@ import numpy as np
 import mne
 
 from .utils import combine_stcs, get_sfreq, _extract_hemi
+from ._check import check_extents
 
 
 class _BaseSource:
@@ -174,35 +175,29 @@ class PatchSource(_BaseSource):
     ----------
     src_idx: int
         The index of source space that the patch source belong to.
-    vertno: int
-        The central vertex of  the patch.
-    patch_vertno: list
+    vertno: list
         The vertices that the patch sources correspond to including the central vertex.
     waveform: np.array
         The waveform of source activity.
     sfreq: float
         The sampling frequency of the activity time course.
-    extent: float
-        Extents (radius in mm) of the patch, defines the number of vertices in patch_vertno.
     hemi: str or None, optional
         Human-readable name of the hemisphere (e.g, lh or rh).
     """
 
-    def __init__(self, name, src_idx, vertno, patch_vertno, waveform, sfreq, extent=None, hemi=None):
+    def __init__(self, name, src_idx, vertno, waveform, sfreq, hemi=None):
         super().__init__(waveform, sfreq)
 
         self.name = name
         self.src_idx = src_idx
         self.vertno = vertno
-        self.patch_vertno = patch_vertno
         self.sfreq = sfreq
-        self.extent = extent
         self.hemi = hemi
 
     def __repr__(self):
         # Use human readable names of hemispheres if possible
         src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
-        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno} | {self.patch_vertno}>'
+        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno} >'
 
     def to_stc(self, src, subject=None):
         """
@@ -236,7 +231,7 @@ class PatchSource(_BaseSource):
                 f"which is not present in the provided src object."
             )
 
-        if self.vertno not in src[self.src_idx]['vertno']:
+        if len(set(self.vertno) - set(src[self.src_idx]['vertno'])) > 0:
             raise ValueError(
                 f"The patch source cannot be added to the provided src. "
                 f"The source space with index {self.src_idx} does not "
@@ -250,12 +245,9 @@ class PatchSource(_BaseSource):
         # Create a list of vertices for each src
         vertices = [[] for _ in src]
 
-        if self.extent is not None:
-            vertices[self.src_idx].extend(self.patch_vertno)
-            data = np.tile(self.waveform[np.newaxis, :], (len(self.patch_vertno), 1))
-        else:  # if locations ia a label
-            vertices[self.src_idx].append(self.vertno)
-            data = self.waveform
+        vertices[self.src_idx].extend(self.vertno)
+        data = np.tile(self.waveform[np.newaxis, :], (len(self.vertno), 1))
+
 
         return mne.SourceEstimate(
             data=data,
@@ -280,6 +272,9 @@ class PatchSource(_BaseSource):
         """
         This function creates patch sources according to the provided input.
         """
+        # Check extents
+        extents = check_extents(extents, n_sources)
+
 
         # Get the sampling frequency
         sfreq = get_sfreq(times)
@@ -296,10 +291,6 @@ class PatchSource(_BaseSource):
         if data.shape[1] != len(times):
             raise ValueError('The number of samples in waveform does not match')
 
-        # check if extents is a list, otherwise make it a list
-        if not isinstance(extents, list):
-            extents = [extents]
-
         # find patch vertices
         subject = src[0].get("subject_his_id", None)
         patch_vertices = []
@@ -312,21 +303,19 @@ class PatchSource(_BaseSource):
                 patch_vertno = [vert for vert in patch.vertices if vert in src[src_idx]['vertno']]
                 patch_vertices.append(patch_vertno)
             else: # if locations is a label
-                patch_vertices.append([])
+                patch_vertices.append([vertices[isource][1]])
 
         # Create patch sources and save them as a group
         sources = []
-        for (src_idx, vertno), patch_vertno, waveform, name, extent in zip(vertices, patch_vertices, data, names, extents):
+        for (src_idx, _), patch_vertno, waveform, name in zip(vertices, patch_vertices, data, names):
             hemi = _extract_hemi(src[src_idx])
             sources.append(cls(
                 name=name,
                 src_idx=src_idx,
-                vertno=vertno,
-                patch_vertno=patch_vertno,
+                vertno=patch_vertno,
                 waveform=waveform,
                 sfreq=sfreq,
-                hemi=hemi,
-                extent=extent
+                hemi=hemi
             ))
 
         return sources
