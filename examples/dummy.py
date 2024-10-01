@@ -55,7 +55,7 @@ sim.add_patch_sources(
     waveform_params=dict(fmin=8, fmax=12),
     snr=target_snr,
     snr_params=dict(fmin=8, fmax=12),
-    extents=3
+    extents=10
 )
 sim.add_noise_sources(
     location=select_random,

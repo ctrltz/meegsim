@@ -258,76 +258,20 @@ def check_names(names, n_sources, existing):
         raise ValueError('All names should be unique')
 
 
-def check_snr(snr, n_sources):
-    """
-    Check the user input for SNR: it can either be None (no adjustment of SNR),
-    a single float value that applies to all sources or an array of values
-    with one for each source.
-
-    Parameters
-    ----------
-    snr: None, float, or array
-        The provided value(s) for SNR
-    n_sources: int
-        The number of sources.
-
-    Raises
-    ------
-    ValueError
-        If the provided SNR value(s) do not follow the format described above.
-    """
-
-    if snr is None:
-        return None
-
-    snr = np.ravel(np.array(snr))
-    if snr.size != 1 and snr.size != n_sources:
-        raise ValueError(
-            f'Expected either one SNR value that applies to all sources or '
-            f'one SNR value for each of the {n_sources} sources, got {snr.size}'
-        )
-
-    # Only positive values make sense, raise error if negative ones are provided
-    if np.any(snr < 0):
-        raise ValueError('Each SNR value should be positive')
-
-    # Broadcast to all sources if a single value was provided
-    if snr.size == 1:
-        snr = np.tile(snr, (n_sources,))
+def check_snr(snr, n_vertices):
+    if snr is not None:
+        raise NotImplementedError('Adjustment of SNR is not supported yet')
+        # TODO: check that the number of SNR values matches the number of vertices
+        # or it is a single SNR value that can be applied to all vertices
 
     return snr
 
 
-def check_snr_params(snr_params, snr):
-    """
-    Check the user input for SNR parameters: if the SNR is adjusted (i.e., not None),
-    then fmin and fmax should be present in the dictionary to define a frequency band.
-
-    Parameters
-    ----------
-    snr_params: dict
-        The provided dictionary with parameters of the SNR adjustment.
-    snr: None, float, or array
-        The provided value for SNR
-
-    Raises
-    ------
-    ValueError
-        If the provided snr_params dictionary does not have the necessary parameters.
-    """
-    if snr is None:
-        return snr_params
-
-    if 'fmin' not in snr_params or 'fmax' not in snr_params:
-        raise ValueError(
-            'Frequency band limits are required for the adjustment of SNR. '
-            'Please add fmin and fmax to the snr_params dictionary.'
-        )
-
-    if snr_params['fmin'] < 0 or snr_params['fmax'] < 0:
-        raise ValueError('Frequency limits should be positive')
-
-    return snr_params
+def check_snr_params(snr_params):
+    # TODO: we could try to extract fmin and fmax from waveform_params but
+    # not sure how confusing will it be, a dedicated waveform class could be
+    # easier to understand
+    pass
 
 
 def check_coupling():
@@ -341,7 +285,6 @@ def check_coupling():
 
 
 def check_extents(extents, n_sources):
-
 
     # check if extents is a list, otherwise make it a list
     if not isinstance(extents, list):
