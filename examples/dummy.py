@@ -56,18 +56,19 @@ sim.add_point_sources(
 # Set coupling
 sim.set_coupling(coupling={
     ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
-    ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
+    ('s2', 's3'): dict(kappa=10, phase_lag=-np.pi/2)
 }, method=ppc_von_mises, fmin=8, fmax=12)
 
 print(sim._coupling_graph)
 print(sim._coupling_graph.edges(data=True))
 
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
-stc = sc.to_stc()
 raw = sc.to_raw(fwd, info)
 
-print('PLV:', compute_plv(stc.data, stc.data, n=1, m=1))
-print('iPLV:', compute_plv(stc.data, stc.data, n=1, m=1, plv_type='imag'))
+source_data = np.vstack([s.waveform for s in sc._sources.values()])
+
+print('PLV:', compute_plv(source_data, source_data, n=1, m=1))
+print('iPLV:', compute_plv(source_data, source_data, n=1, m=1, plv_type='imag'))
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
