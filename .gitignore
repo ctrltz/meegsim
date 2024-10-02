@@ -7,4 +7,7 @@ __pycache__
 .pytest_cache
 
 # Sphinx
-_build
+_build/
+
+# Build
+dist/

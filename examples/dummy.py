@@ -19,9 +19,9 @@ def to_json(sources):
 
 
 # Load the head model
-fs_dir = Path(mne.datasets.fetch_fsaverage('~/mne_data/MNE-fsaverage-data'))
-fwd_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-fwd.fif'
-src_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-src.fif'
+fs_dir = Path('/data/hu_studenova/mne_data/MNE-fsaverage-data/fsaverage/')
+fwd_path = fs_dir / 'bem' / 'fsaverage-oct6-fwd.fif'
+src_path = fs_dir / 'bem' / 'fsaverage-oct6-src.fif'
 src = mne.read_source_spaces(src_path)
 fwd = mne.read_forward_solution(fwd_path)
 

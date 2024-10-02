@@ -12,6 +12,7 @@ for SourceSimulator:
 import numpy as np
 
 from functools import partial
+import warnings
 
 from .coupling import COUPLING_PARAMETERS
 from .utils import logger
@@ -428,3 +429,33 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, existin
     check_coupling_params(method, params, coupling_edge)
     
     return params
+
+
+def check_extents(extents, n_sources):
+
+    # check if extents is a list, otherwise make it a list
+    if not isinstance(extents, list):
+        extents = [extents]
+    # if extent is single number, propagate it to all patch sources
+    if len(extents) == 1:
+        extents = extents * n_sources
+
+    for extent in extents:
+        if extent is not None:
+            # Check if each extent is a number
+            if not isinstance(extent, (int, float)):
+                raise ValueError(f"Extent {extent} must be a number.")
+
+            # Check if each extent is positive
+            if extent <= 0:
+                raise ValueError(f"Extent {extent} must be a positive number.")
+
+            # Issue a warning if any extent exceeds 1000 mm
+            if extent > 1000:
+                warnings.warn(
+                    f"The extent {extent} (radius in mm) is more than 1000 mm. "
+                    "Are you sure that the patch is supposed to be that big?",
+                    UserWarning)
+
+
+    return extents
