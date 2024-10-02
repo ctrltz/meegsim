@@ -197,7 +197,9 @@ class PatchSource(_BaseSource):
     def __repr__(self):
         # Use human readable names of hemispheres if possible
         src_desc = self.hemi if self.hemi else f'src[{self.src_idx}]'
-        return f'<PatchSource | {self.name} | {src_desc} | {self.vertno} >'
+        n_vertno = len(self.vertno)
+        vertno_desc = f'{n_vertno} vertex' if n_vertno == 1 else f'{n_vertno} vertices'
+        return f'<PatchSource | {self.name} | {src_desc} | {vertno_desc} >'
 
     def to_stc(self, src, subject=None):
         """
@@ -231,11 +233,13 @@ class PatchSource(_BaseSource):
                 f"which is not present in the provided src object."
             )
 
-        if len(set(self.vertno) - set(src[self.src_idx]['vertno'])) > 0:
+        missing_vertno = set(self.vertno) - set(src[self.src_idx]['vertno'])
+        if missing_vertno:
+            report_missing = ', '.join([str(v) for v in missing_vertno])
             raise ValueError(
                 f"The patch source cannot be added to the provided src. "
                 f"The source space with index {self.src_idx} does not "
-                f"contain the vertex {self.vertno}"
+                f"contain the following vertices: {report_missing}"
             )
 
         # Resolve the subject name as done in MNE
@@ -248,7 +252,6 @@ class PatchSource(_BaseSource):
         vertices[self.src_idx].extend(self.vertno)
         data = np.tile(self.waveform[np.newaxis, :], (len(self.vertno), 1))
 
-
         return mne.SourceEstimate(
             data=data,
             vertices=vertices,
@@ -259,22 +262,19 @@ class PatchSource(_BaseSource):
 
     @classmethod
     def create(
-            cls,
-            src,
-            times,
-            n_sources,
-            location,
-            waveform,
-            names,
-            extents,
-            random_state=None
+        cls,
+        src,
+        times,
+        n_sources,
+        location,
+        waveform,
+        names,
+        extents,
+        random_state=None
     ):
         """
         This function creates patch sources according to the provided input.
         """
-        # Check extents
-        extents = check_extents(extents, n_sources)
-
 
         # Get the sampling frequency
         sfreq = get_sfreq(times)
@@ -295,15 +295,21 @@ class PatchSource(_BaseSource):
         subject = src[0].get("subject_his_id", None)
         patch_vertices = []
         for isource, extent in enumerate(extents):
-            if extent is not None:
-                src_idx = vertices[isource][0]
-                vertno = vertices[isource][1]
-                patch = mne.grow_labels(subject, vertno, extent, src_idx, subjects_dir=None)[0]
-                # prune vertices
-                patch_vertno = [vert for vert in patch.vertices if vert in src[src_idx]['vertno']]
-                patch_vertices.append(patch_vertno)
-            else: # if locations is a label
-                patch_vertices.append([vertices[isource][1]])
+            src_idx, vertno = vertices[isource]
+
+            # Add vertices as they are if no extent provided
+            if extent is None:
+                # Wrap vertno in a list if it is a single number
+                vertno = vertno if isinstance(vertno, list) else [vertno]
+                patch_vertices.append(vertno)
+                continue
+
+            # Grow the patch from center otherwise
+            patch = mne.grow_labels(subject, vertno, extent, src_idx, subjects_dir=None)[0]
+            
+            # Prune vertices
+            patch_vertno = [vert for vert in patch.vertices if vert in src[src_idx]['vertno']]
+            patch_vertices.append(patch_vertno)
 
         # Create patch sources and save them as a group
         sources = []

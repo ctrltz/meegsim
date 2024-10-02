@@ -205,18 +205,18 @@ class PatchSourceGroup(_BaseSourceGroup):
 
     @classmethod
     def create(
-            cls,
-            src,
-            location,
-            waveform,
-            snr,
-            location_params,
-            waveform_params,
-            snr_params,
-            extents,
-            names,
-            group,
-            existing
+        cls,
+        src,
+        location,
+        waveform,
+        snr,
+        location_params,
+        waveform_params,
+        snr_params,
+        extents,
+        names,
+        group,
+        existing
     ):
         """
         Check the provided input for all fields and create a source group that
