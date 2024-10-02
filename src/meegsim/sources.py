@@ -9,7 +9,6 @@ import numpy as np
 import mne
 
 from .utils import combine_stcs, get_sfreq, _extract_hemi
-from ._check import check_extents
 
 
 class _BaseSource:

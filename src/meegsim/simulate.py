@@ -116,7 +116,7 @@ class SourceSimulator:
         snr_params=dict(),
         extents=None,
         names=None
-        ):
+    ):
         """
         Add point sources to the simulation.
 
