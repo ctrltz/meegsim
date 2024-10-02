@@ -59,7 +59,8 @@ sim.set_coupling(coupling={
     ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
 }, method=ppc_von_mises, fmin=8, fmax=12)
 
-print(sim._coupling)
+print(sim._coupling_graph)
+print(sim._coupling_graph.edges(data=True))
 
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
 stc = sc.to_stc()

@@ -384,7 +384,7 @@ def check_coupling_params(method, coupling_params, coupling_edge):
                    method, waveform, sfreq, **test_params)
 
 
-def check_coupling(coupling_edge, coupling_params, common_params, names, existing):
+def check_coupling(coupling_edge, coupling_params, common_params, names, current_graph):
     """
     Check whether the provided coupling edge and parameters are valid.
     
@@ -398,8 +398,8 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, existin
         The coupling parameters that were defined for all edges.
     names: list of str
         The names of sources that exist in the simulation.
-    existing: dict
-        The coupling that already was added to the simulation
+    existing: nx.DiGraph
+        The coupling graph that was already defined in the simulation
 
     Raises
     ------
@@ -414,8 +414,15 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, existin
     check_if_source_exists(source, names)
     check_if_source_exists(target, names)
 
+    # Check that the edge is not a self-loop
+    if source == target:
+        raise ValueError(
+            f'The coupling edge {coupling_edge} is a self-loop, and '
+            f'only connections between distinct sources are allowed.'
+        )
+
     # Check that this coupling edge has not been already added
-    if coupling_edge in existing:
+    if current_graph.has_edge(*coupling_edge):
         raise ValueError(
             f'The coupling edge {coupling_edge} already exists in the '
             f'simulation, and multiple definitions are not allowed.'

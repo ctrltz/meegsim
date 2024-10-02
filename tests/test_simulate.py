@@ -1,4 +1,5 @@
 import meegsim
+import networkx as nx
 import numpy as np
 import pytest
 
@@ -92,7 +93,7 @@ def test_sourcesimulator_add_noise_sources():
 
 
 @patch('meegsim.simulate.check_coupling',
-       return_value=1)
+       return_value={'param': 1})
 def test_sourcesimulator_set_coupling(check_coupling_mock):
     src = prepare_source_space(
         types=['surf', 'surf'],
@@ -113,9 +114,11 @@ def test_sourcesimulator_set_coupling(check_coupling_mock):
     # Check that the mock function was called
     check_coupling_mock.assert_called()
 
-    # Check that the coupling dictionary is updated correctly
-    assert ('s1', 's2') in sim._coupling
-    assert sim._coupling[('s1', 's2')] == 1
+    # Check that the coupling graph is updated correctly
+    assert sim._coupling_graph.has_edge('s1', 's2')
+
+    edge_data = sim._coupling_graph.get_edge_data('s1', 's2')
+    assert edge_data['param'] == 1
 
 
 def test_sourcesimulator_is_snr_adjusted():
@@ -230,8 +233,8 @@ def test_simulate():
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, noise_sources = _simulate(source_groups, noise_groups, {}, False, src, 
-                                           times=times, fwd=None, random_state=0)
+        sources, noise_sources = _simulate(source_groups, noise_groups, nx.Graph(), False, 
+                                           src, times=times, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
             f"Expected three calls of PointSourceGroup.simulate method"
@@ -279,8 +282,8 @@ def test_simulate_snr_adjustment(adjust_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(source_groups, noise_groups, {}, True, src, 
-                               times=times, fwd=fwd, random_state=0)
+        sources, _ = _simulate(source_groups, noise_groups, nx.Graph(), True, 
+                               src, times=times, fwd=fwd, random_state=0)
         
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
@@ -315,16 +318,18 @@ def test_simulate_coupling_setup(set_coupling_mock):
         ),
     ]
     noise_groups = []
-    coupling = {
-        ('s1', 's2'): dict(method='ppc_von_mises', kappa=1)
-    }
+    coupling = [
+        ('s1', 's2', dict(method='ppc_von_mises', kappa=1))
+    ]
+    coupling_graph = nx.Graph()
+    coupling_graph.add_edges_from(coupling)
 
     with patch.object(meegsim.source_groups.PointSourceGroup,
                       'simulate', simulate_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(source_groups, noise_groups, coupling, False, 
+        sources, _ = _simulate(source_groups, noise_groups, coupling_graph, False, 
                                src, times=times, fwd=fwd, random_state=0)
         
         # Check that the coupling setup was performed

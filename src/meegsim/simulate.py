@@ -1,3 +1,5 @@
+import networkx as nx
+
 from ._check import check_coupling
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
@@ -28,8 +30,8 @@ class SourceSimulator:
         # Keep track of all added sources to check name conflicts
         self._sources = []
 
-        # Store all coupling edges
-        self._coupling = {}
+        # Store all coupling edges in a graph
+        self._coupling_graph = nx.Graph()
 
         # Keep track whether SNR of any source should be adjusted
         # If yes, then a forward model is required for simulation
@@ -273,8 +275,11 @@ class SourceSimulator:
 
         for coupling_edge, coupling_params in coupling.items():
             params = check_coupling(coupling_edge, coupling_params, common_params, 
-                                    self._sources, self._coupling)
-            self._coupling[coupling_edge] = params
+                                    self._sources, self._coupling_graph)
+
+            # Add the coupling edge
+            source, target = coupling_edge
+            self._coupling_graph.add_edge(source, target, **params)
         
     def simulate(
         self,  
@@ -320,7 +325,7 @@ class SourceSimulator:
         sources, noise_sources = _simulate(
             self._source_groups,
             self._noise_groups,
-            self._coupling,
+            self._coupling_graph,
             self.is_snr_adjusted,
             self.src,
             sc.times,
@@ -338,7 +343,7 @@ class SourceSimulator:
 def _simulate(
     source_groups, 
     noise_groups,
-    coupling,
+    coupling_graph,
     is_snr_adjusted,
     src,
     times,
@@ -362,8 +367,8 @@ def _simulate(
 
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
-    if coupling:
-        sources = _set_coupling(sources, coupling, times, random_state=random_state)
+    if coupling_graph.number_of_edges() > 0:
+        sources = _set_coupling(sources, coupling_graph, times, random_state=random_state)
 
     # Adjust the SNR if needed
     if is_snr_adjusted:

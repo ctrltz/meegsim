@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 import pytest
 
 from functools import partial
@@ -314,7 +315,7 @@ def test_check_coupling_should_pass():
     from meegsim.coupling import ppc_von_mises
 
     sources = ['a', 'b', 'c', 'd']
-    existing = {}
+    existing = nx.Graph()
     coupling_params = {'kappa': 1, 'phase_lag': 0}
     common = {'method': ppc_von_mises, 'fmin': 8, 'fmax': 12}
 
@@ -331,26 +332,37 @@ def test_check_coupling_bad_source_name():
 
     # Bad target node
     with pytest.raises(ValueError, match="Source e was not defined yet"):
-        check_coupling(('a', 'e'), {}, {}, sources, {})
+        check_coupling(('a', 'e'), {}, {}, sources, nx.Graph())
 
     # Bad source node
     with pytest.raises(ValueError, match="Source f was not defined yet"):
-        check_coupling(('f', 'b'), {}, {}, sources, {})
+        check_coupling(('f', 'b'), {}, {}, sources, nx.Graph())
 
 
 def test_check_coupling_edge_already_exists():
     sources = ['a', 'b', 'c', 'd']
-    existing = {
-        ('a', 'b'): dict(),
-    }
+    existing = nx.Graph([('a', 'b')])
 
     with pytest.raises(ValueError, match="multiple definitions are not allowed"):
         check_coupling(('a', 'b'), {}, {}, sources, existing)
 
+    # Reverse order definition should also be forbidden
+    # NOTE: we assume no directionality for now
+    with pytest.raises(ValueError, match="multiple definitions are not allowed"):
+        check_coupling(('b', 'a'), {}, {}, sources, existing)
+
+
+def test_check_coupling_self_loop_edge():
+    sources = ['a']
+
+    # Bad target node
+    with pytest.raises(ValueError, match="is a self-loop"):
+        check_coupling(('a', 'a'), {}, {}, sources, nx.Graph())
+
 
 def test_check_coupling_no_method_defined():
     sources = ['a', 'b', 'c', 'd']
-    existing = {}
+    existing = nx.Graph()
     coupling_params = {'kappa': 1, 'phase_lag': 0}
 
     with pytest.raises(ValueError, match="method was not defined"):
@@ -359,7 +371,7 @@ def test_check_coupling_no_method_defined():
 
 def test_check_coupling_method_not_callable():
     sources = ['a', 'b', 'c', 'd']
-    existing = {}
+    existing = nx.Graph()
     coupling_params = {'method': 'ppc_von_mises', 'kappa': 1, 'phase_lag': 0}
 
     with pytest.raises(ValueError, match="method to be a callable, got str"):
@@ -370,7 +382,7 @@ def test_check_coupling_bad_params():
     from meegsim.coupling import ppc_von_mises
 
     sources = ['a', 'b', 'c', 'd']
-    existing = {}
+    existing = nx.Graph()
     coupling_params = {'kappa': 1, 'phase_lag': 0, 'fmin': 8}
     common = {'method': ppc_von_mises}
 
