@@ -2,10 +2,9 @@ import numpy as np
 import pytest
 
 from harmoni.extratools import compute_plv
-from mock import patch, MagicMock
 from scipy.signal import hilbert
 
-from meegsim.coupling import constant_phase_shift, ppc_von_mises, _coupling_dispatcher
+from meegsim.coupling import constant_phase_shift, ppc_von_mises
 from meegsim.utils import get_sfreq, theoretical_plv
 
 
@@ -120,31 +119,3 @@ def test_reproducibility_with_random_state():
 
     # Test that results are identical
     np.testing.assert_array_almost_equal(result1, result2)
-
-
-# @patch('meegsim.coupling.COUPLING_FUNCTIONS', return_value=1)
-def test_coupling_dispatcher():
-    mock_function = {'m1': MagicMock(return_value=1)}
-
-    with patch.dict('meegsim.coupling.COUPLING_FUNCTIONS',
-                    mock_function):
-        
-        coupling_params = {
-            'method': 'm1', 
-            'kappa': 1
-        }
-        result = _coupling_dispatcher(0, coupling_params, [0, 1], random_state=0)
-            
-        # Check that the correct method was called
-        mock_function['m1'].assert_called()
-
-        # Check that keyword arguments were forwarded
-        mock_function['m1'].call_args.kwargs['kappa'] == 1
-
-        # Check that the result was returned correctly
-        assert result == 1
-
-
-def test_coupling_dispatcher_unsupported_method_raises():
-    with pytest.raises(ValueError, match="Coupling method 'm1' is not supported"):
-        result = _coupling_dispatcher(0, {'method': 'm1'}, [0, 1], random_state=0)

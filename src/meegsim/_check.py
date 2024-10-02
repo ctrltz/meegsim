@@ -14,11 +14,10 @@ import numpy as np
 from functools import partial
 import warnings
 
-from .coupling import COUPLING_PARAMETERS
 from .utils import logger
 
 
-def check_callable(name, fun, *args, **kwargs):
+def check_callable(context, fun, *args, **kwargs):
     """
     Check whether the provided function can be run successfully.
     The function is always run with random_state set to 0 for consistency.
@@ -49,7 +48,7 @@ def check_callable(name, fun, *args, **kwargs):
         return fun(*args, **kwargs, random_state=0)
     except:
         logger.error(f'An error occurred when trying to call the '
-                     f'provided {name} function')
+                     f'provided function for: {context}')
         raise
 
 
@@ -371,12 +370,18 @@ def check_coupling_params(method, coupling_params, coupling_edge):
     ValueError
         If the provided dictionary does not contain all required parameters.
     """
-    for param in COUPLING_PARAMETERS[method]:
-        if param not in coupling_params:
-            raise ValueError(
-                f'The {param} parameter is required for the {method} method '
-                f'but was not defined for the {coupling_edge} coupling edge.'
-            )
+    
+    # Test on a 10 second segment of 10 Hz sinusoid
+    sfreq = 100
+    times = np.arange(0, 10 * sfreq) / sfreq
+    waveform = np.sin(2 * np.pi * 10 * times)
+
+    # Temporarily remove 'method' from coupling_params
+    test_params = coupling_params.copy()
+    test_params.pop('method')
+
+    check_callable(f'coupling method, edge {coupling_edge}',
+                   method, waveform, sfreq, **test_params)
 
 
 def check_coupling(coupling_edge, coupling_params, common_params, names, existing):
@@ -423,9 +428,16 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, existin
     # Check that the coupling method was defined
     if 'method' not in params:
         raise ValueError(f'Coupling method was not defined for the edge {coupling_edge}')
-    
-    # Check that all required coupling parameters were specified for the selected method
     method = params['method']
+    
+    # Check that the coupling method is a callable
+    if not callable(method):
+        raise ValueError(
+            f'Expected coupling method to be a callable, '
+            f'got {type(method).__name__}'
+        )
+
+    # Check that all required coupling parameters were specified for the selected method
     check_coupling_params(method, params, coupling_edge)
     
     return params

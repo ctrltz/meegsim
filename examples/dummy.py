@@ -9,6 +9,7 @@ import numpy as np
 from harmoni.extratools import compute_plv
 from pathlib import Path
 
+from meegsim.coupling import ppc_von_mises
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
@@ -19,16 +20,16 @@ def to_json(sources):
 
 
 # Load the head model
-fs_dir = Path('/data/hu_studenova/mne_data/MNE-fsaverage-data/fsaverage/')
-fwd_path = fs_dir / 'bem' / 'fsaverage-oct6-fwd.fif'
-src_path = fs_dir / 'bem' / 'fsaverage-oct6-src.fif'
+fs_dir = Path('~/mne_data/MNE-fsaverage-data/fsaverage/')
+fwd_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-fwd.fif'
+src_path = fs_dir / 'bem_copy' / 'fsaverage-oct6-src.fif'
 src = mne.read_source_spaces(src_path)
 fwd = mne.read_forward_solution(fwd_path)
 
 # Simulation parameters
 sfreq = 250
 duration = 60
-seed = 1234
+seed = 123
 target_snr = 20
 
 # Channel info
@@ -56,7 +57,7 @@ sim.add_point_sources(
 sim.set_coupling(coupling={
     ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
     ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
-}, method='ppc_von_mises', fmin=8, fmax=12)
+}, method=ppc_von_mises, fmin=8, fmax=12)
 
 print(sim._coupling)
 

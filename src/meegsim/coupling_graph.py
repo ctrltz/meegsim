@@ -1,7 +1,7 @@
 import networkx as nx
 import numpy as np
 
-from .coupling import _coupling_dispatcher
+from .utils import get_sfreq
 
 
 def traverse_tree(tree, start_node=None, random_state=None):
@@ -116,8 +116,12 @@ def _set_coupling(sources, coupling, times, random_state):
             edge = (name2, name1)
         coupling_params = coupling[edge]
 
+        # Extract the coupling method
+        coupling_fn = coupling_params.pop('method')
+
         # Adjust the waveform of s2 to be coupled with s1
-        s2.waveform = _coupling_dispatcher(s1.waveform, coupling_params,
-                                           times, random_state=random_state)
+        s2.waveform = coupling_fn(s1.waveform, get_sfreq(times), 
+                                  **coupling_params,
+                                  random_state=random_state)
 
     return sources

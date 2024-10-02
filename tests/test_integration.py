@@ -4,6 +4,7 @@ Integration tests
 
 import numpy as np
 
+from meegsim.coupling import constant_phase_shift, ppc_von_mises
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
@@ -52,9 +53,9 @@ def test_builtin_methods():
     # Define several edges to test graph traversal
     # Use all built-in coupling methods
     sim.set_coupling(coupling={
-        ('s1', 's2'): dict(method='ppc_von_mises', kappa=1, 
+        ('s1', 's2'): dict(method=ppc_von_mises, kappa=1, 
                            phase_lag=np.pi/3, fmin=8, fmax=12),
-        ('s2', 's3'): dict(method='constant_phase_shift', phase_lag=-np.pi/6),
+        ('s2', 's3'): dict(method=constant_phase_shift, phase_lag=-np.pi/6),
     })
 
     # Actual simulation

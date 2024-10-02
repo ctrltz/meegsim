@@ -102,43 +102,50 @@ def test_generate_walkaround_random_state():
     assert walkaround1 == walkaround2, "Walkaround paths should be identical with the same random_state"
 
 
-@patch('meegsim.coupling_graph._coupling_dispatcher', 
-       side_effect=[1, 2])
 @patch('meegsim.coupling_graph.generate_walkaround', 
        return_value=[('s1', 's2'), ('s2', 's3')])
-def test_set_coupling(generate_mock, coupling_mock):
+def test_set_coupling(generate_mock):
+    def coupling_fn(waveform, sfreq, kappa, random_state=0):
+        side_effect = [1, 2]
+        return side_effect[kappa]
+
     sources = {
         k: MockPointSource(name=k) for k in ['s1', 's2', 's3']
     }
     coupling = {
-        ('s1', 's2'): dict(kappa=0),
-        ('s3', 's2'): dict(kappa=1)  # this edge is reversed in the mock walkaround
+        ('s1', 's2'): dict(method=coupling_fn, kappa=0),
+        # this edge is reversed in the mock walkaround
+        ('s3', 's2'): dict(method=coupling_fn, kappa=1)
     }
     times = np.arange(100) / 100
 
-    sources = _set_coupling(sources, coupling, times, random_state=None)
+    sources = _set_coupling(sources, coupling, times, random_state=0)
 
     # Check that the coupled waveforms were saved correctly
     assert sources['s2'].waveform == 1
     assert sources['s3'].waveform == 2
 
 
-@patch('meegsim.coupling_graph._coupling_dispatcher', 
-       return_value=[])
 @patch('meegsim.coupling_graph.generate_walkaround', 
        return_value=[('s1', 's2')])
-def test_set_coupling_random_state(generate_mock, coupling_mock):
+def test_set_coupling_random_state(generate_mock):
+    def coupling_fn(waveform, sfreq, random_state=0):
+        return random_state
+    
     sources = {
         k: MockPointSource(name=k) for k in ['s1', 's2', 's3']
     }
     coupling = {
-        ('s1', 's2'): dict()
+        ('s1', 's2'): dict(method=coupling_fn)
     }
     times = np.arange(100) / 100
     random_state = 1234
 
-    _set_coupling(sources, coupling, times, random_state)
+    sources = _set_coupling(sources, coupling, times, random_state)
 
     # Check that the random state was forwarded to low-level functions
     assert generate_mock.call_args.kwargs['random_state'] == random_state
-    assert coupling_mock.call_args.kwargs['random_state'] == random_state
+
+    # coupling_fn returns the provided random_state so it should be 
+    # saved in the source waveform
+    assert sources['s2'].waveform == random_state

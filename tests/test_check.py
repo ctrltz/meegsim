@@ -277,37 +277,46 @@ def test_check_if_source_exists_should_raise():
 
 
 def test_check_coupling_params_should_pass():
+    def coupling_fn(waveform, sfreq, param1, param2, random_state=0):
+        pass
+
     edge = ('0', '1')
-    method = 'ppc_von_mises'
     coupling_params = dict(
-        phase_lag=0,
-        kappa=1,
-        fmin=8,
-        fmax=12
+        method=coupling_fn,
+        param1=0,
+        param2=1
     )
 
-    check_coupling_params(method, coupling_params, edge)
+    check_coupling_params(coupling_fn, coupling_params, edge)
 
 
 def test_check_coupling_params_should_raise():
-    edge = ('0', '1')
-    method = 'ppc_von_mises'
-    coupling_params = dict(
-        phase_lag=0,
-        kappa=1,
-        fmin=8,
-    )
-    expected_message = 'The fmax parameter is required for the ppc_von_mises method'
+    def coupling_fn(waveform, sfreq, param1, param2, random_state=0):
+        if param2 == 1:
+            raise ValueError('Bad value for param2')
 
-    with pytest.raises(ValueError, match=expected_message):
-        check_coupling_params(method, coupling_params, edge)
+    edge = ('0', '1')
+    coupling_params = dict(
+        method=coupling_fn,
+        param1=0
+    )
+
+    with pytest.raises(TypeError, match="required positional argument: 'param2'"):
+        check_coupling_params(coupling_fn, coupling_params, edge)
+
+    coupling_params['param2'] = 1
+
+    with pytest.raises(ValueError, match="Bad value for param2"):
+        check_coupling_params(coupling_fn, coupling_params, edge)
 
 
 def test_check_coupling_should_pass():
+    from meegsim.coupling import ppc_von_mises
+
     sources = ['a', 'b', 'c', 'd']
     existing = {}
     coupling_params = {'kappa': 1, 'phase_lag': 0}
-    common = {'method': 'ppc_von_mises', 'fmin': 8, 'fmax': 12}
+    common = {'method': ppc_von_mises, 'fmin': 8, 'fmax': 12}
 
     params = check_coupling(('a', 'b'), coupling_params, common, sources, existing)
 
@@ -348,11 +357,22 @@ def test_check_coupling_no_method_defined():
         check_coupling(('a', 'b'), coupling_params, {}, sources, existing)
 
 
+def test_check_coupling_method_not_callable():
+    sources = ['a', 'b', 'c', 'd']
+    existing = {}
+    coupling_params = {'method': 'ppc_von_mises', 'kappa': 1, 'phase_lag': 0}
+
+    with pytest.raises(ValueError, match="method to be a callable, got str"):
+        check_coupling(('a', 'b'), coupling_params, {}, sources, existing)
+
+
 def test_check_coupling_bad_params():
+    from meegsim.coupling import ppc_von_mises
+
     sources = ['a', 'b', 'c', 'd']
     existing = {}
     coupling_params = {'kappa': 1, 'phase_lag': 0, 'fmin': 8}
-    common = {'method': 'ppc_von_mises'}
+    common = {'method': ppc_von_mises}
 
-    with pytest.raises(ValueError, match="The fmax parameter is required"):
+    with pytest.raises(TypeError, match="argument: 'fmax'"):
         check_coupling(('a', 'b'), coupling_params, common, sources, existing)

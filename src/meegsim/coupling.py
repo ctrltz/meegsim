@@ -7,8 +7,6 @@ import numpy as np
 from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
 
-from .utils import get_sfreq
-
 
 def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None):
     """
@@ -111,50 +109,3 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 
     return np.real(waveform_coupled)
-
-
-# This dictionary contains all built-in methods for simulating coupled time series
-COUPLING_FUNCTIONS = {
-    'constant_phase_shift': constant_phase_shift,
-    'ppc_von_mises': ppc_von_mises,
-}
-
-# This dictionary contains all required parameters for the built-in coupling methods
-COUPLING_PARAMETERS = {
-    'constant_phase_shift': ['phase_lag'],
-    'ppc_von_mises': ['kappa', 'phase_lag', 'fmin', 'fmax']
-}
-
-
-def _coupling_dispatcher(waveform, coupling_params, times, random_state):
-    """
-    This function dispatches the call to the correct coupling method.
-
-    Parameters
-    ----------
-    waveform: array-like
-        The input waveform.
-    coupling_params: dict
-        Coupling parameters, including the name of the method that should
-        be used to set up coupling.
-    times: array-like
-        Time points of all samples in the waveform.
-    random_state: int or None
-        Random state that can fixed to ensure reproducibility of results.
-
-    Returns
-    -------
-    output: array-like
-        The output waveform which is coupled to the input according to the
-        provided parameters. 
-    """
-
-    # Extract method name to find the corresponding coupling function
-    method = coupling_params.pop('method')
-
-    if method not in COUPLING_FUNCTIONS:
-        raise ValueError(f"Coupling method '{method}' is not supported")
-    
-    coupling_fn = COUPLING_FUNCTIONS[method]
-    return coupling_fn(waveform, get_sfreq(times), **coupling_params, 
-                       random_state=random_state)
