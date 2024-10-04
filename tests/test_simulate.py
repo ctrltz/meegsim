@@ -94,7 +94,39 @@ def test_sourcesimulator_add_noise_sources():
 
 @patch('meegsim.simulate.check_coupling',
        return_value={'param': 1})
-def test_sourcesimulator_set_coupling(check_coupling_mock):
+def test_sourcesimulator_set_coupling_tuple(check_coupling_mock):
+    from meegsim.coupling import ppc_von_mises
+
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    sim = SourceSimulator(src)
+
+    sim.add_point_sources(
+        location=[(0, 0), (1, 1)],
+        waveform=np.ones((2, 100)),
+        names=['s1', 's2']
+    )
+
+    sim.set_coupling(('s1', 's2'), kappa=1, phase_lag=0,
+                     method=ppc_von_mises, fmin=8, fmax=12)
+
+    # Check that the mock function was called
+    check_coupling_mock.assert_called()
+
+    # Check that the coupling graph is updated correctly
+    assert sim._coupling_graph.has_edge('s1', 's2')
+
+    edge_data = sim._coupling_graph.get_edge_data('s1', 's2')
+    assert edge_data['param'] == 1
+
+
+@patch('meegsim.simulate.check_coupling',
+       return_value={'param': 1})
+def test_sourcesimulator_set_coupling_dict(check_coupling_mock):
+    from meegsim.coupling import ppc_von_mises
+
     src = prepare_source_space(
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
@@ -109,7 +141,7 @@ def test_sourcesimulator_set_coupling(check_coupling_mock):
 
     sim.set_coupling({
         ('s1', 's2'): dict(kappa=1, phase_lag=0),
-    }, method='ppc_von_mises', fmin=8, fmax=12)
+    }, method=ppc_von_mises, fmin=8, fmax=12)
 
     # Check that the mock function was called
     check_coupling_mock.assert_called()

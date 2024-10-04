@@ -251,34 +251,54 @@ class SourceSimulator:
 
         Parameters
         ----------
-        coupling: dict
-            Dictionary that defines the coupling edges and parameters. It should
-            contain tuples (source, target) as keys, where source and target are
-            names of sources that should be coupled. Both sources should be added
-            to the simulation prior to setting the coupling.
-            
-            The values should be dictionaries with keyword arguments of the coupling 
-            method. Refer to the coupling method for details on the required 
-            arguments. Use this dictionary to define coupling parameters that are
-            specific for a given edge. Such definitions will also override the
-            common parameters (described below).
+        coupling: tuple or dict
+            Provide a tuple (u, v) to define one pair of coupled sources 
+            or a dictionary to define multiple coupling edges at once. u and 
+            v are the names of sources that should be coupled. Both 
+            sources should be added to the simulation prior to setting the coupling.
+        
+            If used, the dictionary should contain tuples (u, v) as keys, 
+            while the values should be dictionaries with keyword arguments 
+            of the coupling method. Use this dictionary to define coupling 
+            parameters that are specific for a given edge. Such definitions will 
+            also override the common parameters (described below).
         **common_params: dict, optional
             Additional coupling parameters that apply to each edge defined in the 
-            coupling dictionary.
+            coupling dictionary or the single edge if a tuple was provided.
+
+        Notes
+        -----
+        For the information on required coupling parameters, please refer to the
+        :doc:`documentation </api/coupling>` of the corresponding coupling methods.
 
         Examples
         --------
-        In the example below, `method` and `fmax` values apply to both 
+        Adding a single connectivity edge:
+
+        >>> from meegsim.coupling import ppc_von_mises
+        ... 
+        ... sim.set_coupling(('s1', 's2'), method=ppc_von_mises, 
+        ...                  kappa=1, phase_lag=0, fmin=8, fmax=12)
+
+        Adding multiple connectivity edges at once:
+        
+        >>> from meegsim.coupling import ppc_von_mises
+        ... 
+        ... sim.set_coupling(coupling={
+        ...     ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3, fmin=10),
+        ...     ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
+        ... }, method=ppc_von_mises, fmin=8, fmax=12)
+
+        In the example above, `method` and `fmax` values apply to both 
         coupling edges, while `kappa` and `phase_lag` are edge-specific.
         `fmin` is defined as a common parameter but also has a different
         value for the edge `('s1', 's2')`. Therefore, it will be set to 6 
         for the edge `('s1', 's2')` and to 8 for the edge `('s2', 's3')`.
-        
-        sim.set_coupling(coupling={
-            ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3, fmin=6),
-            ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
-        }, method='ppc_von_mises', fmin=8, fmax=12)
         """
+
+        # Convert tuple to a dictionary with empty coupling params
+        if isinstance(coupling, tuple):
+            coupling = {coupling: dict()}
 
         for coupling_edge, coupling_params in coupling.items():
             params = check_coupling(coupling_edge, coupling_params, common_params, 
