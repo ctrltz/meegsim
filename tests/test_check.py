@@ -1,10 +1,13 @@
 import numpy as np
+import networkx as nx
 import pytest
+import warnings
 
 from functools import partial
 from meegsim._check import (
     check_callable, check_vertices_list_of_tuples, check_vertices_in_src,
-    check_location, check_waveform, check_names, check_snr, check_snr_params
+    check_location, check_waveform, check_names, check_snr, check_snr_params,
+    check_if_source_exists, check_coupling, check_coupling_params
 )
 
 from utils.prepare import prepare_source_space
@@ -262,3 +265,164 @@ def test_check_names_auto():
 def test_check_names_already_exists():
     with pytest.raises(ValueError, match='Name s1 is already taken'):
         check_names(['a', 'b', 's1'], 3, ['s1'])
+
+
+def test_check_if_source_exists_should_pass():
+    existing = ['aaa', 'bbb']
+    check_if_source_exists('aaa', existing)
+
+
+def test_check_if_source_exists_should_raise():
+    existing = ['aaa', 'bbb']
+    with pytest.raises(ValueError, match='Source ccc'):
+        check_if_source_exists('ccc', existing)
+
+
+def test_check_coupling_params_should_pass():
+    def coupling_fn(waveform, sfreq, param1, param2, random_state=0):
+        pass
+
+    edge = ('0', '1')
+    coupling_params = dict(
+        method=coupling_fn,
+        param1=0,
+        param2=1
+    )
+
+    check_coupling_params(coupling_fn, coupling_params, edge)
+
+
+def test_check_coupling_params_should_raise():
+    def coupling_fn(waveform, sfreq, param1, param2, random_state=0):
+        if param2 == 1:
+            raise ValueError('Bad value for param2')
+
+    edge = ('0', '1')
+    coupling_params = dict(
+        method=coupling_fn,
+        param1=0
+    )
+
+    with pytest.raises(TypeError, match="required positional argument: 'param2'"):
+        check_coupling_params(coupling_fn, coupling_params, edge)
+
+    coupling_params['param2'] = 1
+
+    with pytest.raises(ValueError, match="Bad value for param2"):
+        check_coupling_params(coupling_fn, coupling_params, edge)
+
+
+def test_check_coupling_should_pass():
+    from meegsim.coupling import ppc_von_mises
+
+    sources = ['a', 'b', 'c', 'd']
+    existing = nx.Graph()
+    coupling_params = {'kappa': 1, 'phase_lag': 0}
+    common = {'method': ppc_von_mises, 'fmin': 8, 'fmax': 12}
+
+    params = check_coupling(('a', 'b'), coupling_params, common, sources, existing)
+
+    # Check that common params were added to the dictionary
+    assert 'method' in params
+    assert 'fmin' in params
+    assert 'fmax' in params
+
+
+def test_check_coupling_bad_edge_format():
+    # Meaningless coupling edge
+    with pytest.raises(ValueError, match="1 should be defined as a tuple"):
+        check_coupling(1, {}, {}, [], nx.Graph())
+
+    # Too many sources to couple
+    with pytest.raises(ValueError, match="should contain two elements"):
+        check_coupling(('a', 'b', 'c', 'd'), {}, {}, [], nx.Graph())
+
+
+def test_check_coupling_bad_source_name():
+    sources = ['a', 'b', 'c', 'd']
+
+    # Bad target node
+    with pytest.raises(ValueError, match="Source e was not defined yet"):
+        check_coupling(('a', 'e'), {}, {}, sources, nx.Graph())
+
+    # Bad source node
+    with pytest.raises(ValueError, match="Source f was not defined yet"):
+        check_coupling(('f', 'b'), {}, {}, sources, nx.Graph())
+
+
+def test_check_coupling_edge_already_exists():
+    sources = ['a', 'b', 'c', 'd']
+    existing = nx.Graph([('a', 'b')])
+
+    with pytest.raises(ValueError, match="multiple definitions are not allowed"):
+        check_coupling(('a', 'b'), {}, {}, sources, existing)
+
+    # Reverse order definition should also be forbidden
+    # NOTE: we assume no directionality for now
+    with pytest.raises(ValueError, match="multiple definitions are not allowed"):
+        check_coupling(('b', 'a'), {}, {}, sources, existing)
+
+
+def test_check_coupling_self_loop_edge():
+    sources = ['a']
+
+    # Bad target node
+    with pytest.raises(ValueError, match="is a self-loop"):
+        check_coupling(('a', 'a'), {}, {}, sources, nx.Graph())
+
+
+def test_check_coupling_params_not_dict():
+    # Too many sources to couple
+    with pytest.raises(ValueError, match="as a dictionary, got str"):
+        check_coupling(('a', 'b'), 'params', {}, ['a', 'b'], nx.Graph())
+
+
+def test_check_coupling_double_definition():
+    def coupling_fn(waveform, sfreq, param, random_state=0):
+        return 0
+
+    with warnings.catch_warnings(record=True) as w:
+        params = check_coupling(
+            coupling_edge=('a', 'b'), 
+            coupling_params={'param': 1},   # edge-specific value should be saved
+            common_params={'method': coupling_fn, 'param': 0},
+            names=['a', 'b'], 
+            current_graph=nx.Graph()
+        )
+
+        # Check that the edge-specific value was saved
+        assert params['param'] == 1
+
+        # Check that a warning was shown
+        assert len(w) == 1
+        assert "double definition for edge ('a', 'b')" in str(w[0].message)
+
+
+def test_check_coupling_no_method_defined():
+    sources = ['a', 'b', 'c', 'd']
+    existing = nx.Graph()
+    coupling_params = {'kappa': 1, 'phase_lag': 0}
+
+    with pytest.raises(ValueError, match="method was not defined"):
+        check_coupling(('a', 'b'), coupling_params, {}, sources, existing)
+
+
+def test_check_coupling_method_not_callable():
+    sources = ['a', 'b', 'c', 'd']
+    existing = nx.Graph()
+    coupling_params = {'method': 'ppc_von_mises', 'kappa': 1, 'phase_lag': 0}
+
+    with pytest.raises(ValueError, match="method to be a callable, got str"):
+        check_coupling(('a', 'b'), coupling_params, {}, sources, existing)
+
+
+def test_check_coupling_bad_params():
+    from meegsim.coupling import ppc_von_mises
+
+    sources = ['a', 'b', 'c', 'd']
+    existing = nx.Graph()
+    coupling_params = {'kappa': 1, 'phase_lag': 0, 'fmin': 8}
+    common = {'method': ppc_von_mises}
+
+    with pytest.raises(TypeError, match="argument: 'fmax'"):
+        check_coupling(('a', 'b'), coupling_params, common, sources, existing)

@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
 
+from harmoni.extratools import compute_plv
+from scipy.signal import hilbert
+
 from meegsim.coupling import constant_phase_shift, ppc_von_mises
 from meegsim.utils import get_sfreq, theoretical_plv
-from scipy.signal import hilbert
-from harmoni.extratools import compute_plv
 
 
 def prepare_inputs():
@@ -20,7 +21,7 @@ def test_constant_phase_shift(phase_lag):
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 10 * times)
 
-    result = constant_phase_shift(waveform, phase_lag)
+    result = constant_phase_shift(waveform, get_sfreq(times), phase_lag)
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -38,13 +39,13 @@ def test_constant_phase_shift(phase_lag):
     (3, 1),
     (5/2, 1)
 ])
-def test_different_harmonics(m, n):
+def test_constant_phase_shift_harmonics(m, n):
     # Test with different m and n harmonics
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 10 * times)
     phase_lag = np.pi / 3
 
-    result = constant_phase_shift(waveform, phase_lag, m=m, n=n)
+    result = constant_phase_shift(waveform, get_sfreq(times), phase_lag, m=m, n=n)
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -64,7 +65,8 @@ def test_ppc_von_mises(kappa):
     waveform = np.sin(2 * np.pi * 10 * times)
     phase_lag = 0
 
-    result = ppc_von_mises(waveform, get_sfreq(times), phase_lag, kappa=kappa)
+    result = ppc_von_mises(waveform, get_sfreq(times), 
+                           phase_lag, kappa=kappa, fmin=8, fmax=12)
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -88,7 +90,8 @@ def test_ppc_von_mises_harmonics(m, n):
     phase_lag = 0
     kappa = 10
 
-    result = ppc_von_mises(waveform, get_sfreq(times), phase_lag, m=m, n=n, kappa=kappa)
+    result = ppc_von_mises(waveform, get_sfreq(times), 
+                           phase_lag, m=m, n=n, kappa=kappa, fmin=8, fmax=12)
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -106,11 +109,13 @@ def test_reproducibility_with_random_state():
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 5 * times)
     phase_lag = np.pi / 4
+    kappa = 1
     random_state = 42
 
-    result1 = ppc_von_mises(waveform, get_sfreq(times), phase_lag, random_state=random_state)
-    result2 = ppc_von_mises(waveform, get_sfreq(times), phase_lag, random_state=random_state)
+    result1 = ppc_von_mises(waveform, get_sfreq(times), 
+                            phase_lag, kappa, fmin=8, fmax=12, random_state=random_state)
+    result2 = ppc_von_mises(waveform, get_sfreq(times), 
+                            phase_lag, kappa, fmin=8, fmax=12, random_state=random_state)
 
     # Test that results are identical
     np.testing.assert_array_almost_equal(result1, result2)
-

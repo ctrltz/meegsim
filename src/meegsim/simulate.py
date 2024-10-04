@@ -1,4 +1,8 @@
+import networkx as nx
+
+from ._check import check_coupling
 from .configuration import SourceConfiguration
+from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
 from .snr import _adjust_snr
 from .waveform import one_over_f_noise
@@ -26,8 +30,8 @@ class SourceSimulator:
         # Keep track of all added sources to check name conflicts
         self._sources = []
 
-        # Store all coupling edges
-        self._coupling = {}
+        # Store all coupling edges in a graph
+        self._coupling_graph = nx.Graph()
 
         # Keep track whether SNR of any source should be adjusted
         # If yes, then a forward model is required for simulation
@@ -241,10 +245,68 @@ class SourceSimulator:
         # Return the names of newly added sources
         return noise_sg.names
         
-    def set_coupling(self, coupling, method):
-        raise NotImplementedError('Coupling is not supported yet')
-        # coupling = check_coupling(coupling, method)
-        # self._coupling.update(coupling)
+    def set_coupling(self, coupling, **common_params):
+        """
+        Set coupling between sources that were added to the simulator.
+
+        Parameters
+        ----------
+        coupling: tuple or dict
+            Provide a tuple (u, v) to define one pair of coupled sources 
+            or a dictionary to define multiple coupling edges at once. u and 
+            v are the names of sources that should be coupled. Both 
+            sources should be added to the simulation prior to setting the coupling.
+        
+            If used, the dictionary should contain tuples (u, v) as keys, 
+            while the values should be dictionaries with keyword arguments 
+            of the coupling method. Use this dictionary to define coupling 
+            parameters that are specific for a given edge. Such definitions will 
+            also override the common parameters (described below).
+        **common_params: dict, optional
+            Additional coupling parameters that apply to each edge defined in the 
+            coupling dictionary or the single edge if a tuple was provided.
+
+        Notes
+        -----
+        For the information on required coupling parameters, please refer to the
+        :doc:`documentation </api/coupling>` of the corresponding coupling method(s).
+
+        Examples
+        --------
+        Adding a single connectivity edge:
+
+        >>> from meegsim.coupling import ppc_von_mises
+        ... 
+        ... sim.set_coupling(('s1', 's2'), method=ppc_von_mises, 
+        ...                  kappa=1, phase_lag=0, fmin=8, fmax=12)
+
+        Adding multiple connectivity edges at once:
+        
+        >>> from meegsim.coupling import ppc_von_mises
+        ... 
+        ... sim.set_coupling(coupling={
+        ...     ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3, fmin=10),
+        ...     ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
+        ... }, method=ppc_von_mises, fmin=8, fmax=12)
+
+        In the example above, `method` and `fmax` values apply to both 
+        coupling edges, while `kappa` and `phase_lag` are edge-specific.
+        `fmin` is defined as a common parameter but also has a different
+        value for the edge `('s1', 's2')`. Therefore, it will be set to 6 
+        for the edge `('s1', 's2')` and to 8 for the edge `('s2', 's3')`.
+        """
+
+        # Convert tuple to a dictionary with empty coupling params
+        if isinstance(coupling, tuple):
+            coupling = {coupling: dict()}
+
+        for coupling_edge, coupling_params in coupling.items():
+            params = check_coupling(coupling_edge, coupling_params, common_params, 
+                                    self._sources, self._coupling_graph)
+
+            # Add the coupling edge
+            source, target = coupling_edge
+            self._coupling_graph.add_edge(source, target, **params)
         
     def simulate(
         self,  
@@ -290,6 +352,7 @@ class SourceSimulator:
         sources, noise_sources = _simulate(
             self._source_groups,
             self._noise_groups,
+            self._coupling_graph,
             self.is_snr_adjusted,
             self.src,
             sc.times,
@@ -307,6 +370,7 @@ class SourceSimulator:
 def _simulate(
     source_groups, 
     noise_groups,
+    coupling_graph,
     is_snr_adjusted,
     src,
     times,
@@ -330,11 +394,8 @@ def _simulate(
 
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
-
-        # Here we should also check for possible cycles in the coupling structure
-        # If there are cycles, raise an error
-        # If there are no cycles, traverse the graph and set coupling according to the selected method
-        # Try calling the coupling with the provided parameters but be prepared for mismatches
+    if coupling_graph.number_of_edges() > 0:
+        sources = _set_coupling(sources, coupling_graph, times, random_state=random_state)
 
     # Adjust the SNR if needed
     if is_snr_adjusted:
