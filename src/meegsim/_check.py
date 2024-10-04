@@ -371,10 +371,10 @@ def check_coupling_params(method, coupling_params, coupling_edge):
         If the provided dictionary does not contain all required parameters.
     """
     
-    # Test on a 10 second segment of 10 Hz sinusoid
+    # Test on a 10 second segment of white noise
     sfreq = 100
-    times = np.arange(0, 10 * sfreq) / sfreq
-    waveform = np.sin(2 * np.pi * 10 * times)
+    rng = np.random.default_rng(seed=0)
+    waveform = rng.random((10 * sfreq,))
 
     # Temporarily remove 'method' from coupling_params
     test_params = coupling_params.copy()
