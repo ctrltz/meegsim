@@ -44,7 +44,7 @@ def generate_walkaround(coupling_graph, random_state=None):
     ----------
     coupling_setup : nx.Graph
         The coupling graph that describes the desired connectivity patterns.
-        All edges should have corresponding parameters as attributes.
+        All edges should have the coupling parameters as attributes.
     random_state : int or None, optional
         Seed for the random number generator. If start_node is None, the start node will be drawn
         randomly, and results will vary between function calls. default = None.    

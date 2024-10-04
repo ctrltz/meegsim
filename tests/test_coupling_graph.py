@@ -44,6 +44,8 @@ def test_traverse_tree_single_node():
 
 def test_generate_walkaround():
     # Test with a simple topology with two trees
+    # The result should be a flat list even if several connected components
+    # are present in the coupling graph
     edgelist = [(0, 1), (1, 2), (1, 3), (4, 5), (5, 6), (6, 7)]
     kappa_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     phase_lag_list = [0.5, 0.6, 0.7, 0.8, 0.9, 1]

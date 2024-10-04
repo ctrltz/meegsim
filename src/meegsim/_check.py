@@ -410,7 +410,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
         are not provided.
     """
     
-    # Check the coupling edge is defined as a tuple of two elements
+    # Check that the coupling edge is defined as a tuple of two elements
     if not isinstance(coupling_edge, tuple):
         raise ValueError(
             f'Coupling edges {coupling_edge} should be defined as a tuple'
@@ -454,7 +454,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
     if double_definition:
         double_defined = ', '.join(double_definition)
         warnings.warn(
-            f'Parameters {double_defined} have double definiton for edge '
+            f'Parameters {double_defined} have double definition for edge '
             f'{coupling_edge}. Edge-specific values have higher priority.'
         )
 

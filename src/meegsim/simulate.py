@@ -252,7 +252,7 @@ class SourceSimulator:
         Parameters
         ----------
         coupling: dict
-            Dictionary that defineы the coupling edges and parameters. It should
+            Dictionary that defines the coupling edges and parameters. It should
             contain tuples (source, target) as keys, where source and target are
             names of sources that should be coupled. Both sources should be added
             to the simulation prior to setting the coupling.

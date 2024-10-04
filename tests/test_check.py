@@ -322,7 +322,7 @@ def test_check_coupling_should_pass():
 
     params = check_coupling(('a', 'b'), coupling_params, common, sources, existing)
 
-    # Check that common params was added to the dictionary
+    # Check that common params were added to the dictionary
     assert 'method' in params
     assert 'fmin' in params
     assert 'fmax' in params
@@ -395,7 +395,7 @@ def test_check_coupling_double_definition():
 
         # Check that a warning was shown
         assert len(w) == 1
-        assert "('a', 'b')" in str(w[0].message)
+        assert "double definition for edge ('a', 'b')" in str(w[0].message)
 
 
 def test_check_coupling_no_method_defined():
