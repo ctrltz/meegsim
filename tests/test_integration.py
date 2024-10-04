@@ -50,13 +50,12 @@ def test_builtin_methods():
         names=['s1', 's2', 's3']
     )
 
-    # Define several edges to test graph traversal
-    # Use all built-in coupling methods
+    # Define several edges to test graph traversal and built-in coupling methods
+    sim.set_coupling(('s1', 's2'), method=ppc_von_mises, kappa=1, 
+                     phase_lag=np.pi/3, fmin=8, fmax=12)
     sim.set_coupling(coupling={
-        ('s1', 's2'): dict(method=ppc_von_mises, kappa=1, 
-                           phase_lag=np.pi/3, fmin=8, fmax=12),
-        ('s2', 's3'): dict(method=constant_phase_shift, phase_lag=-np.pi/6),
-    })
+        ('s2', 's3'): dict(phase_lag=-np.pi/6),
+    }, method=constant_phase_shift, phase_lag=0)
 
     # Actual simulation
     sc = sim.simulate(sfreq, duration, fwd, random_state=seed)

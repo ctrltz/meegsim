@@ -119,7 +119,7 @@ def test_sourcesimulator_set_coupling_tuple(check_coupling_mock):
     assert sim._coupling_graph.has_edge('s1', 's2')
 
     edge_data = sim._coupling_graph.get_edge_data('s1', 's2')
-    assert edge_data['param'] == 1
+    assert edge_data['param'] == 1    # mock output is saved
 
 
 @patch('meegsim.simulate.check_coupling',
@@ -150,7 +150,7 @@ def test_sourcesimulator_set_coupling_dict(check_coupling_mock):
     assert sim._coupling_graph.has_edge('s1', 's2')
 
     edge_data = sim._coupling_graph.get_edge_data('s1', 's2')
-    assert edge_data['param'] == 1
+    assert edge_data['param'] == 1     # mock output is saved
 
 
 def test_sourcesimulator_is_snr_adjusted():

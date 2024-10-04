@@ -269,7 +269,7 @@ class SourceSimulator:
         Notes
         -----
         For the information on required coupling parameters, please refer to the
-        :doc:`documentation </api/coupling>` of the corresponding coupling methods.
+        :doc:`documentation </api/coupling>` of the corresponding coupling method(s).
 
         Examples
         --------
