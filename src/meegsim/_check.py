@@ -471,7 +471,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
     if not callable(method):
         raise ValueError(
             f'Expected coupling method to be a callable, '
-            f'got {type(method).__name__}'
+            f'got {type(method).__name__} for edge {coupling_edge}'
         )
 
     # Check that all required coupling parameters were specified for the selected method
