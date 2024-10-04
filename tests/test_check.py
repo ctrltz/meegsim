@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 import pytest
+import warnings
 
 from functools import partial
 from meegsim._check import (
@@ -327,6 +328,16 @@ def test_check_coupling_should_pass():
     assert 'fmax' in params
 
 
+def test_check_coupling_bad_edge_format():
+    # Meaningless coupling edge
+    with pytest.raises(ValueError, match="1 should be defined as a tuple"):
+        check_coupling(1, {}, {}, [], nx.Graph())
+
+    # Too many sources to couple
+    with pytest.raises(ValueError, match="should contain two elements"):
+        check_coupling(('a', 'b', 'c', 'd'), {}, {}, [], nx.Graph())
+
+
 def test_check_coupling_bad_source_name():
     sources = ['a', 'b', 'c', 'd']
 
@@ -358,6 +369,33 @@ def test_check_coupling_self_loop_edge():
     # Bad target node
     with pytest.raises(ValueError, match="is a self-loop"):
         check_coupling(('a', 'a'), {}, {}, sources, nx.Graph())
+
+
+def test_check_coupling_params_not_dict():
+    # Too many sources to couple
+    with pytest.raises(ValueError, match="as a dictionary, got str"):
+        check_coupling(('a', 'b'), 'params', {}, ['a', 'b'], nx.Graph())
+
+
+def test_check_coupling_double_definition():
+    def coupling_fn(waveform, sfreq, param, random_state=0):
+        return 0
+
+    with warnings.catch_warnings(record=True) as w:
+        params = check_coupling(
+            coupling_edge=('a', 'b'), 
+            coupling_params={'param': 1},   # edge-specific value should be saved
+            common_params={'method': coupling_fn, 'param': 0},
+            names=['a', 'b'], 
+            current_graph=nx.Graph()
+        )
+
+        # Check that the edge-specific value was saved
+        assert params['param'] == 1
+
+        # Check that a warning was shown
+        assert len(w) == 1
+        assert "('a', 'b')" in str(w[0].message)
 
 
 def test_check_coupling_no_method_defined():

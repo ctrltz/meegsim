@@ -252,23 +252,30 @@ class SourceSimulator:
         Parameters
         ----------
         coupling: dict
-            Dictionary that define the coupling edges and parameters. It should
+            Dictionary that defineы the coupling edges and parameters. It should
             contain tuples (source, target) as keys, where source and target are
-            names of sources that already exist in the simulator. 
+            names of sources that should be coupled. Both sources should be added
+            to the simulation prior to setting the coupling.
             
             The values should be dictionaries with keyword arguments of the coupling 
-            method. Use this dictionary to define edge-specific parameters.
+            method. Refer to the coupling method for details on the required 
+            arguments. Use this dictionary to define coupling parameters that are
+            specific for a given edge. Such definitions will also override the
+            common parameters (described below).
         **common_params: dict, optional
             Additional coupling parameters that apply to each edge defined in the 
             coupling dictionary.
 
         Examples
         --------
-        In the example below, `method`, `fmin`, `fmax` values apply to both 
+        In the example below, `method` and `fmax` values apply to both 
         coupling edges, while `kappa` and `phase_lag` are edge-specific.
+        `fmin` is defined as a common parameter but also has a different
+        value for the edge `('s1', 's2')`. Therefore, it will be set to 6 
+        for the edge `('s1', 's2')` and to 8 for the edge `('s2', 's3')`.
         
         sim.set_coupling(coupling={
-            ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3),
+            ('s1', 's2'): dict(kappa=1, phase_lag=np.pi/3, fmin=6),
             ('s2', 's3'): dict(kappa=0.5, phase_lag=-np.pi/6)
         }, method='ppc_von_mises', fmin=8, fmax=12)
         """

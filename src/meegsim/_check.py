@@ -395,7 +395,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
     coupling_params: dict
         The coupling parameters that were defined for this edge specifically.
     common_params: dict
-        The coupling parameters that were defined for all edges.
+        The coupling parameters that apply to all edges.
     names: list of str
         The names of sources that exist in the simulation.
     existing: nx.DiGraph
@@ -409,6 +409,18 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
         If the coupling method or any of the required parameters for the method
         are not provided.
     """
+    
+    # Check the coupling edge is defined as a tuple of two elements
+    if not isinstance(coupling_edge, tuple):
+        raise ValueError(
+            f'Coupling edges {coupling_edge} should be defined as a tuple'
+        )
+    if len(coupling_edge) != 2:
+        raise ValueError(
+            f'Coupling edges should contain two elements (names of '
+            f'the source and target source), got {coupling_edge}'
+        )
+
     # Check that both source names already exist
     source, target = coupling_edge
     check_if_source_exists(source, names)
@@ -428,9 +440,27 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
             f'simulation, and multiple definitions are not allowed.'
         )
     
-    # Add common parameters to the edge-specific ones
-    params = coupling_params.copy()
-    params.update(common_params)
+    # Coupling parameters should be provided in a dictionary
+    if not isinstance(coupling_params, dict):
+        actual_type = type(coupling_params).__name__
+        raise ValueError(
+            f'Coupling parameters should be provided as a dictionary, '
+            f'got {actual_type} for edge {coupling_edge}'
+        )
+
+    # Warn the user if some parameters were defined both for specific edges
+    # and as common ones
+    double_definition = set(common_params.keys()) & set(coupling_params.keys())
+    if double_definition:
+        double_defined = ', '.join(double_definition)
+        warnings.warn(
+            f'Parameters {double_defined} have double definiton for edge '
+            f'{coupling_edge}. Edge-specific values have higher priority.'
+        )
+
+    # Overwrite the common coupling parameters with edge-specific ones
+    params = common_params.copy()
+    params.update(coupling_params)
 
     # Check that the coupling method was defined
     if 'method' not in params:
