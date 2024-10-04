@@ -398,7 +398,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
         The coupling parameters that apply to all edges.
     names: list of str
         The names of sources that exist in the simulation.
-    existing: nx.DiGraph
+    current_graph: nx.Graph
         The coupling graph that was already defined in the simulation
 
     Raises
@@ -418,7 +418,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
     if len(coupling_edge) != 2:
         raise ValueError(
             f'Coupling edges should contain two elements (names of '
-            f'the source and target source), got {coupling_edge}'
+            f'the source and the target), got {coupling_edge}'
         )
 
     # Check that both source names already exist
