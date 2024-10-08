@@ -352,7 +352,7 @@ def check_extents(extents, n_sources):
     for extent in extents:
         if extent is not None:
             # Check if each extent is a number
-            if not isinstance(extent, (int, float)):
+            if not isinstance(extent, (int, float, np.integer, np.floating)):
                 raise ValueError(f"Extent {extent} must be a number.")
 
             # Check if each extent is positive
