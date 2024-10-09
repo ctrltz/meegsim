@@ -180,6 +180,10 @@ class SourceSimulator:
         self._source_groups.append(patch_sg)
         self._sources.extend(patch_sg.names)
 
+        # Check if SNR should be adjusted
+        if patch_sg.snr is not None:
+            self.is_snr_adjusted = True
+
         # Return the names of newly added sources
         return patch_sg.names
 
