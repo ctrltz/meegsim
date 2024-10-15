@@ -189,7 +189,7 @@ def test_pointsource_create_from_callables():
 )
 def test_patchsource_repr(src_idx, vertno, hemi):
     # Waveform is not required for repr, leaving it empty
-    s = PatchSource('mysource', src_idx, vertno, np.array([]), sfreq=250, hemi=hemi)
+    s = PatchSource('mysource', src_idx, vertno, np.array([]), hemi=hemi)
 
     if hemi is None:
         assert f'src[{src_idx}]' in repr(s)
@@ -212,7 +212,7 @@ def test_patchsource_to_stc(src_idx, vertno):
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1, 2]]
     )
-    s = PatchSource('mysource', src_idx, vertno, waveform, sfreq=100)
+    s = PatchSource('mysource', src_idx, vertno, waveform)
     stc = s.to_stc(src)
 
     assert stc.data.shape[0] == 2, \
@@ -231,7 +231,7 @@ def test_patchsource_to_stc_bad_src_raises():
     )
 
     # src[2] is out of range
-    s = PatchSource('mysource', 2, [0, 1], waveform, sfreq=250)
+    s = PatchSource('mysource', 2, [0, 1], waveform)
     with pytest.raises(ValueError, match="not present in the provided src"):
         s.to_stc(src, subject='mysubject')
 
@@ -244,7 +244,7 @@ def test_patchsource_to_stc_bad_vertno_raises():
     )
 
     # vertex 2 is not in src[0]
-    s = PatchSource('mysource', 0, [0, 2], waveform, sfreq=250)
+    s = PatchSource('mysource', 0, [0, 2], waveform)
     with pytest.raises(ValueError, match="does not contain the following vertices: 2"):
         s.to_stc(src, subject='mysubject')
 
@@ -344,9 +344,9 @@ def test_combine_sources_into_stc_patch():
         vertices=[[0, 1], [0, 1]]
     )
 
-    s1 = PatchSource('s1', 0, [0, 1], np.ones((100,)), 250)
-    s2 = PatchSource('s2', 1, [0, 1], np.ones((100,)), 250)
-    s3 = PatchSource('s3', 0, [0, 1], np.ones((100,)), 250)
+    s1 = PatchSource('s1', 0, [0, 1], np.ones((100,)))
+    s2 = PatchSource('s2', 1, [0, 1], np.ones((100,)))
+    s3 = PatchSource('s3', 0, [0, 1], np.ones((100,)))
 
     # s1 and s2 are the same vertex, should be summed
     stc1 = _combine_sources_into_stc([s1, s2], src)

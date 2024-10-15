@@ -266,7 +266,7 @@ def test_simulate():
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, noise_sources = _simulate(source_groups, noise_groups, nx.Graph(), False, 
-                                           src, times=times, fwd=None, random_state=0)
+                                           src, times=times, fwd=None, info=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
             f"Expected three calls of PointSourceGroup.simulate method"
@@ -315,7 +315,7 @@ def test_simulate_snr_adjustment(adjust_snr_mock):
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, _ = _simulate(source_groups, noise_groups, nx.Graph(), True, 
-                               src, times=times, fwd=fwd, random_state=0)
+                               src, times=times, fwd=fwd, info=None, random_state=0)
         
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
@@ -362,7 +362,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, _ = _simulate(source_groups, noise_groups, coupling_graph, False, 
-                               src, times=times, fwd=fwd, random_state=0)
+                               src, times=times, fwd=fwd, info=None, random_state=0)
         
         # Check that the coupling setup was performed
         set_coupling_mock.assert_called()
