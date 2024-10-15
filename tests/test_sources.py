@@ -65,7 +65,7 @@ def test_pointsource_to_stc(src_idx, vertno):
     
 
 @pytest.mark.parametrize("tstep", [0.01, 0.025, 0.05])
-def test_pointsource_to_stc_sfreq(tstep):
+def test_pointsource_to_stc_tstep(tstep):
     waveform = np.ones((100,))
     src = prepare_source_space(
         types=['surf', 'surf'],
@@ -106,7 +106,7 @@ def test_pointsource_to_stc_bad_src_raises():
 
     # src[2] is out of range
     s = PointSource('mysource', 2, 0, waveform)
-    with pytest.raises(ValueError, match="not present in the provided src"):
+    with pytest.raises(ValueError, match="point source was assigned to source space 2"):
         s.to_stc(src, tstep=0.01, subject='mysubject')
 
 
@@ -232,7 +232,7 @@ def test_patchsource_to_stc_bad_src_raises():
 
     # src[2] is out of range
     s = PatchSource('mysource', 2, [0, 1], waveform)
-    with pytest.raises(ValueError, match="not present in the provided src"):
+    with pytest.raises(ValueError, match="patch source was assigned to source space 2"):
         s.to_stc(src, tstep=0.01, subject='mysubject')
 
 

@@ -149,6 +149,7 @@ def test_vertices_to_mne():
     packed = vertices_to_mne([(0, 0)], src)
     assert packed == [[0], []]
 
+    # vertices should be sorted
     packed = vertices_to_mne([(0, 2), (0, 0)], src)
     assert packed == [[0, 2], []]
 
