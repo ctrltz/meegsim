@@ -19,7 +19,6 @@ classifiers = [
 ]
 dependencies = [
     "colorednoise",
-    "harmoni",
     "mne",
     "networkx"
 ]
@@ -30,6 +29,7 @@ Issues = "https://github.com/ctrltz/meegsim/issues"
 
 [project.optional-dependencies]
 dev = [
+    "harmoni",
     "mock",
     "pytest",
     "pytest-cov"

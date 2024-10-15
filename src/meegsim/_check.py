@@ -12,11 +12,12 @@ for SourceSimulator:
 import numpy as np
 
 from functools import partial
+import warnings
 
 from .utils import logger
 
 
-def check_callable(name, fun, *args, **kwargs):
+def check_callable(context, fun, *args, **kwargs):
     """
     Check whether the provided function can be run successfully.
     The function is always run with random_state set to 0 for consistency.
@@ -47,7 +48,7 @@ def check_callable(name, fun, *args, **kwargs):
         return fun(*args, **kwargs, random_state=0)
     except:
         logger.error(f'An error occurred when trying to call the '
-                     f'provided {name} function')
+                     f'provided function for: {context}')
         raise
 
 
@@ -329,11 +330,181 @@ def check_snr_params(snr_params, snr):
     return snr_params
 
 
-def check_coupling():
-    # coupling_edge = list(coupling.keys())[0]
-    # coupling_params = list(coupling.values())[0]
-    # name1, name2 = coupling_edge[0]
-    # if missing:
-    #     raise ValueError(f"The configuration contains no sources with the following names: {', '.join(missing)}")
-    # self.check_if_exist([name1, name2])
-    pass
+def check_if_source_exists(name, existing):
+    """
+    Check if a source exists when trying to set the coupling.
+    
+    Parameters
+    ----------
+    name: str
+        The name of the source to be checked.
+    existing: list of str
+        The name of all existing sources
+
+    Raises
+    ------
+    ValueError
+        If the provided source name is not in the list of existing ones.
+    """
+    if name not in existing:
+        raise ValueError(f'Source {name} was not defined yet')
+
+
+def check_coupling_params(method, coupling_params, coupling_edge):
+    """
+    Check whether all required coupling parameters were provided for the
+    selected method.
+    
+    Parameters
+    ----------
+    method: str
+        The name of the coupling method.
+    coupling_params: dict
+        The coupling parameters for the selected method.
+    coupling_edge: tuple
+        The coupling edge that the provided parameters apply to.
+        It is only used to be more specific in the error message.
+
+    Raises
+    ------
+    ValueError
+        If the provided dictionary does not contain all required parameters.
+    """
+    
+    # Test on a 10 second segment of white noise
+    sfreq = 100
+    rng = np.random.default_rng(seed=0)
+    waveform = rng.random((10 * sfreq,))
+
+    # Temporarily remove 'method' from coupling_params
+    test_params = coupling_params.copy()
+    test_params.pop('method')
+
+    check_callable(f'coupling method, edge {coupling_edge}',
+                   method, waveform, sfreq, **test_params)
+
+
+def check_coupling(coupling_edge, coupling_params, common_params, names, current_graph):
+    """
+    Check whether the provided coupling edge and parameters are valid.
+    
+    Parameters
+    ----------
+    coupling_edge: tuple
+        The coupling edge (source, target) that the provided parameters apply to.
+    coupling_params: dict
+        The coupling parameters that were defined for this edge specifically.
+    common_params: dict
+        The coupling parameters that apply to all edges.
+    names: list of str
+        The names of sources that exist in the simulation.
+    current_graph: nx.Graph
+        The coupling graph that was already defined in the simulation
+
+    Raises
+    ------
+    ValueError
+        If source or target do not exist in the simulation.
+        If the coupling edge was defined previously.
+        If the coupling method or any of the required parameters for the method
+        are not provided.
+    """
+    
+    # Check that the coupling edge is defined as a tuple of two elements
+    if not isinstance(coupling_edge, tuple):
+        raise ValueError(
+            f'Coupling edges {coupling_edge} should be defined as a tuple'
+        )
+    if len(coupling_edge) != 2:
+        raise ValueError(
+            f'Coupling edges should contain two elements (names of '
+            f'the source and the target), got {coupling_edge}'
+        )
+
+    # Check that both source names already exist
+    source, target = coupling_edge
+    check_if_source_exists(source, names)
+    check_if_source_exists(target, names)
+
+    # Check that the edge is not a self-loop
+    if source == target:
+        raise ValueError(
+            f'The coupling edge {coupling_edge} is a self-loop, and '
+            f'only connections between distinct sources are allowed.'
+        )
+
+    # Check that this coupling edge has not been already added
+    if current_graph.has_edge(*coupling_edge):
+        raise ValueError(
+            f'The coupling edge {coupling_edge} already exists in the '
+            f'simulation, and multiple definitions are not allowed.'
+        )
+    
+    # Coupling parameters should be provided in a dictionary
+    if not isinstance(coupling_params, dict):
+        actual_type = type(coupling_params).__name__
+        raise ValueError(
+            f'Coupling parameters should be provided as a dictionary, '
+            f'got {actual_type} for edge {coupling_edge}'
+        )
+
+    # Warn the user if some parameters were defined both for specific edges
+    # and as common ones
+    double_definition = set(common_params.keys()) & set(coupling_params.keys())
+    if double_definition:
+        double_defined = ', '.join(double_definition)
+        warnings.warn(
+            f'Parameters {double_defined} have double definition for edge '
+            f'{coupling_edge}. Edge-specific values have higher priority.'
+        )
+
+    # Overwrite the common coupling parameters with edge-specific ones
+    params = common_params.copy()
+    params.update(coupling_params)
+
+    # Check that the coupling method was defined
+    if 'method' not in params:
+        raise ValueError(f'Coupling method was not defined for the edge {coupling_edge}')
+    method = params['method']
+    
+    # Check that the coupling method is a callable
+    if not callable(method):
+        raise ValueError(
+            f'Expected coupling method to be a callable, '
+            f'got {type(method).__name__} for edge {coupling_edge}'
+        )
+
+    # Check that all required coupling parameters were specified for the selected method
+    check_coupling_params(method, params, coupling_edge)
+    
+    return params
+
+
+def check_extents(extents, n_sources):
+
+    # check if extents is a list, otherwise make it a list
+    if not isinstance(extents, list):
+        extents = [extents]
+    # if extent is single number, propagate it to all patch sources
+    if len(extents) == 1:
+        extents = extents * n_sources
+
+    for extent in extents:
+        if extent is not None:
+            # Check if each extent is a number
+            if not isinstance(extent, (int, float, np.integer, np.floating)):
+                raise ValueError(f"Extent {extent} must be a number.")
+
+            # Check if each extent is positive
+            if extent <= 0:
+                raise ValueError(f"Extent {extent} must be a positive number.")
+
+            # Issue a warning if any extent exceeds 1000 mm
+            if extent > 1000:
+                warnings.warn(
+                    f"The extent {extent} (radius in mm) is more than 1000 mm. "
+                    "Are you sure that the patch is supposed to be that big?",
+                    UserWarning)
+
+
+    return extents
