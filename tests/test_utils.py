@@ -4,8 +4,11 @@ import pytest
 
 from mne.io.constants import FIFF
 from meegsim.utils import (
-    _extract_hemi, unpack_vertices, combine_stcs, normalize_power, get_sfreq
+    _extract_hemi, unpack_vertices, combine_stcs, normalize_power, 
+    get_sfreq, vertices_to_mne
 )
+
+from utils.prepare import prepare_source_space
 
 
 def test_unpack_single_list():
@@ -135,3 +138,22 @@ def test_extract_hemi_raises():
 
     with pytest.raises(ValueError, match='Unexpected ID'):
         _extract_hemi(src[0])
+
+
+def test_vertices_to_mne():
+    src = prepare_source_space(
+        ['surf', 'surf'],
+        [[0, 1, 2], [0, 1, 2]]
+    )
+
+    packed = vertices_to_mne([(0, 0)], src)
+    assert packed == [[0], []]
+
+    packed = vertices_to_mne([(0, 0), (0, 2)], src)
+    assert packed == [[0, 2], []]
+
+    packed = vertices_to_mne([(0, 0), (1, 2)], src)
+    assert packed == [[0], [2]]
+
+    packed = vertices_to_mne([(1, 0), (1, 2)], src)
+    assert packed == [[], [0, 2]]

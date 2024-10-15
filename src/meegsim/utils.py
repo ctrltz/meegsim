@@ -191,6 +191,7 @@ def vertices_to_mne(vertices, src):
     Convert the vertices to the MNE format (list of lists).
     """
 
+    vertices = np.array(vertices)
     packed_vertices = [[] for _ in src]
     for src_idx in np.unique(vertices[:, 0]):
         src_vertices = vertices[vertices[:, 0] == src_idx, :]
