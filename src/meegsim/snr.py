@@ -101,9 +101,9 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     return factor
 
 
-def _adjust_snr(src, fwd, sources, source_groups, noise_sources):
+def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
-    stc_noise = _combine_sources_into_stc(noise_sources.values(), src)
+    stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
 
     # Adjust the SNR of sources in each source group
     for sg in source_groups:
@@ -121,7 +121,7 @@ def _adjust_snr(src, fwd, sources, source_groups, noise_sources):
 
             # NOTE: taking a safer approach for now and filtering
             # even if the signal is already a narrowband oscillation
-            signal_var = get_sensor_space_variance(s.to_stc(src), fwd,
+            signal_var = get_sensor_space_variance(s.to_stc(src, tstep), fwd,
                                                    fmin=fmin, fmax=fmax, filter=True)
 
             # NOTE: patch sources might require more complex calculations

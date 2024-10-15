@@ -11,9 +11,9 @@ from utils.prepare import prepare_source_space
 
 def test_basesource_is_abstract():
     waveform = np.ones((100,))
-    s = _BaseSource(waveform, sfreq=250)
-    with pytest.raises(NotImplementedError, match="in the subclass"):
-        s.to_stc()
+    s = _BaseSource(waveform)
+    with pytest.raises(NotImplementedError, match="in a subclass"):
+        s.data
 
 
 
@@ -30,7 +30,7 @@ def test_basesource_is_abstract():
 )
 def test_pointsource_repr(src_idx, vertno, hemi):
     # Waveform is not required for repr, leaving it empty
-    s = PointSource('mysource', src_idx, vertno, np.array([]), sfreq=250, hemi=hemi)
+    s = PointSource('mysource', src_idx, vertno, np.array([]), hemi=hemi)
 
     if hemi is None:
         assert f'src[{src_idx}]' in repr(s)
@@ -53,8 +53,8 @@ def test_pointsource_to_stc(src_idx, vertno):
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource('mysource', src_idx, vertno, waveform, sfreq=100)
-    stc = s.to_stc(src)
+    s = PointSource('mysource', src_idx, vertno, waveform)
+    stc = s.to_stc(src, tstep=0.01)
 
     assert stc.data.shape[0] == 1, \
         f"Expected one active vertex in stc, got {stc.data.shape[0]}"
@@ -64,18 +64,19 @@ def test_pointsource_to_stc(src_idx, vertno):
         f"The source waveform should not change during conversion to stc"
     
 
-@pytest.mark.parametrize("sfreq", [100, 250, 500])
-def test_pointsource_to_stc_sfreq(sfreq):
+@pytest.mark.parametrize("tstep", [0.01, 0.025, 0.05])
+def test_pointsource_to_stc_sfreq(tstep):
     waveform = np.ones((100,))
     src = prepare_source_space(
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource('mysource', 0, 0, waveform, sfreq=sfreq)
-    stc = s.to_stc(src)
+    s = PointSource('mysource', 0, 0, waveform)
+    stc = s.to_stc(src, tstep=tstep)
 
-    assert stc.sfreq == sfreq, \
-        f"Expected stc.sfreq to be {sfreq}, got {stc.sfreq}"
+    expected_sfreq = 1.0 / tstep
+    assert stc.sfreq == expected_sfreq, \
+        f"Expected stc.sfreq to be {expected_sfreq}, got {stc.sfreq}"
     
 
 def test_pointsource_to_stc_subject():
@@ -84,13 +85,13 @@ def test_pointsource_to_stc_subject():
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
     )
-    s = PointSource('mysource', 0, 0, waveform, sfreq=250)
-    stc = s.to_stc(src)
+    s = PointSource('mysource', 0, 0, waveform)
+    stc = s.to_stc(src, tstep=0.01)
 
     assert stc.subject == 'meegsim', \
         f"Expected stc.subject to be derived from src, got {stc.subject}"
     
-    stc = s.to_stc(src, subject='mysubject')
+    stc = s.to_stc(src, tstep=0.01, subject='mysubject')
 
     assert stc.subject == 'mysubject', \
         f"Expected stc.subject to be mysubject, got {stc.subject}"
@@ -104,9 +105,9 @@ def test_pointsource_to_stc_bad_src_raises():
     )
 
     # src[2] is out of range
-    s = PointSource('mysource', 2, 0, waveform, sfreq=250)
+    s = PointSource('mysource', 2, 0, waveform)
     with pytest.raises(ValueError, match="not present in the provided src"):
-        s.to_stc(src, subject='mysubject')
+        s.to_stc(src, tstep=0.01, subject='mysubject')
 
 
 def test_pointsource_to_stc_bad_vertno_raises():
@@ -117,9 +118,9 @@ def test_pointsource_to_stc_bad_vertno_raises():
     )
 
     # vertex 2 is not in src[0]
-    s = PointSource('mysource', 0, 2, waveform, sfreq=250)
-    with pytest.raises(ValueError, match="does not contain the vertex"):
-        s.to_stc(src, subject='mysubject')
+    s = PointSource('mysource', 0, 2, waveform)
+    with pytest.raises(ValueError, match="contain the following vertices: 2"):
+        s.to_stc(src, tstep=0.01, subject='mysubject')
 
 
 def test_pointsource_create_from_arrays():
@@ -188,7 +189,7 @@ def test_pointsource_create_from_callables():
 )
 def test_patchsource_repr(src_idx, vertno, hemi):
     # Waveform is not required for repr, leaving it empty
-    s = PatchSource('mysource', src_idx, vertno, np.array([]), sfreq=250, hemi=hemi)
+    s = PatchSource('mysource', src_idx, vertno, np.array([]), hemi=hemi)
 
     if hemi is None:
         assert f'src[{src_idx}]' in repr(s)
@@ -211,8 +212,8 @@ def test_patchsource_to_stc(src_idx, vertno):
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1, 2]]
     )
-    s = PatchSource('mysource', src_idx, vertno, waveform, sfreq=100)
-    stc = s.to_stc(src)
+    s = PatchSource('mysource', src_idx, vertno, waveform)
+    stc = s.to_stc(src, tstep=0.01)
 
     assert stc.data.shape[0] == 2, \
         f"Expected two active vertices in stc, got {stc.data.shape[0]}"
@@ -230,9 +231,9 @@ def test_patchsource_to_stc_bad_src_raises():
     )
 
     # src[2] is out of range
-    s = PatchSource('mysource', 2, [0, 1], waveform, sfreq=250)
+    s = PatchSource('mysource', 2, [0, 1], waveform)
     with pytest.raises(ValueError, match="not present in the provided src"):
-        s.to_stc(src, subject='mysubject')
+        s.to_stc(src, tstep=0.01, subject='mysubject')
 
 
 def test_patchsource_to_stc_bad_vertno_raises():
@@ -243,9 +244,9 @@ def test_patchsource_to_stc_bad_vertno_raises():
     )
 
     # vertex 2 is not in src[0]
-    s = PatchSource('mysource', 0, [0, 2], waveform, sfreq=250)
+    s = PatchSource('mysource', 0, [0, 2], waveform)
     with pytest.raises(ValueError, match="does not contain the following vertices: 2"):
-        s.to_stc(src, subject='mysubject')
+        s.to_stc(src, tstep=0.01, subject='mysubject')
 
 
 def test_patch_source_with_extent():
@@ -322,17 +323,17 @@ def test_combine_sources_into_stc_point():
         vertices=[[0, 1], [0, 1]]
     )
 
-    s1 = PointSource('s1', 0, 0, np.ones((100,)), 250)
-    s2 = PointSource('s2', 0, 0, np.ones((100,)), 250)
-    s3 = PointSource('s3', 0, 1, np.ones((100,)), 250)
+    s1 = PointSource('s1', 0, 0, np.ones((100,)))
+    s2 = PointSource('s2', 0, 0, np.ones((100,)))
+    s3 = PointSource('s3', 0, 1, np.ones((100,)))
 
     # s1 and s2 are the same vertex, should be summed
-    stc1 = _combine_sources_into_stc([s1, s2], src)
+    stc1 = _combine_sources_into_stc([s1, s2], src, tstep=0.01)
     assert stc1.data.shape[0] == 1, 'Expected 1 active vertices in stc'
     assert np.all(stc1.data == 2), 'Expected source activity to be summed'
 
     # s1 and s3 are different vertices, should be concatenated
-    stc2 = _combine_sources_into_stc([s1, s3], src)
+    stc2 = _combine_sources_into_stc([s1, s3], src, tstep=0.01)
     assert stc2.data.shape[0] == 2, 'Expected 2 active vertices in stc'
     assert np.all(stc2.data == 1), 'Expected source activity not to be summed'
 
@@ -343,16 +344,16 @@ def test_combine_sources_into_stc_patch():
         vertices=[[0, 1], [0, 1]]
     )
 
-    s1 = PatchSource('s1', 0, [0, 1], np.ones((100,)), 250)
-    s2 = PatchSource('s2', 1, [0, 1], np.ones((100,)), 250)
-    s3 = PatchSource('s3', 0, [0, 1], np.ones((100,)), 250)
+    s1 = PatchSource('s1', 0, [0, 1], np.ones((100,)))
+    s2 = PatchSource('s2', 1, [0, 1], np.ones((100,)))
+    s3 = PatchSource('s3', 0, [0, 1], np.ones((100,)))
 
     # s1 and s2 are the same vertex, should be summed
-    stc1 = _combine_sources_into_stc([s1, s2], src)
+    stc1 = _combine_sources_into_stc([s1, s2], src, tstep=0.01)
     assert stc1.data.shape[0] == 4, 'Expected 1 active vertices in stc'
     assert np.all(stc1.data == 1), 'Expected source activity not to be summed'
 
     # s1 and s3 are different vertices, should be concatenated
-    stc2 = _combine_sources_into_stc([s1, s3], src)
+    stc2 = _combine_sources_into_stc([s1, s3], src, tstep=0.01)
     assert stc2.data.shape[0] == 2, 'Expected 2 active vertices in stc'
     assert np.all(stc2.data == 2), 'Expected source activity to be summed'

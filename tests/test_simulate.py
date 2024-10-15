@@ -8,8 +8,7 @@ from mock import patch, Mock
 from meegsim.simulate import SourceSimulator, _simulate
 from meegsim.source_groups import PointSourceGroup
 
-from utils.mocks import MockPointSource
-from utils.prepare import prepare_source_space, prepare_forward
+from utils.prepare import prepare_source_space, prepare_forward, prepare_point_source
 
 
 def test_sourcesimulator_add_point_sources():
@@ -231,16 +230,16 @@ def test_simulate():
     # noise sources are created first (1 + 3), then actual sources (2)
     simulate_mock = Mock(side_effect=[
         [
-            MockPointSource(name='s1')
+            prepare_point_source(name='s1')
         ],
         [
-            MockPointSource(name='s4'), 
-            MockPointSource(name='s5'), 
-            MockPointSource(name='s6')
+            prepare_point_source(name='s4'), 
+            prepare_point_source(name='s5'), 
+            prepare_point_source(name='s6')
         ],
         [
-            MockPointSource(name='s2'), 
-            MockPointSource(name='s3')
+            prepare_point_source(name='s2'), 
+            prepare_point_source(name='s3')
         ],
     ])
 
@@ -284,8 +283,8 @@ def test_simulate():
 def test_simulate_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source    
     simulate_mock = Mock(side_effect=[
-        [MockPointSource(name='n1')],
-        [MockPointSource(name='s1')]
+        [prepare_point_source(name='n1')],
+        [prepare_point_source(name='s1')]
     ])
 
     src = prepare_source_space(
@@ -328,8 +327,8 @@ def test_simulate_snr_adjustment(adjust_snr_mock):
 def test_simulate_coupling_setup(set_coupling_mock):
     # return 2 mock PointSource's
     simulate_mock = Mock(side_effect=[
-        [MockPointSource(name='s1')],
-        [MockPointSource(name='s2')]
+        [prepare_point_source(name='s1')],
+        [prepare_point_source(name='s2')]
     ])
 
     src = prepare_source_space(

@@ -3,6 +3,8 @@ import mne
 
 from mne.io.constants import FIFF
 
+from meegsim.sources import PointSource, PatchSource
+
 
 def prepare_source_space(types, vertices):
     assert len(types) == len(vertices), \
@@ -32,6 +34,7 @@ def prepare_source_space(types, vertices):
             nuse=int(n_verts),
             type=str(src_type),
             id=int(src_id),
+            coord_frame=FIFF.FIFFV_COORD_MRI,
             np=int(n_verts),
             subject_his_id='meegsim'
         )
@@ -92,3 +95,13 @@ def prepare_forward(n_channels, n_sources,
     fwd = mne.Forward(**forward)
 
     return fwd
+
+
+def prepare_point_source(name, src_idx=0, vertno=0, n_samples=100):
+    waveform = np.ones((n_samples,))
+    return PointSource(name, src_idx, vertno, waveform)
+
+
+def prepare_patch_source(name, src_idx=0, vertno=[0, 1], n_samples=100):
+    waveform = np.ones((n_samples,))
+    return PatchSource(name, src_idx, vertno, waveform)

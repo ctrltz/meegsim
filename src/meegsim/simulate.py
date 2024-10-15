@@ -403,6 +403,7 @@ def _simulate(
 
     # Adjust the SNR if needed
     if is_snr_adjusted:
-        sources = _adjust_snr(src, fwd, sources, source_groups, noise_sources)
+        tstep = times[1] - times[0]
+        sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
 
     return sources, noise_sources

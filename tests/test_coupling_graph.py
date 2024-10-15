@@ -6,7 +6,7 @@ from mock import patch
 
 from meegsim.coupling_graph import generate_walkaround, traverse_tree, _set_coupling
 
-from utils.mocks import MockPointSource
+from utils.prepare import prepare_point_source
 
 
 def test_traverse_tree_with_start_node():
@@ -118,7 +118,7 @@ def test_set_coupling(generate_mock):
         return (kappa, side_effect[kappa])
 
     sources = {
-        k: MockPointSource(name=k) for k in ['s1', 's2', 's3']
+        k: prepare_point_source(name=k) for k in ['s1', 's2', 's3']
     }
     coupling = [
         ('s1', 's2', dict(method=coupling_fn, kappa=0)),
@@ -145,7 +145,7 @@ def test_set_coupling_random_state(generate_mock):
         return random_state
     
     sources = {
-        k: MockPointSource(name=k) for k in ['s1', 's2', 's3']
+        k: prepare_point_source(name=k) for k in ['s1', 's2', 's3']
     }
     coupling = [
         ('s1', 's2', dict(method=coupling_fn))
