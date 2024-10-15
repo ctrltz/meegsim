@@ -181,3 +181,15 @@ def test_adjust_snr(adjust_snr_mock):
     # Check that the amplitude of the source was adjusted
     target = sources['s1']
     assert np.all(target.waveform == 2)
+
+
+def test_adjust_snr_no_noise_sources_raises():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    fwd = prepare_forward(5, 4)
+
+    # it's only important that the noise sources list is empty
+    with pytest.raises(ValueError, match="No noise sources"):
+        _adjust_snr(src, fwd, 0.01, [], [], [])

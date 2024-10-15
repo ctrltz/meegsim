@@ -103,6 +103,11 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
 
 def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
+    if not noise_sources:
+        raise ValueError(
+            'No noise sources were added to the simulation, so the SNR '
+            'cannot be adjusted.'
+        )
     stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
 
     # Adjust the SNR of sources in each source group
