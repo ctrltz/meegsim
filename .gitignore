@@ -1,0 +1,13 @@
+# Python
+__pycache__
+*.py[cod]
+
+# Pytest
+.coverage
+.pytest_cache
+
+# Sphinx
+_build/
+
+# Build
+dist/

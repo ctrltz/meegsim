@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "meegsim"
+version = "0.0.1dev"
+authors = [
+  { name="Nikolai Kapralov", email="kapralov@cbs.mpg.de" },
+  { name="Alina Studenova", email="studenova@cbs.mpg.de" },
+]
+description = "M/EEG simulation framework"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "colorednoise",
+    "mne",
+    "networkx"
+]
+
+[project.urls]
+Homepage = "https://github.com/ctrltz/meegsim"
+Issues = "https://github.com/ctrltz/meegsim/issues"
+
+[project.optional-dependencies]
+dev = [
+    "harmoni",
+    "mock",
+    "pytest",
+    "pytest-cov"
+]
+docs = [
+    "pydata-sphinx-theme",
+    "sphinx"
+]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+testpaths = [
+    "tests",
+]
+addopts = "--cov=src/meegsim --cov-report term-missing"
