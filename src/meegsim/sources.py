@@ -306,6 +306,8 @@ def _combine_sources_into_stc(sources, src, tstep):
         The list of point or patch sources.
     src: mne.SourceSpaces
         The source space with all candidate source locations.
+    tstep: float
+        The sampling interval of the source time series (1 / sfreq).
 
     Returns
     -------
