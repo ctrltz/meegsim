@@ -8,8 +8,8 @@ class SourceConfiguration:
     """
     Defines a configuration of sources of brain activity and noise.
 
-    Attributes:
-    -----------
+    Attributes
+    ----------
     src: mne.SourceSpaces
         Source spaces object that stores all candidate source locations.
 

@@ -35,6 +35,7 @@ dev = [
     "pytest-cov"
 ]
 docs = [
+    "numpydoc",
     "pydata-sphinx-theme",
     "sphinx",
     "sphinx-copybutton"

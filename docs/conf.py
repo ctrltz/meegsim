@@ -12,6 +12,9 @@ import sys
 
 import meegsim
 
+from sphinx.util import logging
+logger = logging.getLogger(__name__)
+
 
 project = 'meegsim'
 copyright = '2024, MEEGsim contributors'
@@ -25,7 +28,9 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    "sphinx.ext.napoleon"
+    "sphinx.ext.linkcode",
+    "sphinx.ext.napoleon",
+    "numpydoc"
 ]
 
 templates_path = ['_templates']
@@ -38,6 +43,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+html_show_sourcelink = False
 html_theme_options = {
     "icon_links": [
         dict(
@@ -45,7 +51,7 @@ html_theme_options = {
             url="https://github.com/ctrltz/meegsim",
             icon="fa-brands fa-square-github fa-fw",
         ),
-    ],
+    ]
 }
 
 
@@ -55,3 +61,21 @@ sys.path.insert(0, os.path.abspath('../src'))
 
 # Autosummary
 autosummary_generate = True
+
+
+# Linkcode
+code_url = "https://github.com/ctrltz/meegsim/blob/"
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+
+    if 'dev' in meegsim.__version__:
+        branch = "master"
+    else:
+        branch = f'v{meegsim.__version__}'
+
+    return f"{code_url}{branch}/src/{filename}.py"
