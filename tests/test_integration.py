@@ -61,5 +61,14 @@ def test_builtin_methods():
     sc = sim.simulate(sfreq, duration, fwd, random_state=seed)
 
     # SourceConfiguration methods
-    sc.to_stc()
-    sc.to_raw(fwd, info)
+    stc = sc.to_stc()
+    raw = sc.to_raw(fwd, info)
+
+    # Check that it is possible to simulate data multiple times
+    sc_new = sim.simulate(sfreq, duration, fwd, random_state=seed)
+    stc_new = sc_new.to_stc()
+    raw_new = sc_new.to_raw(fwd, info)
+
+    # Check that the result is reproducible
+    assert np.allclose(stc.data, stc_new.data)
+    assert np.allclose(raw.get_data(), raw_new.get_data())
