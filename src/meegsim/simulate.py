@@ -11,7 +11,7 @@ from .waveform import one_over_f_noise
 class SourceSimulator:
     """
     This class can be used to create a source configuration by adding 
-    point sources (e.g., of narrowband oscillatory activity or 1/f noise.)
+    sources of activity (e.g., narrowband oscillation or 1/f noise.)
 
     Attributes
     ----------

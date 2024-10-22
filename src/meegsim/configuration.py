@@ -18,17 +18,10 @@ class SourceConfiguration:
 
     duration: float
         Length of the simulated data, in seconds.
-    """
 
-    # Still need to be added somewhere:
-    #  * subject, subjects_dir - might be required by label.center_of_mass
-    #    (we could pass as additional arguments to the location function)
-    # Q: is `src` in theory subject-specific? need more experience with individual MRI analyses
-    #
-    # Other ideas:
-    #  * saving a configuration
-    #  * plotting a configuration with different source groups highlighted in
-    #    different colors
+    random_state: int or None, optional
+        Random state that was used to generate the SourceConfiguration.
+    """
 
     def __init__(self, src, sfreq, duration, random_state=None):
         self.src = src

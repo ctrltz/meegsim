@@ -1,6 +1,9 @@
 Source simulator
 ================
 
-.. automodule:: meegsim.simulate
-   :members:
-   :undoc-members:
+.. currentmodule:: meegsim.simulate
+
+.. autosummary::
+   :toctree: ../generated/
+
+   SourceSimulator

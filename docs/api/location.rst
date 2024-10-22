@@ -1,6 +1,9 @@
 Source location
 ===============
 
-.. automodule:: meegsim.location
-   :members:
-   :undoc-members:
+.. currentmodule:: meegsim.location
+
+.. autosummary::
+   :toctree: ../generated/
+
+   select_random

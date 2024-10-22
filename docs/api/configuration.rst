@@ -1,6 +1,9 @@
 Source configuration
 ====================
 
-.. automodule:: meegsim.configuration
-   :members:
-   :undoc-members:
+.. currentmodule:: meegsim.configuration
+
+.. autosummary::
+   :toctree: ../generated/
+
+   SourceConfiguration

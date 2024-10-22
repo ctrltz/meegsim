@@ -14,15 +14,17 @@ import meegsim
 
 
 project = 'meegsim'
-copyright = '2024, MEEGsim Authors'
-author = 'MEEGsim Authors'
+copyright = '2024, MEEGsim contributors'
+author = 'MEEGsim contributors'
 release = meegsim.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    "sphinx_copybutton",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon"
 ]
 
@@ -36,7 +38,20 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
+html_theme_options = {
+    "icon_links": [
+        dict(
+            name="GitHub",
+            url="https://github.com/ctrltz/meegsim",
+            icon="fa-brands fa-square-github fa-fw",
+        ),
+    ],
+}
 
 
 # Autodoc
 sys.path.insert(0, os.path.abspath('../src'))
+
+
+# Autosummary
+autosummary_generate = True
