@@ -12,8 +12,7 @@ import sys
 
 import meegsim
 
-from sphinx.util import logging
-logger = logging.getLogger(__name__)
+from intersphinx_registry import get_intersphinx_mapping
 
 
 project = 'meegsim'
@@ -25,12 +24,14 @@ release = meegsim.__version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_copybutton",
+    # builtin
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",
-    "sphinx.ext.napoleon",
-    "numpydoc"
+    # contrib
+    "numpydoc",
+    "sphinx_copybutton",
 ]
 
 templates_path = ['_templates']
@@ -79,3 +80,13 @@ def linkcode_resolve(domain, info):
         branch = f'v{meegsim.__version__}'
 
     return f"{code_url}{branch}/src/{filename}.py"
+
+
+# Numpydoc
+numpydoc_class_members_toctree = False
+
+
+# Intersphinx
+intersphinx_mapping = get_intersphinx_mapping(
+    packages={"python"}
+)
