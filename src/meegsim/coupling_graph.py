@@ -102,12 +102,13 @@ def _set_coupling(sources, coupling_graph, times, random_state):
         # Get the corresponding coupling parameters
         coupling_params = coupling_graph.get_edge_data(name1, name2)
 
-        # Extract the coupling method
-        coupling_fn = coupling_params.pop('method')
+        # Extract the coupling method temporarily
+        tmp_coupling_params = coupling_params.copy()
+        coupling_fn = tmp_coupling_params.pop('method')
 
         # Adjust the waveform of s2 to be coupled with s1
         s2.waveform = coupling_fn(s1.waveform, get_sfreq(times), 
-                                  **coupling_params,
+                                  **tmp_coupling_params,
                                   random_state=random_state)
 
     return sources
