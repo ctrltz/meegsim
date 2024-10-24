@@ -8,6 +8,7 @@ __pycache__
 
 # Sphinx
 _build/
+docs/generated/
 
 # Build
 dist/
