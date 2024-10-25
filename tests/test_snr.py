@@ -7,9 +7,12 @@ import pytest
 from meegsim.snr import (
     get_sensor_space_variance, amplitude_adjustment_factor, _adjust_snr
 )
-from meegsim.source_groups import PointSourceGroup
+from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
 
-from utils.prepare import prepare_source_space, prepare_forward, prepare_point_source
+from utils.prepare import (
+    prepare_source_space, prepare_forward, 
+    prepare_point_source, prepare_patch_source
+)
 
 
 def prepare_stc(vertices, num_samples=500):
@@ -147,7 +150,7 @@ def test_amplitude_adjustment_zero_noise_var():
 
 
 @patch('meegsim.snr.amplitude_adjustment_factor', return_value=2.)
-def test_adjust_snr(adjust_snr_mock):
+def test_adjust_snr_point(adjust_snr_mock):
     src = prepare_source_space(
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
@@ -161,12 +164,50 @@ def test_adjust_snr(adjust_snr_mock):
             location=[(0, 0)], 
             waveform=np.ones((1, 100)), 
             snr=np.array([5.]), 
-            snr_params=dict(fmin=8, fmax=12), 
+            snr_params=dict(fmin=8, fmax=12),
             names=['s1']
         ),
     ]
     sources = {
         's1': prepare_point_source(name='s1')
+    }
+    noise_sources = {
+        'n1': prepare_point_source(name='n1')
+    }
+    tstep = 0.01
+
+    sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+
+    # Check the SNR adjustment was performed
+    adjust_snr_mock.assert_called()
+
+    # Check that the amplitude of the source was adjusted
+    target = sources['s1']
+    assert np.all(target.waveform == 2)
+
+
+@patch('meegsim.snr.amplitude_adjustment_factor', return_value=2.)
+def test_adjust_snr_patch(adjust_snr_mock):
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    fwd = prepare_forward(5, 4)
+
+    # Define source groups
+    source_groups = [
+        PatchSourceGroup(
+            n_sources=1, 
+            location=[(0, [0, 1])], 
+            waveform=np.ones((1, 100)), 
+            snr=np.array([5.]), 
+            snr_params=dict(fmin=8, fmax=12), 
+            extents=None,
+            names=['s1']
+        ),
+    ]
+    sources = {
+        's1': prepare_patch_source(name='s1')
     }
     noise_sources = {
         'n1': prepare_point_source(name='n1')
