@@ -83,6 +83,7 @@ def linkcode_resolve(domain, info):
 
 
 # Numpydoc
+numpydoc_attributes_as_param_list = True
 numpydoc_class_members_toctree = False
 
 
