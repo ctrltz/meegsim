@@ -1,5 +1,5 @@
-Source simulator
-================
+Adding and configuring sources
+==============================
 
 .. currentmodule:: meegsim.simulate
 

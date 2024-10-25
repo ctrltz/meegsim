@@ -1,5 +1,5 @@
-Source waveform
-===============
+Template waveforms
+==================
 
 .. currentmodule:: meegsim.waveform
 
