@@ -7,7 +7,7 @@ import numpy as np
 from meegsim.coupling import constant_phase_shift, ppc_von_mises
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
-from meegsim.waveform import narrowband_oscillation
+from meegsim.waveform import narrowband_oscillation, white_noise
 
 from utils.prepare import prepare_forward
 
@@ -36,26 +36,41 @@ def test_builtin_methods():
     # White noise, random location
     sim.add_noise_sources(
         location=select_random,
-        location_params=dict(n=2)
+        location_params=dict(n=2),
+        waveform=white_noise
     )
 
-    # Sources of oscillatory activity with target SNR
+    # Point sources
     sim.add_point_sources(
         location=select_random,
         location_params=dict(n=3),
         waveform=narrowband_oscillation,
         waveform_params=dict(fmin=8, fmax=12),
-        snr=5,
+        snr=[0.5, 1, 5],
         snr_params=dict(fmin=8, fmax=12),
-        names=['s1', 's2', 's3']
+        names=['point1', 'point2', 'point3']
+    )
+    
+    # Patch sources
+    sim.add_patch_sources(
+        location=[(0, [0, 1, 2]), (0, [3, 4]), (1, [0, 2, 3])],
+        location_params=dict(n=3),
+        waveform=narrowband_oscillation,
+        waveform_params=dict(fmin=8, fmax=12),
+        snr=[0.5, 1, 5],
+        snr_params=dict(fmin=8, fmax=12),
+        extents=None,
+        names=['patch1', 'patch2', 'patch3']
     )
 
     # Define several edges to test graph traversal and built-in coupling methods
-    sim.set_coupling(('s1', 's2'), method=ppc_von_mises, kappa=1, 
-                     phase_lag=np.pi/3, fmin=8, fmax=12)
+    sim.set_coupling(('point1', 'point2'), 
+                     method=constant_phase_shift, phase_lag=0)
     sim.set_coupling(coupling={
-        ('s2', 's3'): dict(phase_lag=-np.pi/6),
-    }, method=constant_phase_shift, phase_lag=0)
+        ('point2', 'patch3'): dict(kappa=0.1, phase_lag=-np.pi/6),
+        ('patch1', 'point2'): dict(kappa=1, phase_lag=np.pi/2),
+        ('patch2', 'patch3'): dict(kappa=10, phase_lag=2 * np.pi/3),
+    }, method=ppc_von_mises, fmin=8, fmax=12)
 
     # Actual simulation
     sc = sim.simulate(sfreq, duration, fwd, random_state=seed)
