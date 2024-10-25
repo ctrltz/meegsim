@@ -31,6 +31,7 @@ extensions = [
     "sphinx.ext.linkcode",
     # contrib
     "numpydoc",
+    "myst_parser",
     "sphinx_copybutton",
 ]
 
