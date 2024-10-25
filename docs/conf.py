@@ -85,9 +85,24 @@ def linkcode_resolve(domain, info):
 # Numpydoc
 numpydoc_attributes_as_param_list = True
 numpydoc_class_members_toctree = False
+numpydoc_xref_param_type = True
+numpydoc_xref_aliases = {
+    # Python
+    "bool": ":ref:`bool <python:typebool>`",
+}
+numpydoc_xref_ignore = {
+    'type', 
+    'optional', 
+    'default',
+    'shape',
+    'n_series',
+    'n_times'
+}
 
 
 # Intersphinx
-intersphinx_mapping = get_intersphinx_mapping(
-    packages={"python"}
-)
+intersphinx_mapping = get_intersphinx_mapping(packages={
+    "mne",
+    "numpy",
+    "python"
+})

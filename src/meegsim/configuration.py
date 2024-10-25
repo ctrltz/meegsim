@@ -10,16 +10,16 @@ class SourceConfiguration:
 
     Attributes
     ----------
-    src: mne.SourceSpaces
+    src : mne.SourceSpaces
         Source spaces object that stores all candidate source locations.
 
-    sfreq: float
+    sfreq : float
         Sampling frequency of the simulated data, in Hz.
 
-    duration: float
+    duration : float
         Length of the simulated data, in seconds.
 
-    random_state: int or None, optional
+    random_state : int or None, optional
         Random state that was used to generate the SourceConfiguration.
     """
 
