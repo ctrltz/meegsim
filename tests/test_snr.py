@@ -241,7 +241,7 @@ def test_adjust_snr_patch(adjust_snr_mock):
 
     # Check that the amplitude of s1 but not s2 was adjusted
     assert np.all(sources['s1'].waveform == 2)
-    assert np.all(sources['s2'].waveform == 2)
+    assert np.all(sources['s2'].waveform == 1)
 
 
 def test_adjust_snr_no_noise_sources_raises():
