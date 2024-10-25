@@ -59,8 +59,11 @@ def test_check_vertices_in_src():
         vertices=[[0, 1], [0, 1]]
     )
 
-    # should pass
+    # should pass for point sources
     check_vertices_in_src([(0, 0), (0, 1), (1, 0), (1, 1)], src)
+
+    # should pass for patch sources
+    check_vertices_in_src([(0, [0, 1]), (1, [0, 1])], src)
 
 
 def test_check_vertices_in_src_raises():
@@ -72,8 +75,14 @@ def test_check_vertices_in_src_raises():
     with pytest.raises(ValueError, match='Vertex \(2, 0\) belongs to'):
         check_vertices_in_src([(0, 0), (1, 0), (2, 0)], src)
 
-    with pytest.raises(ValueError, match='Vertex \(0, 2\) is not present'):
+    with pytest.raises(ValueError, match='Vertex 2 is not present'):
         check_vertices_in_src([(0, 0), (0, 1), (0, 2)], src)
+
+    with pytest.raises(ValueError, match='Vertex 2 is not present'):
+        check_vertices_in_src([(0, [0, 1, 2])], src)
+
+    with pytest.raises(ValueError, match='Vertices 2, 3 are not present'):
+        check_vertices_in_src([(0, [0, 2, 3])], src)
 
 
 def test_check_location_using_arrays():
