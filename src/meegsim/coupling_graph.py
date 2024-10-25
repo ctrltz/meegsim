@@ -79,18 +79,18 @@ def _set_coupling(sources, coupling_graph, times, random_state):
 
     Parameters
     ----------
-    sources: dict
+    sources : dict
         Simulated sources.
-    coupling_graph: nx.Graph
+    coupling_graph : nx.Graph
         The coupling graph that describes the desired connectivity pattern.
-    times: array-like
+    times : array-like
         The time points for all samples in the waveform.
-    random_state: int or None
+    random_state : int or None
         The random state that could be fixed to ensure reproducibility.
 
     Returns
     -------
-    sources: dict
+    sources : dict
         Simulated sources with waveforms adjusted according to the desired coupling.
     """
     walkaround = generate_walkaround(coupling_graph, random_state=random_state)

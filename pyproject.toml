@@ -35,8 +35,11 @@ dev = [
     "pytest-cov"
 ]
 docs = [
+    "intersphinx-registry",
+    "numpydoc",
     "pydata-sphinx-theme",
-    "sphinx"
+    "sphinx",
+    "sphinx-copybutton"
 ]
 
 [tool.pytest.ini_options]

@@ -36,10 +36,9 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
 
     Returns
     -------
-    out : ndarray, 1D
+    out : ndarray, shape (n_times,)
         The phase-coupled waveform.
     """
-
     if not np.iscomplexobj(waveform):
         waveform = hilbert(waveform)
 
@@ -91,7 +90,7 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
 
     Returns
     -------
-    out : ndarray, 1D
+    out : ndarray, shape (n_times,)
         The phase-coupled waveform.
     """
 

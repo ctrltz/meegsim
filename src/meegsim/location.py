@@ -35,11 +35,8 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
 
     Returns
     -------
-    list of tuples
-        A list of tuples, where each tuple contains:
-        - index: The index of the source space.
-        - vertno: The selected vertice.
-
+    list
+        A list of tuples (index of the source space, vertno of the selected vertex).
     """
     rng = np.random.default_rng(seed=random_state)
 
