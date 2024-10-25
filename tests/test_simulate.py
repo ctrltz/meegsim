@@ -56,6 +56,52 @@ def test_sourcesimulator_add_point_sources():
             names=['s1', 's4']
         )
 
+    
+def test_sourcesimulator_add_patch_sources():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    sim = SourceSimulator(src)
+
+    # Add one group with auto-generated names
+    sim.add_patch_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100))
+    )
+
+    assert len(sim._source_groups) == 1, \
+        f"Expected one source group to be created, got {len(sim._source_groups)}"
+    assert len(sim._noise_groups) == 0, \
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    assert len(sim._sources) == 2, \
+        f"Expected two sources to be created, got {len(sim._sources)}"
+    
+    # Add one group with custom names
+    custom_names = ['s1', 's2']
+    sim.add_patch_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100)),
+        names=custom_names
+    )
+
+    assert len(sim._source_groups) == 2, \
+        f"Expected two source groups to be created, got {len(sim._source_groups)}"
+    assert len(sim._noise_groups) == 0, \
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    assert len(sim._sources) == 4, \
+        f"Expected four sources to be created, got {len(sim._sources)}"
+    assert all([name in sim._sources for name in custom_names]), \
+        f"Provided source names were not used properly"
+    
+    # Add one group with already existing names
+    with pytest.raises(ValueError):
+        sim.add_patch_sources(
+            [(0, [0, 1]), (1, [0, 1])],
+            np.ones((2, 100)),
+            names=['s1', 's4']
+        )
+
 
 def test_sourcesimulator_add_noise_sources():
     src = prepare_source_space(
@@ -152,7 +198,7 @@ def test_sourcesimulator_set_coupling_dict(check_coupling_mock):
     assert edge_data['param'] == 1     # mock output is saved
 
 
-def test_sourcesimulator_is_snr_adjusted():
+def test_sourcesimulator_is_snr_adjusted_false():
     src = prepare_source_space(
         types=['surf', 'surf'],
         vertices=[[0, 1], [0, 1]]
@@ -177,10 +223,50 @@ def test_sourcesimulator_is_snr_adjusted():
     # SNR should not be adjusted yet
     assert not sim.is_snr_adjusted
 
+    # Add patch sources WITHOUT adjustment of SNR
+    sim.add_patch_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100))
+    )
+
+    # SNR should not be adjusted yet
+    assert not sim.is_snr_adjusted
+
+
+def test_sourcesimulator_is_snr_adjusted_true_point_source():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    sim = SourceSimulator(src)
+
     # Add point sources WITH adjustment of SNR
     sim.add_point_sources(
         [(0, 0), (0, 1), (1, 0), (1, 1)],
         np.ones((4, 100)),
+        snr=10,
+        snr_params=dict(fmin=8, fmax=12)
+    )
+
+    # SNR should be adjusted now
+    assert sim.is_snr_adjusted
+
+    # Forward model is required for simulations
+    with pytest.raises(ValueError, match="A forward model"):
+        sim.simulate(sfreq=100, duration=30)
+
+
+def test_sourcesimulator_is_snr_adjusted_true_patch_source():
+    src = prepare_source_space(
+        types=['surf', 'surf'],
+        vertices=[[0, 1], [0, 1]]
+    )
+    sim = SourceSimulator(src)
+
+    # Add point sources WITH adjustment of SNR
+    sim.add_patch_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100)),
         snr=10,
         snr_params=dict(fmin=8, fmax=12)
     )

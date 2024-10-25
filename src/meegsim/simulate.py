@@ -137,16 +137,18 @@ class SourceSimulator:
             for every configuration) or as a function that generates the waveforms
             (but differ between configurations if the generation is random). For each vertex in the patch,
             same waveform will be propagated.
-        snr : None (do not adjust SNR), float (same SNR for all sources), or array (one value per source)
-            TODO: fix when finalizing SNR
-            NB: only positive values make sense, raise error if negative ones are provided
+        snr : None, float, or array
+            SNR values for the defined sources. Can be None (no adjustment of SNR),
+            a single value that is used for all sources or an array with one SNR
+            value per source.
         location_params : dict, optional
             Keyword arguments that will be passed to the location function.
         waveform_params : dict, optional
             Keyword arguments that will be passed to the waveform function.
         snr_params : dict, optional
-            TODO: fix when finalizing SNR
-            fmin and fmax for the frequency band that will be used to adjust SNR.
+            Additional parameters required for the adjustment of SNR.
+            Specify fmin and fmax here to define the frequency band which 
+            should used for calculating the SNR.
         extents : list, optional
             Extents (radius in mm) of each patch provided by the user. If None, vertices are selected based on location.
             If a single number, all patch sources have the same extent.

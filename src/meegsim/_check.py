@@ -101,14 +101,22 @@ def check_vertices_in_src(vertices, src):
     ValueError
         In case any vertex is not present in the provided src.
     """
-    for i, v in enumerate(vertices):
+    for v in vertices:
         src_idx, vertno = v
         if src_idx >= len(src):
             raise ValueError(f"Vertex {v} belongs to the source space {src_idx}, "
                              f"which is not present in the provided src")
         
-        if vertno not in src[src_idx]['vertno']:
-            raise ValueError(f"Vertex {v} is not present in the provided src[{src_idx}]")
+        vertno = [vertno] if not isinstance(vertno, list) else vertno
+        missing_vertno = set(vertno) - set(src[src_idx]['vertno'])
+        if missing_vertno:
+            report_missing = ", ".join([str(v) for v in missing_vertno])
+            vertex_desc = "Vertex" if len(missing_vertno) == 1 else "Vertices"
+            verb = "is" if len(missing_vertno) == 1 else "are"
+            raise ValueError(
+                f"{vertex_desc} {report_missing} {verb} not present in the provided "
+                f"src[{src_idx}]"
+            )
 
 
 def check_location(location, location_params, src):
