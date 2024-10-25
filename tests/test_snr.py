@@ -158,18 +158,28 @@ def test_adjust_snr_point(adjust_snr_mock):
     fwd = prepare_forward(5, 4)
 
     # Define source groups
+    # SNR should be adjusted for s1 but not s2
     source_groups = [
         PointSourceGroup(
             n_sources=1, 
             location=[(0, 0)], 
             waveform=np.ones((1, 100)), 
-            snr=np.array([5.]), 
+            snr=np.array([5.]),
             snr_params=dict(fmin=8, fmax=12),
             names=['s1']
         ),
+        PointSourceGroup(
+            n_sources=1, 
+            location=[(1, 0)], 
+            waveform=np.ones((1, 100)), 
+            snr=None, 
+            snr_params=dict(),
+            names=['s2']
+        ),
     ]
     sources = {
-        's1': prepare_point_source(name='s1')
+        's1': prepare_point_source(name='s1'),
+        's2': prepare_point_source(name='s2')
     }
     noise_sources = {
         'n1': prepare_point_source(name='n1')
@@ -178,12 +188,12 @@ def test_adjust_snr_point(adjust_snr_mock):
 
     sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
 
-    # Check the SNR adjustment was performed
-    adjust_snr_mock.assert_called()
+    # Check the SNR adjustment was performed only once
+    adjust_snr_mock.assert_called_once()
 
-    # Check that the amplitude of the source was adjusted
-    target = sources['s1']
-    assert np.all(target.waveform == 2)
+    # Check that the amplitude of s1 but not s2 was adjusted
+    assert np.all(sources['s1'].waveform == 2)
+    assert np.all(sources['s2'].waveform == 1)
 
 
 @patch('meegsim.snr.amplitude_adjustment_factor', return_value=2.)
@@ -205,9 +215,19 @@ def test_adjust_snr_patch(adjust_snr_mock):
             extents=None,
             names=['s1']
         ),
+        PatchSourceGroup(
+            n_sources=1, 
+            location=[(1, [0, 1])], 
+            waveform=np.ones((1, 100)), 
+            snr=None, 
+            snr_params=dict(), 
+            extents=None,
+            names=['s2']
+        ),
     ]
     sources = {
-        's1': prepare_patch_source(name='s1')
+        's1': prepare_patch_source(name='s1'),
+        's2': prepare_patch_source(name='s2')
     }
     noise_sources = {
         'n1': prepare_point_source(name='n1')
@@ -216,12 +236,12 @@ def test_adjust_snr_patch(adjust_snr_mock):
 
     sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
 
-    # Check the SNR adjustment was performed
-    adjust_snr_mock.assert_called()
+    # Check the SNR adjustment was performed only once
+    adjust_snr_mock.assert_called_once()
 
-    # Check that the amplitude of the source was adjusted
-    target = sources['s1']
-    assert np.all(target.waveform == 2)
+    # Check that the amplitude of s1 but not s2 was adjusted
+    assert np.all(sources['s1'].waveform == 2)
+    assert np.all(sources['s2'].waveform == 2)
 
 
 def test_adjust_snr_no_noise_sources_raises():
