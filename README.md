@@ -28,7 +28,7 @@ pytest
 1. Install the required packages.
 
 ```bash
-pip install -e.[docs]
+pip install -e .[docs]
 ```
 
 2. Build the documentation.
