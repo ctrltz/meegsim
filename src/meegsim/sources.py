@@ -8,7 +8,7 @@ to the original time series.
 import numpy as np
 import mne
 
-from .utils import vertices_to_mne, get_sfreq, _extract_hemi
+from .utils import vertices_to_mne, _extract_hemi
 
 
 class _BaseSource:

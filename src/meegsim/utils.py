@@ -119,9 +119,9 @@ def _extract_hemi(src):
     if src['id'] == FIFF.FIFFV_MNE_SURF_RIGHT_HEMI:
         return 'rh'
     
-    raise ValueError(f"Unexpected ID for the provided surface source space. "
-                     f"Please check the code that was used to generate and/or "
-                     f"manipulate the src, it should not change the 'id' field.")
+    raise ValueError("Unexpected ID for the provided surface source space. "
+                     "Please check the code that was used to generate and/or "
+                     "manipulate the src, it should not change the 'id' field.")
 
 
 def get_sfreq(times):
