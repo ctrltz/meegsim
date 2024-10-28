@@ -42,7 +42,8 @@ docs = [
     "numpydoc",
     "pydata-sphinx-theme",
     "sphinx",
-    "sphinx-copybutton"
+    "sphinx-copybutton",
+    "sphinxcontrib-bibtex"
 ]
 
 [tool.pytest.ini_options]

@@ -33,6 +33,7 @@ extensions = [
     "numpydoc",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinxcontrib.bibtex"
 ]
 
 templates_path = ['_templates']
@@ -107,3 +108,8 @@ intersphinx_mapping = get_intersphinx_mapping(packages={
     "numpy",
     "python"
 })
+
+
+# BibTeX
+bibtex_bibfiles = ['references.bib']
+bibtex_default_style = 'plain'

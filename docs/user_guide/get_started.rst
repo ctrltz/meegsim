@@ -133,7 +133,7 @@ locations. We can now add some activity to the point sources described above
     
     sim.add_point_sources(
         location=[(0, 123), (0, 456), (1, 789)],
-        waveform=np.ones((3, 1000))
+        waveform=np.ones((3, 1000)),
         ...
     )
 
@@ -144,6 +144,7 @@ simulating connectivity, the two main waveforms are:
 * :meth:`narrowband_oscillation` - e.g., for simulating alpha or beta activity
 
 * :meth:`one_over_f_noise` - for adding background noise with the power-law spectra.
+  This waveform is used for all noise sources by default.
 
 Additional parameters for the waveform function can be provided using the
 ``waveform_params`` argument. Let's now add an alpha (8-12 Hz) oscillation 
@@ -158,7 +159,7 @@ to the point sources from the second example:
         location=select_random,
         location_params=dict(n=10),
         waveform=narrowband_oscillation,
-        waveform_params=dict(fmin=8, fmax=12)
+        waveform_params=dict(fmin=8, fmax=12),
         ...
     )
 
@@ -168,13 +169,180 @@ differ between different simulations.
 .. note::
     Find more details on the built-in template waveforms :doc:`here </api/waveform>`.
 
-Signal-to-noise ratio
----------------------
+Signal-to-noise ratio (SNR)
+---------------------------
 
+By default, the waveforms provided by the user are saved as is, while the built-in 
+waveforms are normalized to have the same variance. In practice, it is often useful
+to set up a specific SNR for each source, for example, to test how different analysis
+methods perform depending on the SNR of target sources. 
+
+We use the approach from :cite:p:`Nikulin2011` for adjusting the sensor-space SNR 
+of sources. Namely, we calculate the mean variance of each point or patch source 
+across all sensors and adjust it relative to the mean variance of all noise sources.
+The calculation of variance is performed after filtering both time series (signal
+and noise) in the frequency band of interest.
+
+By default, no adjustment of SNR is performed. To enable it, you need to specify
+the value of SNR using the ``snr`` argument and provide the limits of the frequency 
+band in ``snr_params`` as shown below:
+
+.. code-block:: python
+
+    import numpy as np
+    
+    sim.add_point_sources(
+        location=[(0, 123), (0, 456), (1, 789)],
+        waveform=np.ones((3, 1000)),
+        snr=5,
+        snr_params=dict(fmin=8, fmax=12),
+        ...
+    )
+
+It is also possible to specify SNR for each of the sources separately by providing
+one value for each source:
+
+.. code-block:: python
+
+    import numpy as np
+    
+    sim.add_point_sources(
+        location=[(0, 123), (0, 456), (1, 789)],
+        waveform=np.ones((3, 1000)),
+        snr=[1, 2.5, 5],
+        snr_params=dict(fmin=8, fmax=12),
+        ...
+    )
+
+Configuring coupling between sources
+====================================
+
+With the toolbox, we aim to provide a convenient interface for the generation of 
+source waveforms with desired coupling. To set the coupling between sources, you 
+only need to specify the names of sources that should be coupled and the coupling 
+parameters. The waveforms will be then generated automatically according to the 
+provided parameters.
 
 Source names
 ------------
 
+An auto-generated name is assigned to all sources that are added to the simulation.
+However, it might be more convenient to set up a custom and more meaningful name.
+For this, you can use the ``names`` argument when adding sources, e.g.:
 
-Coupling between sources
-========================
+.. code-block:: python
+
+    import numpy as np
+    
+    names = sim.add_point_sources(
+        location=[(0, 123), (0, 456), (1, 789)],
+        waveform=np.ones((3, 1000)),
+        snr=[1, 2.5, 5],
+        snr_params=dict(fmin=8, fmax=12),
+        names=['source', 'sink', 'other']
+    )
+
+The provided or the auto-generated names are always returned as the result if the 
+sources were added successfully.
+
+Specifying the coupling parameters
+----------------------------------
+
+To 
+
+Multiple edges can be defined with one call
+
+Obtaining the data
+==================
+
+.. currentmodule:: meegsim.simulate
+
+Up to this point, we defined a bunch of sources and set up several coupling links.
+However, no data was generated yet, and it's time to fix that now.
+
+First, you need to run the :meth:`SourceSimulator.simulate()` method of the ``sim`` 
+object to actually simulate the waveforms of all previously defined sources:
+
+.. code-block:: python
+    
+    sfreq = 250     # in Hz
+    duration = 30   # in seconds
+    sc = sim.simulate(sfreq, duration)
+
+.. currentmodule:: meegsim.configuration
+
+The result of this function call is a :class:`SourceConfiguration` object that 
+contains all simulated sources. 
+
+Now you can use the :meth:`SourceConfiguration.to_stc()` and 
+:meth:`SourceConfiguration.to_raw()` to obtain source time courses and 
+sensor-space data, respectively. The projection to sensor space requires a 
+forward model (:class:`mne.Forward`) and an :class:`mne.Info` object describing
+the sensor layout:
+
+.. code-block:: python
+
+    stc = sc.to_stc()
+
+    raw = sc.to_raw(fwd, info)
+
+Reproducibility
+---------------
+
+By design, the subsequent ``simulate()`` call
+
+Full example
+============
+
+.. code-block:: python
+
+    import numpy as np
+
+    from meegsim.coupling import ppc_von_mises
+    from meegsim.location import select_random
+    from meegsim.simulate import SourceSimulator
+    from meegsim.waveform import narrowband_oscillation
+
+    
+    # You need to load the prerequisites: fwd, src, and info
+
+    # Simulation parameters
+    sfreq = 250
+    duration = 120
+
+    # Initialize
+    sim = SourceSimulator(src)
+
+    # Add 500 noise sources with random locations
+    sim.add_noise_sources(
+        location=select_random,
+        location_params=dict(n=500)
+    )
+
+    # Add two point sources with fixed locations 
+    # (vertex indices are chosen arbitrarily)
+    sim.add_point_sources(
+        location=[(0, 123), (1, 456)],
+        waveform=narrowband_oscillation,
+        waveform_params=dict(fmin=8, fmax=12),
+        snr=[2, 5],
+        snr_params=dict(fmin=8, fmax=12),
+        names=['s1', 's2']
+    )
+
+    # Set the coupling between point sources
+    sim.set_coupling(
+        ('s1', 's2'),
+        method=ppc_von_mises,
+        kappa=1, phase_lag=np.pi/2,
+        fmin=8, fmax=12
+    )
+
+    # Obtain the data
+    sc = sim.simulate(sfreq, duration, fwd, random_state=0)
+
+    stc = sc.to_stc()
+    raw = sc.to_raw(fwd, info)
+
+
+.. include:: ../bibliography.rst
