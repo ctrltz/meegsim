@@ -46,7 +46,7 @@ def test_sourcesimulator_add_point_sources():
     assert len(sim._sources) == 8, \
         f"Expected eight sources to be created, got {len(sim._sources)}"
     assert all([name in sim._sources for name in custom_names]), \
-        f"Provided source names were not used properly"
+        "Provided source names were not used properly"
     
     # Add one group with already existing names
     with pytest.raises(ValueError):
@@ -92,7 +92,7 @@ def test_sourcesimulator_add_patch_sources():
     assert len(sim._sources) == 4, \
         f"Expected four sources to be created, got {len(sim._sources)}"
     assert all([name in sim._sources for name in custom_names]), \
-        f"Provided source names were not used properly"
+        "Provided source names were not used properly"
     
     # Add one group with already existing names
     with pytest.raises(ValueError):
@@ -354,7 +354,7 @@ def test_simulate():
                                            src, times=times, fwd=None, random_state=0)
         
         assert len(simulate_mock.call_args_list) == 3, \
-            f"Expected three calls of PointSourceGroup.simulate method"
+            "Expected three calls of PointSourceGroup.simulate method"
 
         random_states = [kall.kwargs['random_state'] == 0
                          for kall in simulate_mock.call_args_list]

@@ -31,8 +31,10 @@ Issues = "https://github.com/ctrltz/meegsim/issues"
 dev = [
     "harmoni",
     "mock",
+    "pre-commit",
     "pytest",
-    "pytest-cov"
+    "pytest-cov",
+    "ruff"
 ]
 docs = [
     "intersphinx-registry",
