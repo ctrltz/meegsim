@@ -252,7 +252,7 @@ def check_names(names, n_sources, existing):
             raise ValueError(f"Expected all names to be strings, got {actual_type}: {name}")
         
         if not name:
-            raise ValueError(f"All names should not be empty")
+            raise ValueError("All names should not be empty")
         
         if name.startswith('auto'):
             raise ValueError(f"Name {name} should not start with auto, this prefix "

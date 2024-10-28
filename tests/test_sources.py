@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -61,7 +60,7 @@ def test_pointsource_to_stc(src_idx, vertno):
     assert vertno in stc.vertices[src_idx], \
         f"Expected the vertex to be put in src {src_idx}, but it is not there"
     assert np.allclose(stc.data, waveform), \
-        f"The source waveform should not change during conversion to stc"
+        "The source waveform should not change during conversion to stc"
     
 
 @pytest.mark.parametrize("tstep", [0.01, 0.025, 0.05])
@@ -220,7 +219,7 @@ def test_patchsource_to_stc(src_idx, vertno):
     assert np.all(vertno in stc.vertices[src_idx]), \
         f"Expected all vertno to be put in src {src_idx}"
     assert np.allclose(stc.data, waveform), \
-        f"The source waveform should not change during conversion to stc"
+        "The source waveform should not change during conversion to stc"
 
 
 def test_patchsource_to_stc_bad_src_raises():
