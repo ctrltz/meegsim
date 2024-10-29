@@ -16,26 +16,27 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
 
     Parameters
     ----------
-    src : mne.SourceSpaces
-        An instance of source spaces
+    src : SourceSpaces
+        An instance of source spaces to select the vertices from.
 
     n : int, optional
-        The number of random vertices to select. default = 1.
+        The number of random vertices to select. By default, one vertex is selected.
 
-    vertices : list of lists, optional
-        Specific vertices to choose from. If not provided, the function uses all vertices
-        from src. default = None.
+    vertices : None (default) or list
+        A subset of vertices to choose from. 
+        If None (default), the function uses all vertices from the provided ``src``.
 
-    sort_output : bool
-        Indicates if sorting is needed for the output. default = False
+    sort_output : bool, optional
+        Indicates if sorting is needed for the output. By default, the output is
+        not sorted.
 
-    random_state : int or None, optional
-        Seed for the random number generator. If None, it will be drawn
-        automatically, and results will vary between function calls. default = None.
+    random_state : None (default) or int
+        Seed for the random number generator. If None (default), results will vary 
+        between function calls. Use a fixed value for reproducibility.
 
     Returns
     -------
-    list
+    selected : list
         A list of tuples (index of the source space, vertno of the selected vertex).
     """
     rng = np.random.default_rng(seed=random_state)

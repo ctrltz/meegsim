@@ -91,11 +91,20 @@ numpydoc_xref_param_type = True
 numpydoc_xref_aliases = {
     # Python
     "bool": ":ref:`bool <python:typebool>`",
+    # MNE-Python
+    "Forward": "mne.Forward",
+    "Info": "mne.Info",
+    "Raw": "mne.io.Raw",
+    "SourceSpaces": "mne.SourceSpaces",
+    "SourceEstimate": "mne.SourceEstimate",
+    # MEEGsim
+    "SourceConfiguration": "meegsim.configuration.SourceConfiguration"
 }
 numpydoc_xref_ignore = {
     'type', 
     'optional', 
     'default',
+    'or',
     'shape',
     'n_series',
     'n_times'

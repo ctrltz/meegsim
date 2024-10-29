@@ -13,32 +13,35 @@ from .utils import normalize_power, get_sfreq
 
 def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, random_state=None):
     """
-    Generate time series in a requested frequency band by filtering white noise
+    Generate oscillatory-like time series by filtering white noise 
+    in a requested frequency band.
 
     Parameters
     ----------
-    n_series: int
-        Number of time series to generate.
+    n_series : int
+        The number of time series to generate.
 
-    times: ndarray
+    times : array
         Array of time points (each one represents time in seconds).
 
-    fmin: float, optional
-        Lower cutoff frequency (in Hz). default = None.
+    fmin : None (default) or float
+        Lower cutoff frequency (in Hz). If None (default), 8 Hz are used as the 
+        cutoff.
 
-    fmax: float, optional
-        Upper cutoff frequency (in Hz). default = None.
+    fmax : None (default) or float
+        Upper cutoff frequency (in Hz). If None (default), 12 Hz are used as the 
+        cutoff.
 
-    order: int, optional
-        The order of the filter. default = 2.
+    order : int, optional
+        The order of the filter. By default, the order is equal to 2.
 
-    random_state: int or None, optional
-        Seed for the random number generator. If None, it will be drawn
-        automatically, and results will vary between function calls.
+    random_state : None (default) or int
+        Seed for the random number generator. If None (default), results will vary 
+        between function calls. Use a fixed value for reproducibility.
 
     Returns
     -------
-    out: ndarray, shape (n_series, n_times)
+    out : array, shape (n_series, n_times)
         Generated filtered white noise.
     """
 
@@ -67,27 +70,27 @@ def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, ra
 
 def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
     """
-    Generate time series of pink noise
+    Generate time series of 1/f noise with desired slope.
 
     Parameters
     ----------
-    n_series: int
-        Number of time series to generate.
+    n_series : int
+        The number of time series to generate.
 
-    times: ndarray
+    times : array
         Array of time points (each one represents time in seconds).
 
-    slope: float, optional
-        Exponent of the power-law spectrum. default = 1.
+    slope : float, optional
+        Exponent of the power-law spectrum. By default, it is equal to 1.
 
-    random_state: int or None, optional
-        Seed for the random number generator. If None, it will be drawn
-        automatically, and results will vary between function calls.
+    random_state : None (default) or int
+        Seed for the random number generator. If None (default), results will vary 
+        between function calls. Use a fixed value for reproducibility.
 
     Returns
     -------
-    out: ndarray, shape (n_series, n_times)
-        Generated filtered 1/f noise.
+    out : array, shape (n_series, n_times)
+        Generated 1/f noise.
     """
 
     data = cn.powerlaw_psd_gaussian(slope, size=(n_series, times.size), random_state=random_state)
@@ -101,19 +104,19 @@ def white_noise(n_series, times, *, random_state=None):
 
     Parameters
     ----------
-    n_series: int
+    n_series : int
         Number of time series to generate.
 
-    times: ndarray
+    times : array
         Array of time points (each one represents time in seconds).
 
-    random_state: int
-        Seed for the random number generator. If None, it will be drawn
-        automatically, and results will vary between function calls.
+    random_state : None (default) or int
+        Seed for the random number generator. If None (default), results will vary 
+        between function calls. Use a fixed value for reproducibility.
 
     Returns
     -------
-    out: ndarray, shape (n_series, n_times)
+    out : array, shape (n_series, n_times)
         Generated white noise.
     """
 
