@@ -1,32 +1,8 @@
-============================
-Getting started with MEEGsim
-============================
+=========================
+Describing the simulation
+=========================
 
 .. currentmodule:: meegsim.simulate
-
-Welcome to MEEGsim! In this tutorial, you will learn how to use our toolbox to
-simulate an M/EEG dataset. In particular, we will cover the following aspects:
-
-* prerequisites for the simulation
-* different types of sources and how to add them to the simulation
-* how to set up location and waveform of any source
-* how to adjust the signal-to-noise ratio (SNR) of added sources
-* how to set up phase coupling between waveforms of source activity
-
-Initialization
-==============
-
-The starting point of any simulation is to initialize the :class:`SourceSimulator`
-and provide an :class:`mne.SourceSpaces` object that describes the source space:
-
-.. code-block:: python
-    
-    from meegsim.simulate import SourceSimulator
-    
-    sim = SourceSimulator(src)
-
-The ``sim`` object defined above can be used to add sources to the simulation and 
-set ground truth connectivity patterns as shown below.
 
 Types of sources
 ================
@@ -252,97 +228,5 @@ To
 
 Multiple edges can be defined with one call
 
-Obtaining the data
-==================
 
-.. currentmodule:: meegsim.simulate
-
-Up to this point, we defined a bunch of sources and set up several coupling links.
-However, no data was generated yet, and it's time to fix that now.
-
-First, you need to run the :meth:`SourceSimulator.simulate()` method of the ``sim`` 
-object to actually simulate the waveforms of all previously defined sources:
-
-.. code-block:: python
-    
-    sfreq = 250     # in Hz
-    duration = 30   # in seconds
-    sc = sim.simulate(sfreq, duration)
-
-.. currentmodule:: meegsim.configuration
-
-The result of this function call is a :class:`SourceConfiguration` object that 
-contains all simulated sources. 
-
-Now you can use the :meth:`SourceConfiguration.to_stc()` and 
-:meth:`SourceConfiguration.to_raw()` to obtain source time courses and 
-sensor-space data, respectively. The projection to sensor space requires a 
-forward model (:class:`mne.Forward`) and an :class:`mne.Info` object describing
-the sensor layout:
-
-.. code-block:: python
-
-    stc = sc.to_stc()
-
-    raw = sc.to_raw(fwd, info)
-
-Reproducibility
----------------
-
-By design, the subsequent ``simulate()`` call
-
-Full example
-============
-
-.. code-block:: python
-
-    import numpy as np
-
-    from meegsim.coupling import ppc_von_mises
-    from meegsim.location import select_random
-    from meegsim.simulate import SourceSimulator
-    from meegsim.waveform import narrowband_oscillation
-
-    
-    # You need to load the prerequisites: fwd, src, and info
-
-    # Simulation parameters
-    sfreq = 250
-    duration = 120
-
-    # Initialize
-    sim = SourceSimulator(src)
-
-    # Add 500 noise sources with random locations
-    sim.add_noise_sources(
-        location=select_random,
-        location_params=dict(n=500)
-    )
-
-    # Add two point sources with fixed locations 
-    # (vertex indices are chosen arbitrarily)
-    sim.add_point_sources(
-        location=[(0, 123), (1, 456)],
-        waveform=narrowband_oscillation,
-        waveform_params=dict(fmin=8, fmax=12),
-        snr=[2, 5],
-        snr_params=dict(fmin=8, fmax=12),
-        names=['s1', 's2']
-    )
-
-    # Set the coupling between point sources
-    sim.set_coupling(
-        ('s1', 's2'),
-        method=ppc_von_mises,
-        kappa=1, phase_lag=np.pi/2,
-        fmin=8, fmax=12
-    )
-
-    # Obtain the data
-    sc = sim.simulate(sfreq, duration, fwd, random_state=0)
-
-    stc = sc.to_stc()
-    raw = sc.to_raw(fwd, info)
-
-
-.. include:: ../bibliography.rst
+.. include:: ../../bibliography.rst
