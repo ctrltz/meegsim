@@ -7,7 +7,7 @@ Obtaining the data
 
 .. currentmodule:: meegsim.simulate
 
-Up to this point, we defined a bunch of sources and set up several coupling links.
+Up to this point, we defined a bunch of sources and set up several coupling edges.
 However, no data was generated yet, and it's time to fix that now.
 
 First, you need to run the :meth:`SourceSimulator.simulate()` method of the ``sim`` 
@@ -22,7 +22,7 @@ object to actually simulate the waveforms of all previously defined sources:
 .. currentmodule:: meegsim.configuration
 
 The result of this function call is a :class:`SourceConfiguration` object that 
-contains all simulated sources. 
+contains all simulated sources and their waveforms (with desired SNR and coupling). 
 
 Now you can use the :meth:`SourceConfiguration.to_stc()` and 
 :meth:`SourceConfiguration.to_raw()` to obtain source time courses and 
@@ -39,4 +39,17 @@ the sensor layout:
 Reproducibility
 ===============
 
-By design, the subsequent ``simulate()`` call
+.. currentmodule:: meegsim.simulate
+
+By design, the result of :meth:`SourceSimulator.simulate` will differ every time you call the method,
+making it very easy to simulate multiple datasets under the same settings.
+
+However, it is always possible to obtain a reproducible result if you provide a 
+specific value of the ``random_state`` as shown below:
+
+.. code-block:: python
+    
+    sc = sim.simulate(sfreq, duration, random_state=123)
+
+The resulting source configuration, including the locations and waveforms of all
+sources, will be the same on every call.

@@ -6,3 +6,4 @@ User Guide
 
    install
    get_started/index
+   advanced/index

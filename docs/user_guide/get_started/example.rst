@@ -1,5 +1,9 @@
-Full example
-============
+A minimal example
+=================
+
+Below you can find an example script that contains all the ideas showcased
+in the previous sections of the overview. It may serve as a good starting point
+for your own simulation.
 
 .. code-block:: python
 
@@ -11,7 +15,7 @@ Full example
     from meegsim.waveform import narrowband_oscillation
 
     
-    # You need to load the prerequisites: fwd, src, and info
+    # Here you need to load the prerequisites: fwd, src, and info
 
     # Simulation parameters
     sfreq = 250

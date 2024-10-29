@@ -4,10 +4,27 @@ Describing the simulation
 
 .. currentmodule:: meegsim.simulate
 
+Initialization
+==============
+
+The starting point of any simulation is to initialize the :class:`SourceSimulator`
+and provide an :class:`mne.SourceSpaces` object that describes the source space:
+
+.. code-block:: python
+    
+    from meegsim.simulate import SourceSimulator
+    
+    # src should be loaded or created beforehand
+    sim = SourceSimulator(src)
+
+The ``sim`` object defined above can be used to add sources to the simulation and 
+set ground truth connectivity patterns as shown below.
+
 Types of sources
 ================
 
-Currently, there are several types of sources that could be added to the simulation:
+Currently, there are several types of sources that could be added to the simulation
+using different methods:
 
 * Point-like sources (:meth:`SourceSimulator.add_point_sources`): the time course 
   of activity is assigned to one vertex.
@@ -39,7 +56,9 @@ object:
 
 The parameters in brackets can be used to configure the location of the source, 
 the waveform of source activity, the SNR and, for patch sources only, the extent
-of the source. Below we discuss these parameters in more detail.
+of the source. Below we discuss the parameters relevant for all sources in more 
+detail. For more information about patch sources, please visit 
+:doc:`this page </user_guide/advanced/patches>`.
 
 Source location
 ---------------
@@ -47,8 +66,8 @@ Source location
 .. currentmodule:: meegsim.location
 
 The location of the sources can be specified using the ``location`` argument.
-You can either directly provide the indices of vertices for the sources or 
-pass a function that returns such indices.
+You can either directly provide the indices of vertices where the sources should
+be placed or pass a function that returns such indices.
 
 In the first case, you need to provide a list of 2-element tuples, where the 
 first element specifies the index of the source space, while the second contains
@@ -66,7 +85,8 @@ hemisphere (123 and 456) and one source to the right hemisphere (789).
 .. warning::
     Note that the format is slightly different from the list of lists commonly used
     in MNE-Python. The MNE format assumes sorting of vertex indices belonging to 
-    the same hemisphere, which might interfere with source names described below.
+    the same hemisphere, which might interfere with the idea of source names 
+    needed for convenient setup of coupling (see `Source names`_).
 
 In the second case, you need to provide a function that accepts ``src`` as the first
 argument and returns the indices of selected vertices in the same format as 
@@ -140,7 +160,7 @@ to the point sources from the second example:
     )
 
 As mentioned previously for location, the waveforms defined using a function will
-differ between different simulations.
+differ between simulated configurations by default.
 
 .. note::
     Find more details on the built-in template waveforms :doc:`here </api/waveform>`.
@@ -155,13 +175,14 @@ methods perform depending on the SNR of target sources.
 
 We use the approach from :cite:p:`Nikulin2011` for adjusting the sensor-space SNR 
 of sources. Namely, we calculate the mean variance of each point or patch source 
-across all sensors and adjust it relative to the mean variance of all noise sources.
-The calculation of variance is performed after filtering both time series (signal
-and noise) in the frequency band of interest.
+across all sensors and adjust it relative to the mean variance of all noise sources
+(mean over sensors but summed over noise sources). The calculation of variance is 
+performed after filtering both time series (signal and noise) in the frequency 
+band of interest.
 
 By default, no adjustment of SNR is performed. To enable it, you need to specify
 the value of SNR using the ``snr`` argument and provide the limits of the frequency 
-band in ``snr_params`` as shown below:
+band in ``snr_params`` when adding the point or patch sources:
 
 .. code-block:: python
 
@@ -196,8 +217,8 @@ Configuring coupling between sources
 With the toolbox, we aim to provide a convenient interface for the generation of 
 source waveforms with desired coupling. To set the coupling between sources, you 
 only need to specify the names of sources that should be coupled and the coupling 
-parameters. The waveforms will be then generated automatically according to the 
-provided parameters.
+parameters. The waveforms will be then generated automatically to obtain the 
+desired coupling.
 
 Source names
 ------------
@@ -218,15 +239,73 @@ For this, you can use the ``names`` argument when adding sources, e.g.:
         names=['source', 'sink', 'other']
     )
 
-The provided or the auto-generated names are always returned as the result if the 
+The provided or the auto-generated names are always returned if the 
 sources were added successfully.
 
 Specifying the coupling parameters
 ----------------------------------
 
-To 
+.. currentmodule:: meegsim.simulate
 
-Multiple edges can be defined with one call
+To specify which sources should be coupled, you can use the 
+:meth:`SourceSimulator.set_coupling` method. Provide the names
+of sources to be coupled as a tuple ``(u, v)`` along with the 
+coupling parameters as shown below:
+
+.. code-block:: python
+
+    from meegsim.coupling import constant_phase_shift
+
+    sim.set_coupling(('source', 'sink'),
+        method=constant_phase_shift, phase_lag=np.pi/3
+    )
+
+.. currentmodule:: meegsim.coupling
+
+.. note::
+    Find more details on the parameters of built-in coupling methods
+    :doc:`here </api/coupling>`.
+
+In the example above, we used the :meth:`constant_phase_shift` coupling method.
+As the name suggests, it generates time series with a constant phase shift 
+relative to each other. To have more control over the strength of coupling,
+you can use the :meth:`ppc_von_mises` method that set probabilistic phase shifts
+based on the von Mises distribution. For more details about both approaches,
+see chapter 3 of :cite:`JamshidiIdaji2022_PhDThesis`.
+
+Finally, it is possible to defined multiple coupling edges with one call.
+For this, you can provide a dictionary with edges as keys and parameters as
+values:
+
+.. code-block:: python
+
+    from meegsim.coupling import ppc_von_mises
+
+    sim.set_coupling(coupling={
+            ('source', 'sink'): dict(kappa=1, phase_lag=0),
+            ('source', 'other'): dict(kappa=0.1, phase_lag=np.pi/3),
+        },
+        method=ppc_von_mises, fmin=8, fmax=12
+    )
+
+Parameters specified outside the dictionary (``method``, ``fmin``, and ``fmax``
+in the example above) apply to all coupling edges, while
+parameters in the dictionary (``kappa`` and ``phase_lag``) will apply only 
+to the corresponding edges and have higher priority when specified.
+
+.. note::
+    We make sure that the coupling is set up properly regardless of the order,
+    in which the coupling edges were defined. However, the cycles in the 
+    coupling graph are currently not supported.
+
+Next step
+=========
+
+Learn how to obtain the M/EEG data for the defined simulation in the
+:doc:`next section </user_guide/get_started/configuration>`.
 
 
-.. include:: ../../bibliography.rst
+References
+==========
+
+.. bibliography::

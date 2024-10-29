@@ -121,4 +121,4 @@ intersphinx_mapping = get_intersphinx_mapping(packages={
 
 # BibTeX
 bibtex_bibfiles = ['references.bib']
-bibtex_default_style = 'plain'
+bibtex_default_style = 'unsrt'
