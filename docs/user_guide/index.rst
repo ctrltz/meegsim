@@ -5,4 +5,5 @@ User Guide
    :maxdepth: 2
 
    install
-   get_started
+   get_started/index
+   advanced/index

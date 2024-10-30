@@ -1,12 +1,10 @@
-# MEEGsim
+# Setting up the local environment
 
-M/EEG simulation framework
+## Creating a local copy of the project
 
-## Creating a Local Copy of the Project
+1. Clone the [repository](https://www.github.com/ctrltz/meegsim).
 
-1. Clone the repository.
-
-2. Create an environment (conda/mamba/virtualenv).
+2. Create an environment (conda/mamba/virtualenv/etc).
 
 3. Switch to the project folder and install the package and all dependencies: 
 
@@ -42,4 +40,3 @@ make html
 ```bash
 make show
 ```
-

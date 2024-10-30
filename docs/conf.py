@@ -31,7 +31,9 @@ extensions = [
     "sphinx.ext.linkcode",
     # contrib
     "numpydoc",
+    "myst_parser",
     "sphinx_copybutton",
+    "sphinxcontrib.bibtex"
 ]
 
 templates_path = ['_templates']
@@ -89,11 +91,20 @@ numpydoc_xref_param_type = True
 numpydoc_xref_aliases = {
     # Python
     "bool": ":ref:`bool <python:typebool>`",
+    # MNE-Python
+    "Forward": "mne.Forward",
+    "Info": "mne.Info",
+    "Raw": "mne.io.Raw",
+    "SourceSpaces": "mne.SourceSpaces",
+    "SourceEstimate": "mne.SourceEstimate",
+    # MEEGsim
+    "SourceConfiguration": "meegsim.configuration.SourceConfiguration"
 }
 numpydoc_xref_ignore = {
     'type', 
     'optional', 
     'default',
+    'or',
     'shape',
     'n_series',
     'n_times'
@@ -106,3 +117,8 @@ intersphinx_mapping = get_intersphinx_mapping(packages={
     "numpy",
     "python"
 })
+
+
+# BibTeX
+bibtex_bibfiles = ['references.bib']
+bibtex_default_style = 'unsrt'

@@ -1,5 +1,5 @@
-Coupling
-========
+Coupling methods
+================
 
 .. currentmodule:: meegsim.coupling
 

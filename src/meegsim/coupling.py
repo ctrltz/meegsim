@@ -10,14 +10,18 @@ from scipy.signal import butter, filtfilt, hilbert
 
 def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None):
     """
-    Generate time series that is phase coupled to input time series. Phase coupling is deterministic.
+    Generate a time series that is phase coupled to the input time series with
+    a constant phase lag.
+
+    This function can be used to set up both within-frequency (1:1, default) and 
+    cross-frequency (n:m) coupling. 
 
     Parameters
     ----------
-    waveform : array-like
+    waveform : array
         The input signal to be processed. It can be a real or complex time series.
 
-    sfreq: float
+    sfreq : float
         Sampling frequency of the signal, in Hz. This argument is not used in this
         function but is accepted for consistency with other coupling methods.
 
@@ -25,19 +29,19 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
         Constant phase lag to apply to the waveform in radians.
 
     m : int, optional
-        Harmonic of interest for phase coupling, default = 1.
+        Multiplier for the base frequency of the output oscillation, default is 1.
 
     n : int, optional
-        Base frequency harmonic, default = 1.
+        Multiplier for the base frequency of the input oscillation, default is 1.
 
-    random_state: None, optional
+    random_state : None, optional
         This parameter is accepted for consistency with other coupling functions
         but not used since no randomness is involved.
 
     Returns
     -------
-    out : ndarray, shape (n_times,)
-        The phase-coupled waveform.
+    out : array, shape (n_times,)
+        The phase-coupled waveform with the same amplitude envelope as the input one.
     """
     if not np.iscomplexobj(waveform):
         waveform = hilbert(waveform)
@@ -50,13 +54,15 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
 
 def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, random_state=None):
     """
-    Generate time series that is phase coupled to input time series. Phase coupling is probabilistic
-    and based on von Mises distribution.
-    This function can be used to set up both within-frequency (1:1) and cross-frequency (n:m) coupling.
+    Generate a time series that is phase coupled to the input time series with
+    a probabilistic phase lag based on the von Mises distribution.
+
+    This function can be used to set up both within-frequency (1:1, default) and 
+    cross-frequency (n:m) coupling.
 
     Parameters
     ----------
-    waveform : array-like
+    waveform : array
         The input signal to be processed. It can be a real or complex time series.
 
     sfreq : float
@@ -66,32 +72,31 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
         Average phase lag to apply to the waveform in radians.
 
     kappa : float
-        Concentration parameter of the von Mises distribution. With higher kappa, phase angles
-        are more concentrated around the mean direction, which translates to the coupled waveform having phase shifts
-        that are consistently close to the specified phase_lag. With lower kappa, phase lags along the time series
-        will vary substantially. default = 1.
+        Concentration parameter of the von Mises distribution. With higher kappa, 
+        phase shifts between input and output waveforms are more concentrated 
+        around the mean value provided in ``phase_lag``. With lower kappa, phase 
+        shifts will vary substantially for different time points.
 
     fmin: float
-        Lower cutoff frequency of the base frequency harmonic (in Hz). default = None.
+        Lower cutoff frequency of the base frequency harmonic (in Hz).
 
     fmax: float
-        Upper cutoff frequency of the base frequency harmonic (in Hz). default = None.
+        Upper cutoff frequency of the base frequency harmonic (in Hz).
 
     m : int, optional
-        Harmonic of interest for phase coupling, default = 1.
+        Multiplier for the base frequency of the output oscillation, default is 1.
 
     n : int, optional
-        Base frequency harmonic, default = 1.
+        Multiplier for the base frequency of the input oscillation, default is 1.
 
-    random_state : int or None, optional
-        Seed for the random number generator. If None, it will be drawn
-        automatically, and results will vary between function calls. Used for
-        reproducibility of results when `kappa` is specified. default = None.
+    random_state : None (default) or int
+        Seed for the random number generator. If None (default), results will vary 
+        between function calls. Use a fixed value for reproducibility.
 
     Returns
     -------
-    out : ndarray, shape (n_times,)
-        The phase-coupled waveform.
+    out : array, shape (n_times,)
+        The phase-coupled waveform with the same amplitude envelope as the input one.
     """
 
     if not np.iscomplexobj(waveform):
