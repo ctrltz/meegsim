@@ -86,7 +86,7 @@ hemisphere (123 and 456) and one source to the right hemisphere (789).
     Note that the format is slightly different from the list of lists commonly used
     in MNE-Python. The MNE format assumes sorting of vertex indices belonging to 
     the same hemisphere, which might interfere with the idea of source names 
-    needed for convenient setup of coupling (see `Source names`_).
+    that we use to make the setup of coupling convenient (see `Source names`_).
 
 In the second case, you need to provide a function that accepts ``src`` as the first
 argument and returns the indices of selected vertices in the same format as 
@@ -119,7 +119,7 @@ Activity waveforms
 
 Similar to location, activity waveforms can also be defined manually or through 
 a function. In the first case, the toolbox expects an array with one time series 
-per added source, and the number of sources should match the number of defined 
+per added source, and the number of waveforms should match the number of defined 
 locations. We can now add some activity to the point sources described above 
 (here we use constant time series for simplicity):
 
@@ -135,7 +135,7 @@ locations. We can now add some activity to the point sources described above
 
 The alternative way is to use built-in or custom functions for setting the 
 waveforms of source activity. Since the current focus of the toolbox is on 
-simulating connectivity, the two main waveforms are:
+simulating connectivity, the two main built-in waveforms are:
 
 * :meth:`narrowband_oscillation` - e.g., for simulating alpha or beta activity
 
@@ -234,7 +234,7 @@ Configuring coupling between sources
 
 With the toolbox, we aim to provide a convenient interface for the generation of 
 source waveforms with desired coupling. To set the coupling between sources, you 
-only need to specify the names of sources that should be coupled and the coupling 
+only need to specify the names of sources to be coupled and the coupling 
 parameters. The waveforms will be then generated automatically to obtain the 
 desired coupling.
 
@@ -291,9 +291,9 @@ you can use the :meth:`ppc_von_mises` method that set probabilistic phase shifts
 based on the von Mises distribution. For more details about both approaches,
 see chapter 3 of :cite:`JamshidiIdaji2022_PhDThesis`.
 
-Finally, it is possible to defined multiple coupling edges with one call.
-For this, you can provide a dictionary with edges as keys and parameters as
-values:
+Finally, it is possible to define multiple coupling edges with one call.
+For this, you can provide a dictionary with edges as keys and coupling 
+parameters as values:
 
 .. code-block:: python
 

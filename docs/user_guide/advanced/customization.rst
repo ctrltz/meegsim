@@ -13,8 +13,8 @@ In this section, we provide a short description of requirements for such functio
 In addition, we provide minimal examples of custom functions for each case.
 
 .. note::
-    To making the debugging a bit easier, we always try to execute the provided
-    functions when adding sources with the ``random_state`` set to 0.
+    When adding sources, we always try to execute the provided functions with 0 
+    as ``random_state`` to making the debugging a bit easier.
 
 Location
 ========
@@ -61,7 +61,8 @@ The waveform function should accept:
 
 The result is expected to be an array with shape ``(n_series, n_times)``.
 
-The function below returns white noise for a given ``random_state``:
+The function below returns white noise, and it produces different results every
+time unless ``random_state`` is fixed:
 
 .. code-block:: python
 
