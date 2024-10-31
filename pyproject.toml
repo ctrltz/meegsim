@@ -4,37 +4,45 @@ build-backend = "hatchling.build"
 
 [project]
 name = "meegsim"
-version = "0.0.1dev"
+version = "0.0.1"
 authors = [
   { name="Nikolai Kapralov", email="kapralov@cbs.mpg.de" },
-  { name="Alina Studenova", email="studenova@cbs.mpg.de" },
+  { name="Alina Studenova" },
+  { name="Mina Jamshidi Idaji" },
 ]
-description = "M/EEG simulation framework"
+description = "Building blocks (waveforms, SNR, connectivity) for M/EEG simulations with MNE-Python"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering"
 ]
 dependencies = [
     "colorednoise",
     "mne",
     "networkx"
 ]
+keywords = [
+    "MEG",
+    "EEG",
+    "simulation",
+    "connectivity"
+]
 
 [project.urls]
 Homepage = "https://github.com/ctrltz/meegsim"
+Documentation = "https://meegsim.readthedocs.io/"
 Issues = "https://github.com/ctrltz/meegsim/issues"
 
 [project.optional-dependencies]
-dev = [
-    "harmoni",
-    "mock",
-    "pre-commit",
-    "pytest",
-    "pytest-cov",
-    "ruff"
+dev = ["meegsim[deploy,docs,test]"]
+deploy = [
+    "build",
+    "twine"
 ]
 docs = [
     "intersphinx-registry",
@@ -44,6 +52,25 @@ docs = [
     "sphinx",
     "sphinx-copybutton",
     "sphinxcontrib-bibtex"
+]
+test = [
+    "harmoni",
+    "mock",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "ruff"
+]
+
+[tool.hatch.build]
+exclude = [
+  "/*.yaml",
+  "/.*",
+  "/CHANGELOG.md",
+  "/docs",
+  "/examples",
+  "/Makefile",
+  "/tests",
 ]
 
 [tool.pytest.ini_options]

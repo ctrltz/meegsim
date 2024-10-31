@@ -6,6 +6,9 @@ __pycache__
 .coverage
 .pytest_cache
 
+# Ruff
+.ruff_cache
+
 # Sphinx
 _build/
 docs/generated/
