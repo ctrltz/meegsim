@@ -44,12 +44,19 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
 sim = SourceSimulator(src)
 
+sim.add_noise_sources(
+    location=select_random,
+    location_params=dict(n=100)
+)
+
 # Select some vertices randomly
 sim.add_point_sources(
     location=select_random,
     waveform=narrowband_oscillation,
+    snr=1,
     location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
+    snr_params=dict(fmin=8, fmax=12),
     names=['s1', 's2', 's3']
 )
 
@@ -63,12 +70,7 @@ print(sim._coupling_graph)
 print(sim._coupling_graph.edges(data=True))
 
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
-raw = sc.to_raw(fwd, info)
-
-source_data = np.vstack([s.waveform for s in sc._sources.values()])
-
-print('PLV:', compute_plv(source_data, source_data, n=1, m=1))
-print('iPLV:', compute_plv(source_data, source_data, n=1, m=1, plv_type='imag'))
+raw = sc.to_raw(fwd, info, sensor_noise_factor=0.01)
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq//2, n_per_seg=sfreq)
 spec.plot(sphere='eeglab')
