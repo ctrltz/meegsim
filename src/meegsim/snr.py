@@ -148,17 +148,12 @@ def _adjust_sensor_noise(raw, noise, sensor_noise_level):
     # Dividing here since we are adjusting noise, not the signal
     noise /= factor
 
-    print(f'Signal variance: {signal_var}')
-    print(f'Noise variance (original): {noise_var}')
-    print(f'Amplitude adjustment factor: {factor}')
-    print(f'Noise variance (after scaling): {np.trace(noise @ noise.T)}')
-
     # Mix brain activity and sensor noise together
     # sensor_noise_level = power_sensor_noise / power_total
     factor_raw = np.sqrt(1 - sensor_noise_level)
     factor_noise = np.sqrt(sensor_noise_level)
+    
     raw_mixed = raw.copy()
-    print(f'{sensor_noise_level=}, {factor_raw=}, {factor_noise=}')
     raw_mixed._data = factor_raw * raw._data + factor_noise * noise
 
     return raw_mixed

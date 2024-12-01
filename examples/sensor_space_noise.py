@@ -2,16 +2,14 @@
 Testing the sensor space noise
 """
 
-import numpy as np
 import mne
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 from pathlib import Path
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
-from meegsim.waveform import narrowband_oscillation, white_noise
+from meegsim.waveform import narrowband_oscillation
 
 
 # Load the head model
@@ -57,14 +55,14 @@ sim.add_noise_sources(
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
 raw = sc.to_raw(fwd, info)
 
-noise_levels = [0, 0.25, 0.5, 0.75, 1]
+noise_levels = [0, 0.05, 0.1, 0.25, 0.5, 0.95]
 n_levels = len(noise_levels)
 fig, axes = plt.subplots(ncols=n_levels, figsize=(3 * n_levels, 3))
 
 for i_level, noise_level in enumerate(noise_levels):
     raw = sc.to_raw(fwd, info, sensor_noise_level=noise_level)
 
-    spec = raw.compute_psd(n_fft=sfreq, 
+    spec = raw.compute_psd(fmax=60, n_fft=sfreq, 
                            n_overlap=sfreq//2, n_per_seg=sfreq)
     spec.plot(axes=axes[i_level], amplitude=False, sphere='eeglab')
     
