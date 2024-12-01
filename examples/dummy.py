@@ -6,7 +6,6 @@ import json
 import mne
 import numpy as np
 
-from harmoni.extratools import compute_plv
 from pathlib import Path
 
 from meegsim.coupling import ppc_von_mises
