@@ -55,7 +55,7 @@ sim.add_noise_sources(
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
 raw = sc.to_raw(fwd, info)
 
-noise_levels = [0, 0.05, 0.1, 0.25, 0.5, 0.95]
+noise_levels = [0, 0.05, 0.1, 0.25, 0.5, 1]
 n_levels = len(noise_levels)
 fig, axes = plt.subplots(ncols=n_levels, figsize=(3 * n_levels, 3))
 

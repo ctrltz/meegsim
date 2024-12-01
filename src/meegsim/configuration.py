@@ -1,9 +1,8 @@
 import numpy as np
 import mne
 
-from .snr import _adjust_sensor_noise
+from .sensor_noise import _adjust_sensor_noise, _prepare_sensor_noise
 from .sources import _combine_sources_into_stc
-from .waveform import white_noise
 
 
 class SourceConfiguration:
@@ -119,8 +118,7 @@ class SourceConfiguration:
 
         # Add sensor space noise if needed  
         if sensor_noise_level:            
-            noise = white_noise(info["nchan"], self.times,
-                                random_state=self.random_state)
+            noise = _prepare_sensor_noise(raw, self.times, self.random_state)
             raw = _adjust_sensor_noise(raw, noise, sensor_noise_level)
 
         return raw
