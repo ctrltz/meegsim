@@ -78,6 +78,7 @@ def test_builtin_methods():
     # SourceConfiguration methods
     stc = sc.to_stc()
     raw = sc.to_raw(fwd, info)
+    noisy_raw = sc.to_raw(fwd, info, sensor_noise_level=0.25)
 
     # Check that it is possible to simulate data multiple times
     sc_new = sim.simulate(sfreq, duration, fwd, random_state=seed)
