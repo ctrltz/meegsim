@@ -81,10 +81,11 @@ class SourceConfiguration:
             The source activity is scaled by this factor before projecting to
             sensor space. By default, the scaling factor is equal to :math:`10^{-6}`.
         sensor_noise_level : float, optional
-            The desired ratio of the power of sensor space noise (modeled with 
-            white noise that has an identity covariance matrix) and the total power,
-            adjusted for the broadband data. By default, no sensor 
-            space noise is added. See Notes for more details.
+            The desired level of sensor-space noise. The noise is modeled with 
+            white noise that has an identity covariance matrix. For example, if 
+            0.1 is specified, 10% of total sensor-space power will stem from the 
+            sensor-space noise. By default, no sensor space noise is added. 
+            See Notes for more details.
             
         Returns
         -------
@@ -96,7 +97,7 @@ class SourceConfiguration:
         The adjustment of sensor space noise is performed as follows:
 
         1. The sensor space noise is scaled to equalize the mean sensor-space variance 
-        of noise and brain activity.
+        of broadband noise and brain activity.
 
         2. The brain activity and noise are mixed to achieve the desired level of 
         sensor space noise (denoted by :math:`\\gamma` below):
