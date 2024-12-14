@@ -2,11 +2,12 @@ import numpy as np
 import mne
 
 from .sources import _combine_sources_into_stc
+from .viz import plot_source_configuration
 
 
 class SourceConfiguration:
     """
-    This class describes a simulated configuration of sources 
+    This class describes a simulated configuration of sources
     of brain activity and noise.
 
     Attributes
@@ -26,24 +27,45 @@ class SourceConfiguration:
 
     def __init__(self, src, sfreq, duration, random_state=None):
         self.src = src
-        
+
         # Simulation parameters
         self.sfreq = sfreq
         self.duration = duration
         self.n_samples = self.sfreq * self.duration
         self.times = np.arange(self.n_samples) / self.sfreq
         self.tstep = self.times[1] - self.times[0]
-        
+
         # Random state (for reproducibility)
         self.random_state = random_state
-        
+
         # Keep track of all added sources, store 'signal' and 'noise' separately to ease the calculation of SNR
         self._sources = {}
         self._noise_sources = {}
 
+    def plot(
+        self,
+        subject,
+        hemi,
+        colors=None,
+        sizes=None,
+        show_noise_sources=True,
+        show_candidate_locations=False,
+        **brain_kwargs,
+    ):
+        plot_source_configuration(
+            self,
+            subject,
+            hemi,
+            colors,
+            sizes,
+            show_noise_sources,
+            show_candidate_locations,
+            **brain_kwargs,
+        )
+
     def to_stc(self):
         """
-        Obtain an ``stc`` object that contains data from all sources 
+        Obtain an ``stc`` object that contains data from all sources
         in the configuration.
 
         Returns
@@ -51,12 +73,12 @@ class SourceConfiguration:
         stc : SourceEstimate
             The resulting stc object that contains data from all sources.
         """
-        sources = list(self._sources.values()) 
+        sources = list(self._sources.values())
         noise_sources = list(self._noise_sources.values())
         all_sources = sources + noise_sources
 
         if not all_sources:
-            raise ValueError('No sources were added to the configuration.')
+            raise ValueError("No sources were added to the configuration.")
 
         return _combine_sources_into_stc(all_sources, self.src, self.tstep)
 
@@ -82,8 +104,8 @@ class SourceConfiguration:
 
         # Multiply the combined stc by the scaling factor
         stc_combined = self.to_stc() * scaling_factor
-    
+
         # Project to sensor space and return
         raw = mne.apply_forward_raw(fwd, stc_combined, info)
-              
+
         return raw
