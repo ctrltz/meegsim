@@ -52,7 +52,7 @@ class SourceConfiguration:
         show_candidate_locations=False,
         **brain_kwargs,
     ):
-        plot_source_configuration(
+        return plot_source_configuration(
             self,
             subject,
             hemi,
