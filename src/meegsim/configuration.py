@@ -47,7 +47,7 @@ class SourceConfiguration:
     def plot(
         self,
         subject,
-        hemi,
+        hemi="lh",
         colors=None,
         sizes=None,
         show_noise_sources=True,
@@ -56,12 +56,12 @@ class SourceConfiguration:
     ):
         return plot_source_configuration(
             self,
-            subject,
-            hemi,
-            colors,
-            sizes,
-            show_noise_sources,
-            show_candidate_locations,
+            subject=subject,
+            hemi=hemi,
+            colors=colors,
+            sizes=sizes,
+            show_noise_sources=show_noise_sources,
+            show_candidate_locations=show_candidate_locations,
             **brain_kwargs,
         )
 

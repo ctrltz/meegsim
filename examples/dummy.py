@@ -57,6 +57,17 @@ sim.add_point_sources(
     names=["s1", "s2", "s3"],
 )
 
+sim.add_patch_sources(
+    location=select_random,
+    waveform=narrowband_oscillation,
+    snr=1,
+    location_params=dict(n=3),
+    waveform_params=dict(fmin=8, fmax=12),
+    snr_params=dict(fmin=8, fmax=12),
+    extents=[10, 20, 50],
+    names=["s4", "s5", "s6"],
+)
+
 # Set coupling
 sim.set_coupling(
     coupling={
@@ -74,14 +85,7 @@ print(sim._coupling_graph.edges(data=True))
 sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
 raw = sc.to_raw(fwd, info, sensor_noise_level=0.1)
 
-sc.plot(
-    subject="fsaverage",
-    background="w",
-    surf="pial_semi_inflated",
-    cortex="low_contrast",
-    hemi="split",
-    views=["lat", "med"],
-)
+sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot(sphere="eeglab")

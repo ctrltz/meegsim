@@ -1,12 +1,20 @@
 import mne
+import numpy as np
 
-from meegsim.sources import PointSource
+from meegsim.sources import PointSource, PatchSource
 
 
 DEFAULT_COLORS = dict(
-    point="green", patch="orange", noise="#444444", candidate="#aaaaaa"
+    point="green", patch="Oranges", noise="#000000", candidate="yellow"
 )
 DEFAULT_SIZES = dict(point=0.75, noise=0.3, candidate=0.05)
+DEFAULT_PLOT_KWARGS = dict(
+    background="w",
+    cortex="low_contrast",
+    colorbar=False,
+    clim=dict(kind="value", lims=[0, 0.5, 1]),
+    transparent=True,
+)
 HEMIS = ["lh", "rh"]
 
 
@@ -17,31 +25,28 @@ def _get_point_sources_in_hemi(sources, hemi):
     ]
 
 
-# def _get_patch_sources(sources, src):
-#     data = np.zeros((n_vertno,))
-#     for s in sources:
-#         if not isinstance(s, PatchSource):
-#             continue
+def _get_patch_sources_in_hemis(sources, src, hemis):
+    # Collect vertices belonging to patches
+    src_indices = [HEMIS.index(hemi) for hemi in hemis]
+    n_vertno = [len(s["vertno"]) for s in src]
+    data = [np.zeros((n,)) for n in n_vertno]
+    for s in sources:
+        if not isinstance(s, PatchSource) or s.src_idx not in src_indices:
+            continue
 
-#         patch_data = np.isin(src[s.src_idx]['vertno'], s.vertno).astype(int)
-#         hemi_mask =
-#         data[mask] = 1
+        indices = np.searchsorted(src[s.src_idx]["vertno"], s.vertno)
+        data[s.src_idx][indices] = 1
+    data = np.hstack(data)
 
-#     print(data.sum())
-#     if data.sum() > 0:
-#         return mne.SourceEstimate(data=data, vertices=
-
-#     return None
-# return [
-#     mne.Label(vertices=s.vertno, hemi=hemi) for s in sources
-#     if isinstance(s, PatchSource) and s.src_idx == src_idx
-# ]
+    return mne.SourceEstimate(
+        data=data, vertices=[s["vertno"] for s in src], tmin=0.0, tstep=1.0
+    )
 
 
 def plot_source_configuration(
     sc,
     subject,
-    hemi,
+    hemi="lh",
     colors=None,
     sizes=None,
     show_noise_sources=True,
@@ -57,17 +62,21 @@ def plot_source_configuration(
     if sizes is not None:
         source_sizes.update(sizes)
 
-    # Initialize the brain plot
-    Brain = mne.viz.get_brain_class()
-    brain = Brain(subject=subject, hemi=hemi, **brain_kwargs)
     hemis = HEMIS if hemi in ["both", "split"] else [hemi]
 
-    for hemi in hemis:
-        # TODO: Patch sources
-        # patch_data = _get_patch_sources_in_hemi(sc._sources.values(), sc.src, hemi)
-        # if patch_data is not None:
-        #     brain.add_data(patch_data, hemi=hemi, fmin=0, fmid=0.5, fmax=1)
+    # NOTE: we start with plotting all patch sources as an stc object
+    # to ensure that the Brain object is initialized correctly
+    patch_data_stc = _get_patch_sources_in_hemis(sc._sources.values(), sc.src, hemis)
 
+    kwargs = DEFAULT_PLOT_KWARGS.copy()
+    kwargs.update(brain_kwargs)
+    brain = patch_data_stc.plot(
+        subject=subject, hemi=hemi, colormap=source_colors["patch"], **kwargs
+    )
+
+    # Point/noise sources and candidate locations are added via
+    # add_foci that needs to be run for each hemisphere separately
+    for hemi in hemis:
         # All candidate locations (resource-heavy, disabled by default)
         if show_candidate_locations:
             src_idx = HEMIS.index(hemi)
@@ -90,7 +99,7 @@ def plot_source_configuration(
                 scale_factor=source_sizes["noise"],
             )
 
-        # Point sources
+        # Point sources (always shown)
         brain.add_foci(
             _get_point_sources_in_hemi(sc._sources.values(), hemi),
             coords_as_verts=True,
