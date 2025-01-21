@@ -78,7 +78,8 @@ class SourceConfiguration:
         sensor_noise_level : float, optional
             The desired level of sensor-space noise between 0 and 1. For example,
             if 0.1 is specified, 10% of total sensor-space power will stem from
-            white noise with an identity covariance matrix. By default,
+            white noise with an identity covariance matrix, while 90% will be
+            explained by source activity projected to sensor space. By default,
             no sensor space noise is added. See Notes for more details.
 
         Returns
