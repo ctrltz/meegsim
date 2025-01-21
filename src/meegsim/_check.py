@@ -92,7 +92,7 @@ def check_vertices_list_of_tuples(vertices):
 
     if not isinstance(vertices, (list, tuple)):
         raise ValueError(
-            f"Expected vertices to be a list or a tuple, " f" got {type(vertices)}"
+            f"Expected vertices to be a list or a tuple, got {type(vertices)}"
         )
 
     for i, el in enumerate(vertices):
