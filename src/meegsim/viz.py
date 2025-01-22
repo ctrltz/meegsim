@@ -1,10 +1,10 @@
-from meegsim._check import check_colors, check_sizes
+from meegsim._check import check_colors, check_scale_factors
 from meegsim.sources import _get_point_sources_in_hemi, _get_patch_sources_in_hemis
 from meegsim.utils import _hemi_to_index
 
 
 DEFAULT_COLORS = dict(point="green", patch="Oranges", noise="black", candidate="yellow")
-DEFAULT_SIZES = dict(point=0.75, noise=0.3, candidate=0.05)
+DEFAULT_SCALE_FACTORS = dict(point=0.75, noise=0.3, candidate=0.05)
 DEFAULT_PLOT_KWARGS = dict(
     background="w",
     cortex="low_contrast",
@@ -19,7 +19,7 @@ def plot_source_configuration(
     subject,
     hemi="lh",
     colors=None,
-    sizes=None,
+    scale_factors=None,
     show_noise_sources=True,
     show_candidate_locations=False,
     **brain_kwargs,
@@ -35,10 +35,10 @@ def plot_source_configuration(
     if colors is not None:
         source_colors.update(colors)
 
-    check_sizes(sizes)
-    source_sizes = DEFAULT_SIZES.copy()
-    if sizes is not None:
-        source_sizes.update(sizes)
+    check_scale_factors(scale_factors)
+    source_scale_factors = DEFAULT_SCALE_FACTORS.copy()
+    if scale_factors is not None:
+        source_scale_factors.update(scale_factors)
 
     hemis = ["lh", "rh"] if hemi in ["both", "split"] else [hemi]
 
@@ -64,7 +64,7 @@ def plot_source_configuration(
                 coords_as_verts=True,
                 hemi=hemi,
                 color=source_colors["candidate"],
-                scale_factor=source_sizes["candidate"],
+                scale_factor=source_scale_factors["candidate"],
             )
 
         # Noise sources
@@ -74,7 +74,7 @@ def plot_source_configuration(
                 coords_as_verts=True,
                 hemi=hemi,
                 color=source_colors["noise"],
-                scale_factor=source_sizes["noise"],
+                scale_factor=source_scale_factors["noise"],
             )
 
         # Point sources (always shown)
@@ -83,7 +83,7 @@ def plot_source_configuration(
             coords_as_verts=True,
             hemi=hemi,
             color=source_colors["point"],
-            scale_factor=source_sizes["point"],
+            scale_factor=source_scale_factors["point"],
         )
 
     return brain

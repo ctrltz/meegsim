@@ -557,6 +557,9 @@ def check_extents(extents, n_sources):
 
 
 def check_colors(colors):
+    if colors is None:
+        return
+
     for key, color in colors.items():
         if key not in VIZ_SOURCE_TYPES:
             raise ValueError(f"Unexpected source type: {key}")
@@ -572,11 +575,14 @@ def check_colors(colors):
             raise ValueError(f"Expected a valid matplotlib color for the {key} sources")
 
 
-def check_sizes(sizes):
-    for key, size in sizes.items():
+def check_scale_factors(scale_factors):
+    if scale_factors is None:
+        return
+
+    for key, scale_factor in scale_factors.items():
         if key not in VIZ_SOURCE_TYPES:
             raise ValueError(f"Unexpected source type: {key}")
 
         check_numeric(
-            f"display size of {key} sources", size, (0, None), allow_none=False
+            f"scale_factor of {key} sources", scale_factor, (0, None), allow_none=False
         )

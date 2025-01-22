@@ -18,7 +18,7 @@ from meegsim._check import (
     check_coupling_params,
     check_numeric,
     check_colors,
-    check_sizes,
+    check_scale_factors,
 )
 
 from utils.prepare import prepare_source_space
@@ -444,6 +444,7 @@ def test_check_coupling_bad_params():
 
 
 def test_check_colors_should_pass():
+    check_colors(None)
     check_colors(dict(point="red"))
     check_colors(dict(candidate="white"))
     check_colors(dict(noise="blue"))
@@ -465,17 +466,18 @@ def test_check_colors_bad_colormap():
         check_colors(dict(patch="abcd"))
 
 
-def test_check_sizes_should_pass():
-    check_sizes(dict(point=1))
-    check_sizes(dict(candidate=0.01))
-    check_sizes(dict(noise=0.5))
+def test_check_scale_factors_should_pass():
+    check_scale_factors(None)
+    check_scale_factors(dict(point=1))
+    check_scale_factors(dict(candidate=0.01))
+    check_scale_factors(dict(noise=0.5))
 
 
-def test_check_sizes_bad_source_type():
+def test_check_scale_factors_bad_source_type():
     with pytest.raises(ValueError, match="Unexpected source type"):
-        check_sizes(dict(aaa=1))
+        check_scale_factors(dict(aaa=1))
 
 
-def test_check_sizes_bad_size():
+def test_check_scale_factors_bad_scale_factor():
     with pytest.raises(ValueError, match="a float number"):
-        check_sizes(dict(point="abcd"))
+        check_scale_factors(dict(point="abcd"))
