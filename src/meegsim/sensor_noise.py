@@ -6,10 +6,9 @@ from .waveform import white_noise
 
 def _prepare_sensor_noise(raw, times, random_state):
     n_chans = len(raw.ch_names)
-    noise = white_noise(n_chans, times,
-                        random_state=random_state)
-    
-    # Scale the noise to equalize the mean sensor-space variance of 
+    noise = white_noise(n_chans, times, random_state=random_state)
+
+    # Scale the noise to equalize the mean sensor-space variance of
     # brain activity and sensor noise
     signal = raw.get_data()
     signal_var = np.trace(signal @ signal.T)
@@ -33,7 +32,7 @@ def _adjust_sensor_noise(raw, noise, sensor_noise_level):
     """
 
     factor_signal, factor_noise = _adjustment_factors(sensor_noise_level)
-    
+
     raw_mixed = raw.copy()
     raw_mixed._data = factor_signal * raw._data + factor_noise * noise
 

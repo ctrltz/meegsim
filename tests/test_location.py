@@ -12,7 +12,7 @@ from meegsim.utils import unpack_vertices
 def create_dummy_sourcespace(vertices):
     # Fill in dummy data as a constant time series equal to the vertex number
     n_src_spaces = len(vertices)
-    type_src = 'surf' if n_src_spaces == 2 else 'vol'
+    type_src = "surf" if n_src_spaces == 2 else "vol"
     src = []
     for i in range(n_src_spaces):
         # Create a simple dummy data structure
@@ -29,7 +29,7 @@ def create_dummy_sourcespace(vertices):
             nuse=int(n_verts),
             type=str(type_src),
             id=int(i),
-            np=int(n_verts)
+            np=int(n_verts),
         )
         src.append(src_dict)
 
@@ -42,7 +42,9 @@ def test_single_space_basic_functionality():
     single_src = create_dummy_sourcespace(vertices)
     result = select_random(single_src, n=2, random_state=42)
     assert len(result) == 2, f"Expected 2 vertices, got {len(result)}"
-    assert all(vert[1] in single_src[0]['vertno'] for vert in result), "Selected vertices are not in the source space"
+    assert all(
+        vert[1] in single_src[0]["vertno"] for vert in result
+    ), "Selected vertices are not in the source space"
 
 
 def test_dual_space_basic_functionality():
@@ -51,7 +53,10 @@ def test_dual_space_basic_functionality():
     dual_src = create_dummy_sourcespace(vertices)
     result = select_random(dual_src, n=2, random_state=42)
     assert len(result) == 2, f"Expected 2 vertices, got {len(result)}"
-    assert all(vert in unpack_vertices([list(s['vertno']) for s in dual_src]) for vert in result), "Selected vertices are not in the source spaces"
+    assert all(
+        vert in unpack_vertices([list(s["vertno"]) for s in dual_src])
+        for vert in result
+    ), "Selected vertices are not in the source spaces"
 
 
 def test_specific_vertices():
@@ -61,7 +66,9 @@ def test_specific_vertices():
     specific_vertices = [[1, 2, 3]]
     result = select_random(single_src, vertices=specific_vertices, n=1, random_state=42)
     assert len(result) == 1, f"Expected 1 vertex, got {len(result)}"
-    assert all(vert in unpack_vertices(specific_vertices) for vert in result), "Selected vertex is not in the specific set"
+    assert all(
+        vert in unpack_vertices(specific_vertices) for vert in result
+    ), "Selected vertex is not in the specific set"
 
 
 def test_random_state_effect():
@@ -83,7 +90,12 @@ def test_invalid_vertices_error():
 
 def test_invalid_source_space_length():
     # Test error for incorrect source space length
-    with pytest.raises(ValueError, match=re.escape("Src must contain either one (volume) or two (surface) source spaces.")):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Src must contain either one (volume) or two (surface) source spaces."
+        ),
+    ):
         select_random([], n=1)
 
 
@@ -91,7 +103,9 @@ def test_more_than_available_vertices():
     # Test selecting more vertices than available
     vertices = [[0, 1, 2, 3, 4]]
     single_src = create_dummy_sourcespace(vertices)
-    with pytest.raises(ValueError, match="Number of vertices to select exceeds available vertices."):
+    with pytest.raises(
+        ValueError, match="Number of vertices to select exceeds available vertices."
+    ):
         select_random(single_src, n=6)
 
 
@@ -111,6 +125,6 @@ def test_select_random_sort_output():
     src = create_dummy_sourcespace(vertices)
 
     # Replace the numpy generator with our mock and check the sorting
-    with patch('numpy.random.default_rng') as mock_rng:
+    with patch("numpy.random.default_rng") as mock_rng:
         mock_rng.return_value = MockGenerator()
         assert select_random(src, n=3, sort_output=True) == expected

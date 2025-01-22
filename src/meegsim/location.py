@@ -5,6 +5,7 @@ Methods for selecting locations of the sources that accept the following argumen
 
 Many options are already covered by mne.simulation.select_source_in_label so we can reuse the functionality under the hood.
 """
+
 import numpy as np
 
 from meegsim.utils import unpack_vertices
@@ -23,7 +24,7 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
         The number of random vertices to select. By default, one vertex is selected.
 
     vertices : None (default) or list
-        A subset of vertices to choose from. 
+        A subset of vertices to choose from.
         If None (default), the function uses all vertices from the provided ``src``.
 
     sort_output : bool, optional
@@ -31,7 +32,7 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
         not sorted.
 
     random_state : None (default) or int
-        Seed for the random number generator. If None (default), results will vary 
+        Seed for the random number generator. If None (default), results will vary
         between function calls. Use a fixed value for reproducibility.
 
     Returns
@@ -42,9 +43,11 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
     rng = np.random.default_rng(seed=random_state)
 
     if len(src) not in [1, 2]:
-        raise ValueError("Src must contain either one (volume) or two (surface) source spaces.")
+        raise ValueError(
+            "Src must contain either one (volume) or two (surface) source spaces."
+        )
 
-    src_unpacked = unpack_vertices([list(s['vertno']) for s in src])
+    src_unpacked = unpack_vertices([list(s["vertno"]) for s in src])
 
     vertices = unpack_vertices(vertices) if vertices else src_unpacked
     vertices_not_in_src = set(vertices) - set(src_unpacked)
@@ -57,6 +60,6 @@ def select_random(src, *, n=1, vertices=None, sort_output=False, random_state=No
     selected_vertno = rng.choice(vertices, size=n, replace=False)
     selected_vertno = list(map(tuple, selected_vertno))
     if sort_output:
-        selected_vertno = sorted(selected_vertno)        
+        selected_vertno = sorted(selected_vertno)
 
     return selected_vertno

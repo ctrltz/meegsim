@@ -14,7 +14,7 @@ Find more details about the package in the [documentation](https://meegsim.readt
 
 2. Create an environment (conda/mamba/virtualenv).
 
-3. Switch to the project folder and install the package and all dependencies: 
+3. Switch to the project folder and install the package and all dependencies:
 
 ```bash
 cd meegsim

@@ -14,7 +14,7 @@ for your own simulation.
     from meegsim.simulate import SourceSimulator
     from meegsim.waveform import narrowband_oscillation
 
-    
+
     # Here you need to load the prerequisites: fwd, src, and info
 
     # Simulation parameters
@@ -30,7 +30,7 @@ for your own simulation.
         location_params=dict(n=500)
     )
 
-    # Add two point sources with fixed locations 
+    # Add two point sources with fixed locations
     # (vertex indices are chosen arbitrarily)
     sim.add_point_sources(
         location=[(0, 123), (1, 456)],
