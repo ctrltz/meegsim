@@ -39,6 +39,9 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+# Hide class name for methods in the per-page TOC
+toc_object_entries_show_parents = "hide"
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -53,7 +56,9 @@ html_theme_options = {
             url="https://github.com/ctrltz/meegsim",
             icon="fa-brands fa-square-github fa-fw",
         ),
-    ]
+    ],
+    # include class methods in the per-page TOC
+    "show_toc_level": 2,
 }
 
 
