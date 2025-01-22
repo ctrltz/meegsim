@@ -10,11 +10,16 @@ for SourceSimulator:
 """
 
 import numpy as np
-
-from functools import partial
+import matplotlib.pyplot as plt
 import warnings
 
-from .utils import logger
+from functools import partial
+from matplotlib.colors import is_color_like
+
+from meegsim.utils import logger
+
+
+VIZ_SOURCE_TYPES = ["point", "patch", "noise", "candidate"]
 
 
 def check_numeric(context, value, bounds=(None, None), allow_none=True):
@@ -549,3 +554,29 @@ def check_extents(extents, n_sources):
                 )
 
     return extents
+
+
+def check_colors(colors):
+    for key, color in colors.items():
+        if key not in VIZ_SOURCE_TYPES:
+            raise ValueError(f"Unexpected source type: {key}")
+
+        # We expect a colormap for patches (easier for now but later we can
+        # construct a colormap from the provided color)
+        if key == "patch" and color not in plt.colormaps():
+            raise ValueError(
+                "Expected a valid matplotlib colormap for the patch sources"
+            )
+
+        if key != "patch" and not is_color_like(color):
+            raise ValueError(f"Expected a valid matplotlib color for the {key} sources")
+
+
+def check_sizes(sizes):
+    for key, size in sizes.items():
+        if key not in VIZ_SOURCE_TYPES:
+            raise ValueError(f"Unexpected source type: {key}")
+
+        check_numeric(
+            f"display size of {key} sources", size, (0, None), allow_none=False
+        )

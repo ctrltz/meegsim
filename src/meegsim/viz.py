@@ -1,3 +1,4 @@
+from meegsim._check import check_colors, check_sizes
 from meegsim.sources import _get_point_sources_in_hemi, _get_patch_sources_in_hemis
 from meegsim.utils import _hemi_to_index
 
@@ -23,11 +24,18 @@ def plot_source_configuration(
     show_candidate_locations=False,
     **brain_kwargs,
 ):
+    """
+    This function can be used to plot the positions of all sources in the
+    configuration. Parameters and their values are described in the docstring
+    of :meth:`SourceConfiguration.plot`.
+    """
     # Overwrite the default values with user input
+    check_colors(colors)
     source_colors = DEFAULT_COLORS.copy()
     if colors is not None:
         source_colors.update(colors)
 
+    check_sizes(sizes)
     source_sizes = DEFAULT_SIZES.copy()
     if sizes is not None:
         source_sizes.update(sizes)
