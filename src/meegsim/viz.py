@@ -1,12 +1,8 @@
-import mne
-import numpy as np
-
-from meegsim.sources import PointSource, PatchSource
+from meegsim.sources import _get_point_sources_in_hemi, _get_patch_sources_in_hemis
+from meegsim.utils import _hemi_to_index
 
 
-DEFAULT_COLORS = dict(
-    point="green", patch="Oranges", noise="#000000", candidate="yellow"
-)
+DEFAULT_COLORS = dict(point="green", patch="Oranges", noise="black", candidate="yellow")
 DEFAULT_SIZES = dict(point=0.75, noise=0.3, candidate=0.05)
 DEFAULT_PLOT_KWARGS = dict(
     background="w",
@@ -15,32 +11,6 @@ DEFAULT_PLOT_KWARGS = dict(
     clim=dict(kind="value", lims=[0, 0.5, 1]),
     transparent=True,
 )
-HEMIS = ["lh", "rh"]
-
-
-def _get_point_sources_in_hemi(sources, hemi):
-    src_idx = HEMIS.index(hemi)
-    return [
-        s.vertno for s in sources if isinstance(s, PointSource) and s.src_idx == src_idx
-    ]
-
-
-def _get_patch_sources_in_hemis(sources, src, hemis):
-    # Collect vertices belonging to patches
-    src_indices = [HEMIS.index(hemi) for hemi in hemis]
-    n_vertno = [len(s["vertno"]) for s in src]
-    data = [np.zeros((n,)) for n in n_vertno]
-    for s in sources:
-        if not isinstance(s, PatchSource) or s.src_idx not in src_indices:
-            continue
-
-        indices = np.searchsorted(src[s.src_idx]["vertno"], s.vertno)
-        data[s.src_idx][indices] = 1
-    data = np.hstack(data)
-
-    return mne.SourceEstimate(
-        data=data, vertices=[s["vertno"] for s in src], tmin=0.0, tstep=1.0
-    )
 
 
 def plot_source_configuration(
@@ -62,7 +32,7 @@ def plot_source_configuration(
     if sizes is not None:
         source_sizes.update(sizes)
 
-    hemis = HEMIS if hemi in ["both", "split"] else [hemi]
+    hemis = ["lh", "rh"] if hemi in ["both", "split"] else [hemi]
 
     # NOTE: we start with plotting all patch sources as an stc object
     # to ensure that the Brain object is initialized correctly
@@ -79,7 +49,7 @@ def plot_source_configuration(
     for hemi in hemis:
         # All candidate locations (resource-heavy, disabled by default)
         if show_candidate_locations:
-            src_idx = HEMIS.index(hemi)
+            src_idx = _hemi_to_index(hemi)
             candidate_locations = sc.src[src_idx]["vertno"]
             brain.add_foci(
                 candidate_locations,

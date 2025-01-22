@@ -4,8 +4,13 @@ import pytest
 
 from mne.io.constants import FIFF
 from meegsim.utils import (
-    _extract_hemi, unpack_vertices, combine_stcs, normalize_power, 
-    get_sfreq, vertices_to_mne
+    _extract_hemi,
+    unpack_vertices,
+    combine_stcs,
+    normalize_power,
+    get_sfreq,
+    vertices_to_mne,
+    _hemi_to_index,
 )
 
 from utils.prepare import prepare_source_space
@@ -30,7 +35,10 @@ def test_unpack_mixed_empty_non_empty_lists():
 
 
 def test_unpack_warning_for_single_list():
-    with pytest.warns(UserWarning, match="Input is not a list of lists. Will be assumed that there is one source space."):
+    with pytest.warns(
+        UserWarning,
+        match="Input is not a list of lists. Will be assumed that there is one source space.",
+    ):
         result = unpack_vertices([1, 2, 3])
     expected_output = [(0, 1), (0, 2), (0, 3)]
     assert result == expected_output
@@ -100,23 +108,25 @@ def test_get_sfreq():
 
 
 def test_get_sfreq_too_few_timepoints_raises():
-    with pytest.raises(ValueError, match='must contain at least two points'):
+    with pytest.raises(ValueError, match="must contain at least two points"):
         get_sfreq(np.array([0]))
 
 
 def test_get_sfreq_unequal_spacing_raises():
-    with pytest.raises(ValueError, match='not uniformly spaced'):
+    with pytest.raises(ValueError, match="not uniformly spaced"):
         get_sfreq(np.array([0, 0.01, 0.1]))
-    
+
 
 def test_extract_hemi():
-    src = mne.SourceSpaces([
-        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_LEFT_HEMI},
-        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_RIGHT_HEMI},
-        {'type': 'vol', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN},
-        {'type': 'discrete', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN},
-    ])
-    expected_hemis = ['lh', 'rh', None, None]
+    src = mne.SourceSpaces(
+        [
+            {"type": "surf", "id": FIFF.FIFFV_MNE_SURF_LEFT_HEMI},
+            {"type": "surf", "id": FIFF.FIFFV_MNE_SURF_RIGHT_HEMI},
+            {"type": "vol", "id": FIFF.FIFFV_MNE_SURF_UNKNOWN},
+            {"type": "discrete", "id": FIFF.FIFFV_MNE_SURF_UNKNOWN},
+        ]
+    )
+    expected_hemis = ["lh", "rh", None, None]
 
     for s, hemi in zip(src, expected_hemis):
         assert _extract_hemi(s) == hemi, f"Failed for {s['type']}"
@@ -124,27 +134,22 @@ def test_extract_hemi():
 
 def test_extract_hemi_raises():
     src = [
-        {'id': 0},   # no 'type'
-        {'type': 'vol'}  # no 'id'
+        {"id": 0},  # no 'type'
+        {"type": "vol"},  # no 'id'
     ]
 
-    for s in src: 
-        with pytest.raises(ValueError, match='mandatory internal fields'):
+    for s in src:
+        with pytest.raises(ValueError, match="mandatory internal fields"):
             _extract_hemi(s)
 
-    src = [
-        {'type': 'surf', 'id': FIFF.FIFFV_MNE_SURF_UNKNOWN}
-    ]
+    src = [{"type": "surf", "id": FIFF.FIFFV_MNE_SURF_UNKNOWN}]
 
-    with pytest.raises(ValueError, match='Unexpected ID'):
+    with pytest.raises(ValueError, match="Unexpected ID"):
         _extract_hemi(src[0])
 
 
 def test_vertices_to_mne():
-    src = prepare_source_space(
-        ['surf', 'surf'],
-        [[0, 1, 2], [0, 1, 2]]
-    )
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2], [0, 1, 2]])
 
     packed = vertices_to_mne([(0, 0)], src)
     assert packed == [[0], []]
@@ -158,3 +163,8 @@ def test_vertices_to_mne():
 
     packed = vertices_to_mne([(1, 0), (1, 2)], src)
     assert packed == [[], [0, 2]]
+
+
+def test_hemi_to_index():
+    assert _hemi_to_index("lh") == 0
+    assert _hemi_to_index("rh") == 1
