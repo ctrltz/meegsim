@@ -52,7 +52,7 @@ class SourceConfiguration:
         scale_factors=None,
         show_noise_sources=True,
         show_candidate_locations=False,
-        **brain_kwargs,
+        **plot_kwargs,
     ):
         return plot_source_configuration(
             self,
@@ -62,7 +62,7 @@ class SourceConfiguration:
             scale_factors=scale_factors,
             show_noise_sources=show_noise_sources,
             show_candidate_locations=show_candidate_locations,
-            **brain_kwargs,
+            **plot_kwargs,
         )
 
     def to_stc(self):

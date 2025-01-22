@@ -22,7 +22,7 @@ def plot_source_configuration(
     scale_factors=None,
     show_noise_sources=True,
     show_candidate_locations=False,
-    **brain_kwargs,
+    **plot_kwargs,
 ):
     """
     This function can be used to plot the positions of all sources in the
@@ -47,7 +47,7 @@ def plot_source_configuration(
     patch_data_stc = _get_patch_sources_in_hemis(sc._sources.values(), sc.src, hemis)
 
     kwargs = DEFAULT_PLOT_KWARGS.copy()
-    kwargs.update(brain_kwargs)
+    kwargs.update(plot_kwargs)
     brain = patch_data_stc.plot(
         subject=subject, hemi=hemi, colormap=source_colors["patch"], **kwargs
     )

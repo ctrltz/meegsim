@@ -565,12 +565,13 @@ def check_colors(colors):
             raise ValueError(f"Unexpected source type: {key}")
 
         # We expect a colormap for patches (easier for now but later we can
-        # construct a colormap from the provided color)
+        # consider constructing a colormap from the provided color)
         if key == "patch" and color not in plt.colormaps():
             raise ValueError(
                 "Expected a valid matplotlib colormap for the patch sources"
             )
 
+        # For all other source types, one color is expected
         if key != "patch" and not is_color_like(color):
             raise ValueError(f"Expected a valid matplotlib color for the {key} sources")
 
