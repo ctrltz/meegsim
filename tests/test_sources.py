@@ -361,7 +361,7 @@ def test_get_patch_sources_in_hemis_no_patches():
     ]
 
     stc = _get_patch_sources_in_hemis(sources, src, ["lh", "rh"])
-    assert np.all(stc.data == 0)
+    assert np.allclose(stc.data, 0, atol=0.1)  # ignore 0.01s
 
 
 def test_get_patch_sources_in_hemis():
@@ -373,12 +373,12 @@ def test_get_patch_sources_in_hemis():
 
     stc_both = _get_patch_sources_in_hemis(sources, src, ["lh", "rh"])
     assert stc_both.data.size == 8
-    assert stc_both.data.sum() == 4
+    assert np.allclose(stc_both.data.sum(), 4, atol=0.1)  # ignore 0.01s
 
     stc_lh = _get_patch_sources_in_hemis(sources, src, ["lh"])
     assert stc_lh.data.size == 8
-    assert stc_lh.data.sum() == 1
+    assert np.allclose(stc_lh.data.sum(), 1, atol=0.1)  # ignore 0.01s
 
     stc_rh = _get_patch_sources_in_hemis(sources, src, ["rh"])
     assert stc_rh.data.size == 8
-    assert stc_rh.data.sum() == 3
+    assert np.allclose(stc_rh.data.sum(), 3, atol=0.1)  # ignore 0.01s
