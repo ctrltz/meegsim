@@ -11,9 +11,11 @@ from scipy.signal import butter, filtfilt
 from .utils import normalize_power, get_sfreq
 
 
-def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, random_state=None):
+def narrowband_oscillation(
+    n_series, times, *, fmin=None, fmax=None, order=2, random_state=None
+):
     """
-    Generate oscillatory-like time series by filtering white noise 
+    Generate oscillatory-like time series by filtering white noise
     in a requested frequency band.
 
     Parameters
@@ -25,18 +27,18 @@ def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, ra
         Array of time points (each one represents time in seconds).
 
     fmin : None (default) or float
-        Lower cutoff frequency (in Hz). If None (default), 8 Hz are used as the 
+        Lower cutoff frequency (in Hz). If None (default), 8 Hz are used as the
         cutoff.
 
     fmax : None (default) or float
-        Upper cutoff frequency (in Hz). If None (default), 12 Hz are used as the 
+        Upper cutoff frequency (in Hz). If None (default), 12 Hz are used as the
         cutoff.
 
     order : int, optional
         The order of the filter. By default, the order is equal to 2.
 
     random_state : None (default) or int
-        Seed for the random number generator. If None (default), results will vary 
+        Seed for the random number generator. If None (default), results will vary
         between function calls. Use a fixed value for reproducibility.
 
     Returns
@@ -47,10 +49,10 @@ def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, ra
 
     if fmin is None:
         warnings.warn("fmin was None. Setting fmin to 8 Hz", UserWarning)
-        fmin = 8.
+        fmin = 8.0
     if fmax is None:
         warnings.warn("fmax was None. Setting fmax to 12 Hz", UserWarning)
-        fmax = 12.
+        fmax = 12.0
 
     if fmin >= fmax:
         raise ValueError("fmin must be smaller than fmax.")
@@ -63,7 +65,7 @@ def narrowband_oscillation(n_series, times, *, fmin=None, fmax=None, order=2, ra
     fs = get_sfreq(times)
     rng = np.random.default_rng(seed=random_state)
     data = rng.standard_normal(size=(n_series, times.size))
-    b, a = butter(N=order, Wn=np.array([fmin, fmax]) / fs * 2, btype='bandpass')
+    b, a = butter(N=order, Wn=np.array([fmin, fmax]) / fs * 2, btype="bandpass")
     data = filtfilt(b, a, data, axis=1)
     return normalize_power(data)
 
@@ -84,7 +86,7 @@ def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
         Exponent of the power-law spectrum. By default, it is equal to 1.
 
     random_state : None (default) or int
-        Seed for the random number generator. If None (default), results will vary 
+        Seed for the random number generator. If None (default), results will vary
         between function calls. Use a fixed value for reproducibility.
 
     Returns
@@ -93,9 +95,11 @@ def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
         Generated 1/f noise.
     """
 
-    data = cn.powerlaw_psd_gaussian(slope, size=(n_series, times.size), random_state=random_state)
+    data = cn.powerlaw_psd_gaussian(
+        slope, size=(n_series, times.size), random_state=random_state
+    )
     return normalize_power(data)
-    
+
 
 def white_noise(n_series, times, *, random_state=None):
     """
@@ -111,7 +115,7 @@ def white_noise(n_series, times, *, random_state=None):
         Array of time points (each one represents time in seconds).
 
     random_state : None (default) or int
-        Seed for the random number generator. If None (default), results will vary 
+        Seed for the random number generator. If None (default), results will vary
         between function calls. Use a fixed value for reproducibility.
 
     Returns

@@ -6,20 +6,20 @@ from mne.io.constants import FIFF
 from scipy.special import i1, i0
 
 
-logger = logging.getLogger('meegsim')
+logger = logging.getLogger("meegsim")
 
 
 def combine_stcs(stc1, stc2):
     """
-    Combines the data two SourceEstimate objects. If a vertex is present in both 
-    stcs (e.g., as a source of 1/f noise in one and oscillation in the other), 
-    the corresponding signals are summed. 
+    Combines the data two SourceEstimate objects. If a vertex is present in both
+    stcs (e.g., as a source of 1/f noise in one and oscillation in the other),
+    the corresponding signals are summed.
 
     Parameters
     ----------
     stc1: SourceEstimate
         First object.
-    
+
     stc2: SourceEstimate
         Second object.
 
@@ -37,7 +37,7 @@ def combine_stcs(stc1, stc2):
     # Keep track of the offset in stc.data while iterating over hemispheres
     offsets_old = [0]
     offsets_new = [0]
-    
+
     stc = stc1.copy()
     new_data = stc2.data.copy()
     for vi, (v_old, v_new) in enumerate(zip(stc.vertices, stc2.vertices)):
@@ -85,7 +85,7 @@ def normalize_power(data):
     data /= np.linalg.norm(data, axis=1)[:, np.newaxis]
     return data
 
-  
+
 def _extract_hemi(src):
     """
     Extract a human-readable name (lh or rh) for the provided source space
@@ -101,27 +101,31 @@ def _extract_hemi(src):
     -------
     hemi: str or None
         'lh' and 'rh' are returned for left and right hemisphere, respectively.
-        None is returned otherwise. 
+        None is returned otherwise.
     """
 
-    if 'type' not in src or 'id' not in src:
-        raise ValueError("The provided source space does not have the mandatory "
-                         "internal fields ('id' or 'type'). Please check the code "
-                         "that was used to generate and/or manipulate the src. "
-                         "It should not change or remove these fields.")
+    if "type" not in src or "id" not in src:
+        raise ValueError(
+            "The provided source space does not have the mandatory "
+            "internal fields ('id' or 'type'). Please check the code "
+            "that was used to generate and/or manipulate the src. "
+            "It should not change or remove these fields."
+        )
 
-    if src['type'] != 'surf':
+    if src["type"] != "surf":
         return None
-    
-    if src['id'] == FIFF.FIFFV_MNE_SURF_LEFT_HEMI:
-        return 'lh'
-    
-    if src['id'] == FIFF.FIFFV_MNE_SURF_RIGHT_HEMI:
-        return 'rh'
-    
-    raise ValueError("Unexpected ID for the provided surface source space. "
-                     "Please check the code that was used to generate and/or "
-                     "manipulate the src, it should not change the 'id' field.")
+
+    if src["id"] == FIFF.FIFFV_MNE_SURF_LEFT_HEMI:
+        return "lh"
+
+    if src["id"] == FIFF.FIFFV_MNE_SURF_RIGHT_HEMI:
+        return "rh"
+
+    raise ValueError(
+        "Unexpected ID for the provided surface source space. "
+        "Please check the code that was used to generate and/or "
+        "manipulate the src, it should not change the 'id' field."
+    )
 
 
 def get_sfreq(times):
@@ -151,7 +155,7 @@ def get_sfreq(times):
         raise ValueError("Time points are not uniformly spaced.")
 
     return 1 / dt[0]
-  
+
 
 def unpack_vertices(vertices_lists):
     """
@@ -171,8 +175,13 @@ def unpack_vertices(vertices_lists):
         - vertno: Vertices in corresponding source space.
     """
 
-    if isinstance(vertices_lists, list) and not all(isinstance(vertices, list) for vertices in vertices_lists):
-        warnings.warn("Input is not a list of lists. Will be assumed that there is one source space.", UserWarning)
+    if isinstance(vertices_lists, list) and not all(
+        isinstance(vertices, list) for vertices in vertices_lists
+    ):
+        warnings.warn(
+            "Input is not a list of lists. Will be assumed that there is one source space.",
+            UserWarning,
+        )
         vertices_lists = [vertices_lists]
 
     unpacked_vertices = []

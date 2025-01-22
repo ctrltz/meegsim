@@ -22,7 +22,7 @@ def prepare_times(sfreq, duration):
         (one_over_f_noise, dict(slope=1)),
         (one_over_f_noise, dict(slope=2)),
         (white_noise, dict()),
-    ]
+    ],
 )
 def test_waveforms_random_state(waveform, waveform_params):
     """
@@ -51,7 +51,7 @@ def test_waveforms_random_state(waveform, waveform_params):
         (one_over_f_noise, dict(slope=1)),
         (one_over_f_noise, dict(slope=2)),
         (white_noise, dict()),
-    ]
+    ],
 )
 def test_waveforms_shape(waveform, waveform_params):
     """
@@ -64,12 +64,15 @@ def test_waveforms_shape(waveform, waveform_params):
     assert data.shape == (n_series, n_times)
 
 
-@pytest.mark.parametrize("fmin, fmax", [
-    (4.0, 7.0),
-    (8.0, 12.0),
-    (20.0, 30.0),
-    (15.0, 35.0),
-])
+@pytest.mark.parametrize(
+    "fmin, fmax",
+    [
+        (4.0, 7.0),
+        (8.0, 12.0),
+        (20.0, 30.0),
+        (15.0, 35.0),
+    ],
+)
 def test_narrowband_oscillation_fmin_fmax(fmin, fmax):
     """
     Test that frequencies within the specified band have higher power
@@ -79,7 +82,7 @@ def test_narrowband_oscillation_fmin_fmax(fmin, fmax):
     n_times, times = prepare_times(sfreq=250, duration=30)
 
     data = narrowband_oscillation(n_series, times, fmin=fmin, fmax=fmax)
-    
+
     # Calculate power spectral density
     fs = get_sfreq(times)
     freqs, power = welch(data, fs=fs, nfft=fs, nperseg=fs, axis=1)
@@ -89,33 +92,34 @@ def test_narrowband_oscillation_fmin_fmax(fmin, fmax):
 
     # Check if frequencies within the band are among the most powerful
     band_fmin_fmax = (freqs >= fmin) & (freqs <= fmax)
-    band_freqs = sorted_freqs[:np.sum(band_fmin_fmax)]
+    band_freqs = sorted_freqs[: np.sum(band_fmin_fmax)]
     assert len(band_freqs) > 0, "No frequencies found in the specified band."
-    assert np.all((band_freqs >= fmin) & (band_freqs <= fmax)), \
-        "Not all powerful frequencies are in the specified band."
+    assert np.all(
+        (band_freqs >= fmin) & (band_freqs <= fmax)
+    ), "Not all powerful frequencies are in the specified band."
     assert data.shape == (n_series, n_times), "Shape mismatch"
 
 
 # return dummy values for the function to run
 # import the functions from our module to resolve 'from ... import ...' definition
 # more about: https://nedbatchelder.com/blog/201908/why_your_mock_doesnt_work.html
-@patch('meegsim.waveform.filtfilt', return_value=np.ones((1, 100)))
-@patch('meegsim.waveform.butter', return_value=(0, 0))
+@patch("meegsim.waveform.filtfilt", return_value=np.ones((1, 100)))
+@patch("meegsim.waveform.butter", return_value=(0, 0))
 def test_narrowband_oscillation_order(butter_mock, filtfilt_mock):
     _, times = prepare_times(sfreq=250, duration=30)
 
     # order is set to 2 by default
     narrowband_oscillation(n_series=10, times=times, fmin=8, fmax=12)
     butter_mock.assert_called()
-    assert butter_mock.call_args.kwargs['N'] == 2
+    assert butter_mock.call_args.kwargs["N"] == 2
 
     # custom slope value also should work
     narrowband_oscillation(n_series=10, times=times, fmin=8, fmax=12, order=4)
-    assert butter_mock.call_args.kwargs['N'] == 4
+    assert butter_mock.call_args.kwargs["N"] == 4
 
 
 # return a dummy value for normalize_power to work
-@patch('colorednoise.powerlaw_psd_gaussian', return_value=np.ones((1, 100)))
+@patch("colorednoise.powerlaw_psd_gaussian", return_value=np.ones((1, 100)))
 def test_one_over_f_noise_slope(noise_mock):
     _, times = prepare_times(sfreq=250, duration=30)
 

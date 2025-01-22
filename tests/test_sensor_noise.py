@@ -9,10 +9,7 @@ from utils.prepare import prepare_forward, prepare_source_space
 
 
 def test_prepare_sensor_noise():
-    src = prepare_source_space(
-        types=['surf', 'surf'],
-        vertices=[[0, 1], [0, 1]]
-    )
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
     fwd = prepare_forward(5, 4)
 
     sim = SourceSimulator(src)
@@ -20,7 +17,7 @@ def test_prepare_sensor_noise():
     sim.add_point_sources(
         location=[(0, 1), (1, 1)],
         waveform=narrowband_oscillation,
-        waveform_params=dict(fmin=8, fmax=12)
+        waveform_params=dict(fmin=8, fmax=12),
     )
 
     sc = sim.simulate(sfreq=250, duration=30, random_state=123)
@@ -35,11 +32,8 @@ def test_prepare_sensor_noise():
 
 
 @pytest.mark.parametrize(
-    "noise_level,expected_f_signal,expected_f_noise", [
-        (0, 1, 0),
-        (0.36, 0.8, 0.6),
-        (1, 0, 1)
-    ]
+    "noise_level,expected_f_signal,expected_f_noise",
+    [(0, 1, 0), (0.36, 0.8, 0.6), (1, 0, 1)],
 )
 def test_adjustment_factors(noise_level, expected_f_signal, expected_f_noise):
     f_signal, f_noise = _adjustment_factors(noise_level)

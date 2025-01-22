@@ -17,7 +17,9 @@ def test_traverse_tree_with_start_node():
     # Generate paths starting from node 0
     result = traverse_tree(tree, start_node=0)
     expected = [(0, 1), (1, 3), (1, 4), (0, 2)]
-    assert result == expected, f"Failed with start_node: Expected {expected}, got {result}"
+    assert (
+        result == expected
+    ), f"Failed with start_node: Expected {expected}, got {result}"
 
 
 def test_traverse_tree_random_start_node():
@@ -39,7 +41,9 @@ def test_traverse_tree_single_node():
     # Generate paths starting from node 0
     result = traverse_tree(tree, start_node=0)
     expected = []
-    assert result == expected, f"Failed on single-node tree: Expected {expected}, got {result}"
+    assert (
+        result == expected
+    ), f"Failed on single-node tree: Expected {expected}, got {result}"
 
 
 def test_generate_walkaround():
@@ -52,18 +56,19 @@ def test_generate_walkaround():
 
     coupling_setup = {
         edge: {
-            'method': 'ppc_von_mises', 
-            'kappa': kappa_list[i], 
-            'phase_lag': phase_lag_list[i]
-        } 
+            "method": "ppc_von_mises",
+            "kappa": kappa_list[i],
+            "phase_lag": phase_lag_list[i],
+        }
         for i, edge in enumerate(edgelist)
     }
     coupling_graph = nx.Graph()
     coupling_graph.add_edges_from(coupling_setup)
 
     walkaround = generate_walkaround(coupling_graph, random_state=42)
-    assert set(walkaround) == set(edgelist), \
-        "All edges should be included in the walkaround"
+    assert set(walkaround) == set(
+        edgelist
+    ), "All edges should be included in the walkaround"
 
 
 def test_generate_walkaround_with_cycle():
@@ -74,16 +79,18 @@ def test_generate_walkaround_with_cycle():
 
     coupling_setup = {
         edge: {
-            'method': 'ppc_von_mises', 
-            'kappa': kappa_list[i], 
-            'phase_lag': phase_lag_list[i]
-        } 
+            "method": "ppc_von_mises",
+            "kappa": kappa_list[i],
+            "phase_lag": phase_lag_list[i],
+        }
         for i, edge in enumerate(edgelist)
     }
     coupling_graph = nx.Graph()
     coupling_graph.add_edges_from(coupling_setup)
 
-    with pytest.raises(ValueError, match="The graph contains cycles. Cycles are not supported."):
+    with pytest.raises(
+        ValueError, match="The graph contains cycles. Cycles are not supported."
+    ):
         generate_walkaround(coupling_graph)
 
 
@@ -95,10 +102,10 @@ def test_generate_walkaround_random_state():
 
     coupling_setup = {
         edge: {
-            'method': 'ppc_von_mises', 
-            'kappa': kappa_list[i], 
-            'phase_lag': phase_lag_list[i]
-        } 
+            "method": "ppc_von_mises",
+            "kappa": kappa_list[i],
+            "phase_lag": phase_lag_list[i],
+        }
         for i, edge in enumerate(edgelist)
     }
     coupling_graph = nx.Graph()
@@ -107,23 +114,25 @@ def test_generate_walkaround_random_state():
     walkaround1 = generate_walkaround(coupling_graph, random_state=42)
     walkaround2 = generate_walkaround(coupling_graph, random_state=42)
 
-    assert walkaround1 == walkaround2, "Walkaround paths should be identical with the same random_state"
+    assert (
+        walkaround1 == walkaround2
+    ), "Walkaround paths should be identical with the same random_state"
 
 
-@patch('meegsim.coupling_graph.generate_walkaround', 
-       return_value=[('s1', 's2'), ('s2', 's3')])
+@patch(
+    "meegsim.coupling_graph.generate_walkaround",
+    return_value=[("s1", "s2"), ("s2", "s3")],
+)
 def test_set_coupling(generate_mock):
     def coupling_fn(waveform, sfreq, kappa, random_state=0):
         side_effect = [1, 2]
         return (kappa, side_effect[kappa])
 
-    sources = {
-        k: prepare_point_source(name=k) for k in ['s1', 's2', 's3']
-    }
+    sources = {k: prepare_point_source(name=k) for k in ["s1", "s2", "s3"]}
     coupling = [
-        ('s1', 's2', dict(method=coupling_fn, kappa=0)),
+        ("s1", "s2", dict(method=coupling_fn, kappa=0)),
         # this edge is reversed in the mock walkaround
-        ('s3', 's2', dict(method=coupling_fn, kappa=1))
+        ("s3", "s2", dict(method=coupling_fn, kappa=1)),
     ]
 
     coupling_graph = nx.Graph()
@@ -134,22 +143,17 @@ def test_set_coupling(generate_mock):
 
     # Check that the coupled waveforms were saved correctly
     # First value in the tuple is the provided argument for kappa
-    assert sources['s2'].waveform == (0, 1)
-    assert sources['s3'].waveform == (1, 2)
+    assert sources["s2"].waveform == (0, 1)
+    assert sources["s3"].waveform == (1, 2)
 
 
-@patch('meegsim.coupling_graph.generate_walkaround', 
-       return_value=[('s1', 's2')])
+@patch("meegsim.coupling_graph.generate_walkaround", return_value=[("s1", "s2")])
 def test_set_coupling_random_state(generate_mock):
     def coupling_fn(waveform, sfreq, random_state=0):
         return random_state
-    
-    sources = {
-        k: prepare_point_source(name=k) for k in ['s1', 's2', 's3']
-    }
-    coupling = [
-        ('s1', 's2', dict(method=coupling_fn))
-    ]
+
+    sources = {k: prepare_point_source(name=k) for k in ["s1", "s2", "s3"]}
+    coupling = [("s1", "s2", dict(method=coupling_fn))]
     coupling_graph = nx.Graph()
     coupling_graph.add_edges_from(coupling)
     times = np.arange(100) / 100
@@ -158,8 +162,8 @@ def test_set_coupling_random_state(generate_mock):
     sources = _set_coupling(sources, coupling_graph, times, random_state)
 
     # Check that the random state was forwarded to low-level functions
-    assert generate_mock.call_args.kwargs['random_state'] == random_state
+    assert generate_mock.call_args.kwargs["random_state"] == random_state
 
-    # coupling_fn returns the provided random_state so it should be 
+    # coupling_fn returns the provided random_state so it should be
     # saved in the source waveform
-    assert sources['s2'].waveform == random_state
+    assert sources["s2"].waveform == random_state

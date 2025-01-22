@@ -13,8 +13,8 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
     Generate a time series that is phase coupled to the input time series with
     a constant phase lag.
 
-    This function can be used to set up both within-frequency (1:1, default) and 
-    cross-frequency (n:m) coupling. 
+    This function can be used to set up both within-frequency (1:1, default) and
+    cross-frequency (n:m) coupling.
 
     Parameters
     ----------
@@ -48,16 +48,20 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
 
     waveform_amp = np.abs(waveform)
     waveform_angle = np.angle(waveform)
-    waveform_coupled = waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * phase_lag)
+    waveform_coupled = waveform_amp * np.exp(
+        1j * m / n * waveform_angle + 1j * phase_lag
+    )
     return np.real(waveform_coupled)
 
 
-def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, random_state=None):
+def ppc_von_mises(
+    waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, random_state=None
+):
     """
     Generate a time series that is phase coupled to the input time series with
     a probabilistic phase lag based on the von Mises distribution.
 
-    This function can be used to set up both within-frequency (1:1, default) and 
+    This function can be used to set up both within-frequency (1:1, default) and
     cross-frequency (n:m) coupling.
 
     Parameters
@@ -72,9 +76,9 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
         Average phase lag to apply to the waveform in radians.
 
     kappa : float
-        Concentration parameter of the von Mises distribution. With higher kappa, 
-        phase shifts between input and output waveforms are more concentrated 
-        around the mean value provided in ``phase_lag``. With lower kappa, phase 
+        Concentration parameter of the von Mises distribution. With higher kappa,
+        phase shifts between input and output waveforms are more concentrated
+        around the mean value provided in ``phase_lag``. With lower kappa, phase
         shifts will vary substantially for different time points.
 
     fmin: float
@@ -90,7 +94,7 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
         Multiplier for the base frequency of the input oscillation, default is 1.
 
     random_state : None (default) or int
-        Seed for the random number generator. If None (default), results will vary 
+        Seed for the random number generator. If None (default), results will vary
         between function calls. Use a fixed value for reproducibility.
 
     Returns
@@ -106,9 +110,15 @@ def ppc_von_mises(waveform, sfreq, phase_lag, kappa, fmin, fmax, m=1, n=1, rando
     waveform_angle = np.angle(waveform)
     n_samples = len(waveform)
 
-    ph_distr = vonmises.rvs(kappa, loc=phase_lag, size=n_samples, random_state=random_state)
-    tmp_waveform = np.real(waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * ph_distr))
-    b, a = butter(N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / sfreq * 2, btype='bandpass')
+    ph_distr = vonmises.rvs(
+        kappa, loc=phase_lag, size=n_samples, random_state=random_state
+    )
+    tmp_waveform = np.real(
+        waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * ph_distr)
+    )
+    b, a = butter(
+        N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / sfreq * 2, btype="bandpass"
+    )
     tmp_waveform = filtfilt(b, a, tmp_waveform)
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 

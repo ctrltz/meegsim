@@ -4,9 +4,12 @@ defined by the user until we actually start simulating the data.
 """
 
 from ._check import (
-    check_location, check_waveform, 
-    check_snr, check_snr_params, check_names,
-    check_extents
+    check_location,
+    check_waveform,
+    check_snr,
+    check_snr_params,
+    check_names,
+    check_extents,
 )
 from .sources import PointSource, PatchSource
 
@@ -28,30 +31,22 @@ def generate_names(group, n_sources):
         The auto-generated names in the format 'auto-G-sX', where G is the group name,
         and X is the index of the source in the group.
     """
-    
-    return [f'auto-{group}-s{idx}' for idx in range(n_sources)]
+
+    return [f"auto-{group}-s{idx}" for idx in range(n_sources)]
 
 
 class _BaseSourceGroup:
     def simulate(self):
         raise NotImplementedError(
-            'The simulate() method should be implemented in a subclass.'
+            "The simulate() method should be implemented in a subclass."
         )
 
 
 class PointSourceGroup(_BaseSourceGroup):
-    def __init__(
-        self, 
-        n_sources,
-        location, 
-        waveform, 
-        snr,
-        snr_params,
-        names
-    ):
+    def __init__(self, n_sources, location, waveform, snr, snr_params, names):
         super().__init__()
 
-        # Store the defined number of vertices to raise an error 
+        # Store the defined number of vertices to raise an error
         # if the output of location function has a different size
         self.n_sources = n_sources
 
@@ -63,31 +58,31 @@ class PointSourceGroup(_BaseSourceGroup):
         self.names = names
 
     def __repr__(self):
-        location_desc = 'list'
+        location_desc = "list"
         if callable(self.location):
             # extract the name of the function from the partial object if possible
-            location_desc = getattr(self.location.func, '__name__', 'callable')
-        location_desc = f'location={location_desc}'
+            location_desc = getattr(self.location.func, "__name__", "callable")
+        location_desc = f"location={location_desc}"
 
-        waveform_desc = 'array'
+        waveform_desc = "array"
         if callable(self.waveform):
             # extract the name of the function from the partial object if possible
-            waveform_desc = getattr(self.waveform.func, '__name__', 'callable')
-        waveform_desc = f'waveform={waveform_desc}'
+            waveform_desc = getattr(self.waveform.func, "__name__", "callable")
+        waveform_desc = f"waveform={waveform_desc}"
 
-        return f'<PointSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>'
+        return f"<PointSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
         return PointSource.create(
-            src, 
+            src,
             times,
             self.n_sources,
             self.location,
             self.waveform,
             self.names,
-            random_state=random_state
+            random_state=random_state,
         )
-    
+
     @classmethod
     def create(
         cls,
@@ -100,7 +95,7 @@ class PointSourceGroup(_BaseSourceGroup):
         snr_params,
         names,
         group,
-        existing
+        existing,
     ):
         """
         Check the provided input for all fields and create a source group that
@@ -152,16 +147,7 @@ class PointSourceGroup(_BaseSourceGroup):
 
 
 class PatchSourceGroup(_BaseSourceGroup):
-    def __init__(
-            self,
-            n_sources,
-            location,
-            waveform,
-            snr,
-            snr_params,
-            extents,
-            names
-    ):
+    def __init__(self, n_sources, location, waveform, snr, snr_params, extents, names):
         super().__init__()
 
         # Store the defined number of vertices to raise an error
@@ -177,19 +163,19 @@ class PatchSourceGroup(_BaseSourceGroup):
         self.extents = extents
 
     def __repr__(self):
-        location_desc = 'list'
+        location_desc = "list"
         if callable(self.location):
             # extract the name of the function from the partial object if possible
-            location_desc = getattr(self.location.func, '__name__', 'callable')
-        location_desc = f'location={location_desc}'
+            location_desc = getattr(self.location.func, "__name__", "callable")
+        location_desc = f"location={location_desc}"
 
-        waveform_desc = 'array'
+        waveform_desc = "array"
         if callable(self.waveform):
             # extract the name of the function from the partial object if possible
-            waveform_desc = getattr(self.waveform.func, '__name__', 'callable')
-        waveform_desc = f'waveform={waveform_desc}'
+            waveform_desc = getattr(self.waveform.func, "__name__", "callable")
+        waveform_desc = f"waveform={waveform_desc}"
 
-        return f'<PatchSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>'
+        return f"<PatchSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
         return PatchSource.create(
@@ -200,7 +186,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             self.waveform,
             self.names,
             self.extents,
-            random_state=random_state
+            random_state=random_state,
         )
 
     @classmethod
@@ -216,7 +202,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         extents,
         names,
         group,
-        existing
+        existing,
     ):
         """
         Check the provided input for all fields and create a source group that
@@ -258,7 +244,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
         snr = check_snr(snr, n_sources)
-        snr_params = check_snr_params(snr_params,snr)
+        snr_params = check_snr_params(snr_params, snr)
         extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names
@@ -268,5 +254,3 @@ class PatchSourceGroup(_BaseSourceGroup):
             check_names(names, n_sources, existing)
 
         return cls(n_sources, location, waveform, snr, snr_params, extents, names)
-
-

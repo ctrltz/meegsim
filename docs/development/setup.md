@@ -6,7 +6,7 @@
 
 2. Create an environment (conda/mamba/virtualenv/etc).
 
-3. Switch to the project folder and install the package and all dependencies: 
+3. Switch to the project folder and install the package and all dependencies:
 
 ```bash
 cd meegsim

@@ -15,7 +15,9 @@ def prepare_inputs():
     return n_series, len(times), times
 
 
-@pytest.mark.parametrize("phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi])
+@pytest.mark.parametrize(
+    "phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi]
+)
 def test_constant_phase_shift(phase_lag):
     # Test with a simple sinusoidal waveform
     _, _, times = prepare_inputs()
@@ -26,19 +28,17 @@ def test_constant_phase_shift(phase_lag):
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    cplv = compute_plv(waveform, result, m=1, n=1, plv_type='complex')
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type="complex")
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
     assert plv >= 0.99, f"Test failed: plv is smaller than 0.99. plv = {plv}"
-    assert (np.abs(test_angle) - phase_lag) <= 0.01, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (
+        (np.abs(test_angle) - phase_lag) <= 0.01
+    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
-@pytest.mark.parametrize("m, n", [
-    (2, 1),
-    (3, 1),
-    (5/2, 1)
-])
+@pytest.mark.parametrize("m, n", [(2, 1), (3, 1), (5 / 2, 1)])
 def test_constant_phase_shift_harmonics(m, n):
     # Test with different m and n harmonics
     _, _, times = prepare_inputs()
@@ -50,12 +50,14 @@ def test_constant_phase_shift_harmonics(m, n):
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    cplv = compute_plv(waveform, result, m=m, n=n, plv_type='complex')
+    cplv = compute_plv(waveform, result, m=m, n=n, plv_type="complex")
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
     assert plv >= 0.9, f"Test failed: plv is smaller than 0.9. plv = {plv}"
-    assert (np.abs(test_angle) - phase_lag) <= 0.1, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (
+        (np.abs(test_angle) - phase_lag) <= 0.1
+    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
 @pytest.mark.parametrize("kappa", [0.001, 0.1, 0.5, 1, 5, 10, 50])
@@ -65,24 +67,23 @@ def test_ppc_von_mises(kappa):
     waveform = np.sin(2 * np.pi * 10 * times)
     phase_lag = 0
 
-    result = ppc_von_mises(waveform, get_sfreq(times), 
-                           phase_lag, kappa=kappa, fmin=8, fmax=12)
+    result = ppc_von_mises(
+        waveform, get_sfreq(times), phase_lag, kappa=kappa, fmin=8, fmax=12
+    )
 
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    cplv = compute_plv(waveform, result, m=1, n=1, plv_type='complex')
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type="complex")
     plv = np.abs(cplv)
     plv_theoretical = theoretical_plv(kappa)
 
-    assert plv >= plv_theoretical, f"Test failed: plv is smaller than theoretical. plv = {plv}, plv_theoretical = {plv_theoretical}"
+    assert (
+        plv >= plv_theoretical
+    ), f"Test failed: plv is smaller than theoretical. plv = {plv}, plv_theoretical = {plv_theoretical}"
 
 
-@pytest.mark.parametrize("m, n", [
-    (2, 1),
-    (3, 1),
-    (5/2, 1)
-])
+@pytest.mark.parametrize("m, n", [(2, 1), (3, 1), (5 / 2, 1)])
 def test_ppc_von_mises_harmonics(m, n):
     # Test with different m and n harmonics
     _, _, times = prepare_inputs()
@@ -90,18 +91,21 @@ def test_ppc_von_mises_harmonics(m, n):
     phase_lag = 0
     kappa = 10
 
-    result = ppc_von_mises(waveform, get_sfreq(times), 
-                           phase_lag, m=m, n=n, kappa=kappa, fmin=8, fmax=12)
+    result = ppc_von_mises(
+        waveform, get_sfreq(times), phase_lag, m=m, n=n, kappa=kappa, fmin=8, fmax=12
+    )
 
     waveform = hilbert(waveform)
     result = hilbert(result)
 
-    cplv = compute_plv(waveform, result, m=m, n=n, plv_type='complex')
+    cplv = compute_plv(waveform, result, m=m, n=n, plv_type="complex")
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
     assert plv >= 0.8, f"Test failed: plv is smaller than 0.8. plv = {plv}"
-    assert (np.abs(test_angle) - phase_lag) <= 0.1, f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (
+        (np.abs(test_angle) - phase_lag) <= 0.1
+    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
 def test_reproducibility_with_random_state():
@@ -112,10 +116,24 @@ def test_reproducibility_with_random_state():
     kappa = 1
     random_state = 42
 
-    result1 = ppc_von_mises(waveform, get_sfreq(times), 
-                            phase_lag, kappa, fmin=8, fmax=12, random_state=random_state)
-    result2 = ppc_von_mises(waveform, get_sfreq(times), 
-                            phase_lag, kappa, fmin=8, fmax=12, random_state=random_state)
+    result1 = ppc_von_mises(
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        kappa,
+        fmin=8,
+        fmax=12,
+        random_state=random_state,
+    )
+    result2 = ppc_von_mises(
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        kappa,
+        fmin=8,
+        fmax=12,
+        random_state=random_state,
+    )
 
     # Test that results are identical
     np.testing.assert_array_almost_equal(result1, result2)

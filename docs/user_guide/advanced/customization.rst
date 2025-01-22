@@ -2,8 +2,8 @@
 Customization
 =============
 
-If the built-in functions for location, waveform or coupling do not satisfy the 
-needs of your project, you are always welcome use a custom function instead. 
+If the built-in functions for location, waveform or coupling do not satisfy the
+needs of your project, you are always welcome use a custom function instead.
 In this section, we provide a short description of requirements for such functions:
 
 * which arguments should be accepted (but not necessarily used)
@@ -13,19 +13,19 @@ In this section, we provide a short description of requirements for such functio
 In addition, we provide minimal examples of custom functions for each case.
 
 .. note::
-    When adding sources, we always try to execute the provided functions with 0 
+    When adding sources, we always try to execute the provided functions with 0
     as ``random_state`` to making the debugging a bit easier.
 
 Location
 ========
 
-The location function should accept the source space as the first argument and 
+The location function should accept the source space as the first argument and
 have a ``random_state`` keyword argument.
 
 The return value is expected to be a list of 2-element tuples (index of the
 source space, index of the selected vertex).
 
-For example, the function below will pick the vertex with the smallest index 
+For example, the function below will pick the vertex with the smallest index
 (`vertno`) from the provided ``src``:
 
 .. code-block:: python
@@ -54,7 +54,7 @@ The waveform function should accept:
 
 * the number of time series to generate
 
-* the array of time points (in seconds) that the generated samples should 
+* the array of time points (in seconds) that the generated samples should
   correspond to
 
 * keyword argument ``random_state``
@@ -108,12 +108,12 @@ The function could be used like this:
 .. code-block:: python
 
     sim.set_coupling(
-        ('s1', 's2'), 
+        ('s1', 's2'),
         method=scaled_copy, scaling_factor=2
     )
 
 Extending the toolbox
 =====================
 
-If you think that your custom function could be helpful for others, feel free to 
+If you think that your custom function could be helpful for others, feel free to
 open an issue in the `GitHub repository <https://github.com/ctrltz/meegsim>`_.

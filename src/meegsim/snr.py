@@ -37,20 +37,19 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     if filter:
         if fmin is None or fmax is None:
             raise ValueError(
-                'Frequency band limits are required for the adjustment of SNR.'
+                "Frequency band limits are required for the adjustment of SNR."
             )
 
-        b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype='bandpass')
-        stc_data = filtfilt(b, a, stc_data, axis=1)        
+        b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype="bandpass")
+        stc_data = filtfilt(b, a, stc_data, axis=1)
 
     try:
-        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, 
-                                                           on_missing='raise')
-        leadfield_restict = fwd_restrict['sol']['data']
-    except ValueError:   
+        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, on_missing="raise")
+        leadfield_restict = fwd_restrict["sol"]["data"]
+    except ValueError:
         raise ValueError(
-            'The provided forward model does not contain some of the '
-            'simulated sources, so the SNR cannot be adjusted.'
+            "The provided forward model does not contain some of the "
+            "simulated sources, so the SNR cannot be adjusted."
         )
 
     n_samples = stc_data.shape[1]
@@ -88,15 +87,19 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     snr_current = np.divide(signal_var, noise_var)
 
     if np.isinf(snr_current):
-        raise ValueError("The noise variance appears to be zero, so the initial SNR "
-                         "cannot be calculated. Please check the created noise.")
+        raise ValueError(
+            "The noise variance appears to be zero, so the initial SNR "
+            "cannot be calculated. Please check the created noise."
+        )
 
     factor = np.sqrt(target_snr / snr_current)
 
     if np.isinf(factor):
-        raise ValueError("The signal variance and thus the initial SNR appear to be "
-                         "zero, so SNR cannot be adjusted. Please check the created "
-                         "signals.")
+        raise ValueError(
+            "The signal variance and thus the initial SNR appear to be "
+            "zero, so SNR cannot be adjusted. Please check the created "
+            "signals."
+        )
 
     return factor
 
@@ -105,8 +108,8 @@ def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
     if not noise_sources:
         raise ValueError(
-            'No noise sources were added to the simulation, so the SNR '
-            'cannot be adjusted.'
+            "No noise sources were added to the simulation, so the SNR "
+            "cannot be adjusted."
         )
     stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
 
@@ -114,11 +117,12 @@ def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
     for sg in source_groups:
         if sg.snr is None:
             continue
-        
+
         # Estimate the noise variance in the specified frequency band
-        fmin, fmax = sg.snr_params['fmin'], sg.snr_params['fmax']
-        noise_var = get_sensor_space_variance(stc_noise, fwd, 
-                                              fmin=fmin, fmax=fmax, filter=True)
+        fmin, fmax = sg.snr_params["fmin"], sg.snr_params["fmax"]
+        noise_var = get_sensor_space_variance(
+            stc_noise, fwd, fmin=fmin, fmax=fmax, filter=True
+        )
 
         # Adjust the amplitude of each source in the group to match the target SNR
         for name, target_snr in zip(sg.names, sg.snr):
@@ -126,8 +130,9 @@ def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
 
             # NOTE: taking a safer approach for now and filtering
             # even if the signal is already a narrowband oscillation
-            signal_var = get_sensor_space_variance(s.to_stc(src, tstep), fwd,
-                                                   fmin=fmin, fmax=fmax, filter=True)
+            signal_var = get_sensor_space_variance(
+                s.to_stc(src, tstep), fwd, fmin=fmin, fmax=fmax, filter=True
+            )
 
             # NOTE: patch sources might require more complex calculations
             # if the within-patch correlation is not equal to 1
