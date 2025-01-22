@@ -363,6 +363,22 @@ def _combine_sources_into_stc(sources, src, tstep):
 
 
 def _get_point_sources_in_hemi(sources, hemi):
+    """
+    Collect the indices of vertices (vertno) for all point sources
+    belonging to the provided hemisphere.
+
+    Parameters
+    ----------
+    sources: list
+        A list of sources that were added to the configuration.
+    hemi: str
+        Hemisphere (lh or rh).
+
+    Returns
+    -------
+    vertno: list
+        List of indices of the corresponding vertices.
+    """
     src_idx = _hemi_to_index(hemi)
     return [
         s.vertno for s in sources if isinstance(s, PointSource) and s.src_idx == src_idx
@@ -370,6 +386,26 @@ def _get_point_sources_in_hemi(sources, hemi):
 
 
 def _get_patch_sources_in_hemis(sources, src, hemis):
+    """
+    Collect the vertices for all patch sources belonging to the provided
+    hemisphere(s).
+
+    Parameters
+    ----------
+    sources: list
+        A list of sources that were added to the configuration.
+    src: SourceSpaces
+        The source space that contains all candidate locations.
+    hemis: list
+        The list of hemispheres to consider.
+
+    Returns
+    -------
+    stc: SourceEstimate
+        An stc object that contains 1 for every vertex that is included at least
+        in one of the patches and a small value near zero for all other sources.
+        Non-zero value is required for the subsequent stc.plot() call.
+    """
     src_indices = [_hemi_to_index(hemi) for hemi in hemis]
     n_vertno = [len(s["vertno"]) for s in src]
     # NOTE: we use a small non-zero value here to avoid problems with the

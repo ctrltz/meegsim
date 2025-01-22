@@ -54,6 +54,69 @@ class SourceConfiguration:
         show_candidate_locations=False,
         **plot_kwargs,
     ):
+        """
+        Plot the source configuration. This function is built on top of
+        :py:meth:`mne.SourceEstimate.plot`, and the meaning of all
+        parameters is kept the same unless mentioned.
+
+        Parameters
+        ----------
+        subject : str
+            The name of the subject.
+        hemi : str
+            The hemisphere to plot. The values "both" and "split" are also
+            supported.
+        colors : dict or None, optional
+            This dictionary can be used to override the default color palette,
+            which is described in the Notes section below.
+        scale_factors : dict or None, optional
+            This dictionary can be used to override the default display size
+            for sources of different types. See Notes for the default values.
+        show_noise_sources : bool, optional
+            Controls whether noise sources should be displayed (True by default).
+        show_candidate_locations : bool, optional
+            Controls whether all candidate sources in the source space should
+            be displayed (False by default).
+        **kwargs: dict, optional
+            Additional parameters that should be passed to
+            :meth:`mne.SourceEstimate.plot`.
+
+            .. warning::
+                Plotting all candidate locations might require lots of resources
+                depending on the size of the source space.
+
+        Returns
+        -------
+        figure : mne.viz.Brain or matplotlib.figure.Figure
+            The resulting figure.
+
+        Notes
+        -----
+        The following parameters are used for plotting by default:
+
+        .. code-block::
+
+            DEFAULT_COLORS = dict(
+                point="green",
+                patch="Oranges",
+                noise="black",
+                candidate="yellow"
+            )
+
+            DEFAULT_SCALE_FACTORS = dict(
+                point=0.75,
+                noise=0.3,
+                candidate=0.05
+            )
+
+            DEFAULT_PLOT_KWARGS = dict(
+                background="w",
+                cortex="low_contrast",
+                colorbar=False,
+                clim=dict(kind="value", lims=[0, 0.5, 1]),
+                transparent=True,
+            )
+        """
         return plot_source_configuration(
             self,
             subject=subject,

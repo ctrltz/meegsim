@@ -211,4 +211,7 @@ def vertices_to_mne(vertices, src):
 
 
 def _hemi_to_index(hemi):
+    """
+    Get the index of the hemisphere (0 for lh, 1 for rh).
+    """
     return ["lh", "rh"].index(hemi)

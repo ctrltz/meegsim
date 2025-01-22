@@ -557,6 +557,20 @@ def check_extents(extents, n_sources):
 
 
 def check_colors(colors):
+    """
+    Check the dictionary with colors provided for the visualization of the
+    source configuration.
+
+    Parameters
+    ----------
+    color: dict
+        The colors for different source types.
+
+    Raises
+    ------
+    ValueError
+        If the source type is not recognized or the color value is invalid.
+    """
     if colors is None:
         return
 
@@ -577,6 +591,21 @@ def check_colors(colors):
 
 
 def check_scale_factors(scale_factors):
+    """
+    Check the dictionary with scale factors provided for the visualization of the
+    source configuration.
+
+    Parameters
+    ----------
+    scale_factors: dict
+        The scale factors for different source types.
+
+    Raises
+    ------
+    ValueError
+        If the source type is not recognized or the scale factor is negative or not
+        numeric.
+    """
     if scale_factors is None:
         return
 
