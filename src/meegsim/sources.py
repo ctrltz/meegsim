@@ -370,10 +370,12 @@ def _get_point_sources_in_hemi(sources, hemi):
 
 
 def _get_patch_sources_in_hemis(sources, src, hemis):
-    # Collect vertices belonging to patches
     src_indices = [_hemi_to_index(hemi) for hemi in hemis]
     n_vertno = [len(s["vertno"]) for s in src]
-    data = [np.zeros((n,)) for n in n_vertno]
+    # NOTE: we use a small non-zero value here to avoid problems with the
+    # calculation of colorbar range in mne.viz.Brain. It is chosen to be smaller
+    # than the transparency threshold (0.5) so that visually it is not noticeable
+    data = [np.full((n,), 0.01) for n in n_vertno]
     for s in sources:
         if not isinstance(s, PatchSource) or s.src_idx not in src_indices:
             continue
