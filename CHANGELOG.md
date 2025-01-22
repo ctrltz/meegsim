@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A desired level of white noise can be added in sensor space to model measurement
 noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
+- A possibility to plot the source configuration ([#59](https://github.com/ctrltz/meegsim/pull/59))
 
 ## Version 0.0.1 (2024-10-31)
 
