@@ -7,7 +7,7 @@ import pytest
 from meegsim.snr import (
     get_sensor_space_variance,
     amplitude_adjustment_factor,
-    _adjust_snr,
+    _adjust_snr_local,
 )
 from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
 
@@ -189,7 +189,7 @@ def test_adjust_snr_point(adjust_snr_mock):
     noise_sources = {"n1": prepare_point_source(name="n1")}
     tstep = 0.01
 
-    sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+    sources = _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
 
     # Check the SNR adjustment was performed only once
     adjust_snr_mock.assert_called_once()
@@ -232,7 +232,7 @@ def test_adjust_snr_patch(adjust_snr_mock):
     noise_sources = {"n1": prepare_point_source(name="n1")}
     tstep = 0.01
 
-    sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+    sources = _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
 
     # Check the SNR adjustment was performed only once
     adjust_snr_mock.assert_called_once()
@@ -248,4 +248,4 @@ def test_adjust_snr_no_noise_sources_raises():
 
     # it's only important that the noise sources list is empty
     with pytest.raises(ValueError, match="No noise sources"):
-        _adjust_snr(src, fwd, 0.01, [], [], [])
+        _adjust_snr_local(src, fwd, 0.01, [], [], [])

@@ -104,7 +104,7 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     return factor
 
 
-def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
+def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
     # Get the stc and leadfield of all noise sources
     if not noise_sources:
         raise ValueError(

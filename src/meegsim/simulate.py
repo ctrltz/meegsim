@@ -4,7 +4,7 @@ from ._check import check_coupling
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
-from .snr import _adjust_snr
+from .snr import _adjust_snr_local
 from .waveform import one_over_f_noise
 
 
@@ -417,6 +417,8 @@ def _simulate(
     # Adjust the SNR if needed
     if is_snr_adjusted:
         tstep = times[1] - times[0]
-        sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+        sources = _adjust_snr_local(
+            src, fwd, tstep, sources, source_groups, noise_sources
+        )
 
     return sources, noise_sources
