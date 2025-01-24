@@ -17,7 +17,8 @@ class SourceSimulator:
     ----------
     src : mne.SourceSpaces
         The source space that contains all candidate source locations.
-    snr_mode :
+    snr_mode : str
+        The mode of SNR adjustment.
     """
 
     def __init__(self, src, snr_mode="global"):
