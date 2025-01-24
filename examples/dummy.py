@@ -43,14 +43,15 @@ fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
 sim = SourceSimulator(src)
 
-sim.add_noise_sources(location=select_random, location_params=dict(n=10))
+sim.add_noise_sources(location=select_random, location_params=dict(n=100))
 
 # Select some vertices randomly
 sim.add_point_sources(
-    location=select_random,
+    location=[(0, 0), (0, 87780), (0, 106307)],
     waveform=narrowband_oscillation,
     location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
+    std=[1, 10, 1],
     names=["s1", "s2", "s3"],
 )
 
@@ -72,7 +73,7 @@ sc = sim.simulate(
     sfreq,
     duration,
     fwd=fwd,
-    snr_global=None,
+    snr_global=4,
     snr_params=dict(fmin=8, fmax=12),
     random_state=seed,
 )

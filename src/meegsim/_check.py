@@ -334,7 +334,9 @@ def check_names(names, n_sources, existing):
         raise ValueError("All names should be unique")
 
 
-def check_snr(snr, n_sources):
+def check_numeric_list(
+    context, value, n_sources, bounds=(None, None), allow_none=False
+):
     """
     Check the user input for SNR: it can either be None (no adjustment of SNR),
     a single float value that applies to all sources or an array of values
@@ -353,25 +355,25 @@ def check_snr(snr, n_sources):
         If the provided SNR value(s) do not follow the format described above.
     """
 
-    if snr is None:
+    if value is None and allow_none:
         return None
 
-    snr = np.ravel(np.array(snr))
-    if snr.size != 1 and snr.size != n_sources:
+    values = np.ravel(np.array(value))
+    if values.size != 1 and values.size != n_sources:
         raise ValueError(
-            f"Expected either one SNR value that applies to all sources or "
-            f"one SNR value for each of the {n_sources} sources, got {snr.size}"
+            f"Expected either one {context} value that applies to all sources or "
+            f"one {context} value for each of the {n_sources} sources, got {values.size}"
         )
 
-    # Only positive values make sense, raise error if negative ones are provided
-    if np.any(snr < 0):
-        raise ValueError("Each SNR value should be positive")
+    # Check that are values are numeric and in bounds
+    for value in values:
+        check_numeric(context, value, bounds=bounds, allow_none=allow_none)
 
     # Broadcast to all sources if a single value was provided
-    if snr.size == 1:
-        snr = np.tile(snr, (n_sources,))
+    if values.size == 1:
+        values = np.tile(values, (n_sources,))
 
-    return snr
+    return values
 
 
 def check_snr_params(snr_params, snr):

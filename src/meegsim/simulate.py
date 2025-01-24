@@ -1,6 +1,6 @@
 import networkx as nx
 
-from ._check import check_coupling, check_option, check_snr, check_snr_params
+from ._check import check_coupling, check_option, check_numeric_list, check_snr_params
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
@@ -67,6 +67,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
+        std=1,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -119,6 +120,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=snr,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             snr_params=snr_params,
@@ -143,6 +145,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
+        std=1,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -207,6 +210,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=snr,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             extents=extents,
@@ -231,6 +235,7 @@ class SourceSimulator:
         self,
         location,
         waveform=one_over_f_noise,
+        std=1,
         location_params=dict(),
         waveform_params=dict(),
     ):
@@ -274,6 +279,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=None,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             snr_params=dict(),
@@ -400,7 +406,9 @@ class SourceSimulator:
             raise ValueError("No sources were added to the configuration.")
 
         # We expect None or one value that applies to all sources
-        snr_global = check_snr(snr_global, n_sources=1)
+        snr_global = check_numeric_list(
+            "global SNR", snr_global, n_sources=1, bounds=(0, None), allow_none=True
+        )
         snr_params = check_snr_params(snr_params, snr_global)
 
         is_global_snr_adjusted = self.snr_mode == "global" and snr_global is not None
