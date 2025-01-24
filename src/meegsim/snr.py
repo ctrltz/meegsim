@@ -1,5 +1,6 @@
 import numpy as np
 import mne
+import warnings
 
 from scipy.signal import butter, filtfilt
 
@@ -104,7 +105,11 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     return factor
 
 
-def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
+def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
+    """
+    Perform the adjustment of local SNR: the power of each source is adjusted
+    relative to the power of all noise sources combined.
+    """
     # Get the stc and leadfield of all noise sources
     if not noise_sources:
         raise ValueError(
@@ -138,5 +143,44 @@ def _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources):
             # if the within-patch correlation is not equal to 1
             factor = amplitude_adjustment_factor(signal_var, noise_var, target_snr)
             s.waveform *= factor
+
+    return sources
+
+
+def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_sources):
+    """
+    Perform the adjustment of global SNR: the power of all sources combined
+    is adjusted relative to the power of all noise sources combined.
+    """
+    # Combine signal/noise sources
+    if not sources:
+        warnings.warn(
+            "No point/patch sources were added to the simulation, "
+            "skipping the requested adjustment of global SNR."
+        )
+        return sources
+
+    stc_signal = _combine_sources_into_stc(sources.values(), src, tstep)
+
+    if not noise_sources:
+        raise ValueError(
+            "No noise sources were added to the simulation, so the global SNR "
+            "cannot be adjusted."
+        )
+    stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
+
+    # Get sensor-space variance of signal and noise
+    fmin, fmax = snr_params["fmin"], snr_params["fmax"]
+    noise_var = get_sensor_space_variance(
+        stc_noise, fwd, fmin=fmin, fmax=fmax, filter=True
+    )
+    signal_var = get_sensor_space_variance(
+        stc_signal, fwd, fmin=fmin, fmax=fmax, filter=True
+    )
+
+    # Adjust the amplitudes of all sources by the same (!) factor
+    factor = amplitude_adjustment_factor(signal_var, noise_var, snr_global)
+    for s in sources.values():
+        s.waveform *= factor
 
     return sources
