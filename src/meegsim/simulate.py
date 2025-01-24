@@ -33,11 +33,16 @@ class SourceSimulator:
             simulation via either
             :meth:`~meegsim.simulate.SourceSimulator.add_point_sources` or
             :meth:`~meegsim.simulate.SourceSimulator.add_patch_sources`
+    base_amplitude : float, optional
+        The source activity is scaled by the base amplitude before projecting to
+        sensor space. By default, the base amplitude is equal to :math:`10^{-9}`,
+        corresponding to 1 nAm.
 
     """
 
-    def __init__(self, src, snr_mode="global"):
+    def __init__(self, src, snr_mode="global", base_amplitude=1e-9):
         self.src = src
+        self.base_amplitude = base_amplitude
 
         # Store groups of sources that were defined with one command
         # Store 'signal' and 'noise' separately to ease the calculation of SNR
@@ -419,6 +424,7 @@ class SourceSimulator:
             src=self.src,
             times=sc.times,
             fwd=fwd,
+            base_amplitude=self.base_amplitude,
             random_state=random_state,
         )
 
@@ -440,6 +446,7 @@ def _simulate(
     src,
     times,
     fwd,
+    base_amplitude,
     random_state=None,
 ):
     """
@@ -475,5 +482,11 @@ def _simulate(
         sources = _adjust_snr_local(
             src, fwd, tstep, sources, source_groups, noise_sources
         )
+
+    # Set the base amplitude
+    for s in sources.values():
+        s.waveform *= base_amplitude
+    for ns in noise_sources.values():
+        ns.waveform *= base_amplitude
 
     return sources, noise_sources
