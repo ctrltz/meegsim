@@ -17,8 +17,23 @@ class SourceSimulator:
     ----------
     src : mne.SourceSpaces
         The source space that contains all candidate source locations.
-    snr_mode : str
-        The mode of SNR adjustment.
+    snr_mode : {'global', 'local'}
+        The desired mode for the adjustment of the signal-to-noise ratio (SNR).
+
+        .. note::
+
+          * If ``'global'`` (default), the total power of **all** point/patch sources is
+            adjusted relative to the total power of **all** noise sources. The target
+            value of SNR should be provided in the ``snr_global`` argument of
+            :meth:`~meegsim.simulate.SourceSimulator.simulate`.
+
+          * If ``'local'``, the power of **each** point/patch source is adjusted relative
+            to the total power of **all** noise sources. The target value(s) of SNR
+            should be provided in the ``snr`` argument when adding sources to the
+            simulation via either
+            :meth:`~meegsim.simulate.SourceSimulator.add_point_sources` or
+            :meth:`~meegsim.simulate.SourceSimulator.add_patch_sources`
+
     """
 
     def __init__(self, src, snr_mode="global"):
@@ -69,8 +84,9 @@ class SourceSimulator:
             for every configuration) or as a function that generates the waveforms
             (but differ between configurations if the generation is random).
         snr : None, float, or array, optional
-            SNR values for the defined sources. Can be None (no adjustment of SNR),
-            a single value that is used for all sources or an array with one SNR
+            SNR values for the defined sources, only used if ``snr_mode`` is set to
+            ``'local'``. Can be None (no adjustment of SNR), a single value
+            that is used for all sources or an array with one SNR
             value per source.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
@@ -150,8 +166,9 @@ class SourceSimulator:
             (might differ between configurations if the generation is random).
             For each vertex in the patch, the same waveform is currently used.
         snr : None (default), float, or array
-            SNR values for the defined sources. Can be None (no adjustment of SNR,
-            default), a single value that is used for all sources or an array
+            SNR values for the defined sources, only used if ``snr_mode`` is set to
+            ``'local'``. Can be None (no adjustment of SNR, default),
+            a single value that is used for all sources or an array
             with one SNR value per source.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -359,7 +376,7 @@ class SourceSimulator:
             If no adjustment is performed, the forward model is not required.
         snr_global : float or None, optional
             The value of global SNR, only used if the ``snr_mode`` is set to
-            ``"global"``. If None (default), no adjustment of global SNR is performed.
+            ``'global'``. If None (default), no adjustment of global SNR is performed.
         snr_params : dict, optional
             Additional parameters required for the adjustment of global SNR.
             Specify ``fmin`` and ``fmax`` here to define the frequency band which

@@ -36,6 +36,31 @@ def check_numeric(context, value, bounds=(None, None), allow_none=True):
 
 
 def check_option(context, value, allowed_values, allow_none=False):
+    """
+    Check that the provided value is None (if allowed) or belongs to the list
+    of the allowed values.
+
+    Parameters
+    ----------
+    context : str
+        Context information for the error message.
+    value
+        The value to be checked.
+    allowed_values : list
+        The list of values that are allowed.
+    allow_none : bool
+        If True, None is also allowed.
+
+    Returns
+    -------
+    value
+        The provided value
+
+    Raises
+    ------
+    ValueError
+        If the provided value is not allowed.
+    """
     if allow_none and value is None:
         return value
 
