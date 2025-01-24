@@ -7,7 +7,7 @@ from meegsim.utils import (
     _extract_hemi,
     unpack_vertices,
     combine_stcs,
-    normalize_power,
+    normalize_variance,
     get_sfreq,
     vertices_to_mne,
 )
@@ -91,13 +91,13 @@ def test_combine_stcs_overlap():
     assert np.array_equal(stc.data, expected_data)
 
 
-def test_normalize_power():
+def test_normalize_variance():
     data = np.random.randn(10, 1000)
-    normalized = normalize_power(data)
+    normalized = normalize_variance(data)
 
     # Should not change the shape but should change the norm
     assert data.shape == normalized.shape
-    assert np.allclose(np.linalg.norm(normalized, axis=1), 1)
+    assert np.allclose(np.var(normalized, axis=1), 1)
 
 
 def test_get_sfreq():

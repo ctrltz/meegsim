@@ -8,7 +8,7 @@ import warnings
 
 from scipy.signal import butter, filtfilt
 
-from .utils import normalize_power, get_sfreq
+from .utils import normalize_variance, get_sfreq
 
 
 def narrowband_oscillation(
@@ -67,7 +67,7 @@ def narrowband_oscillation(
     data = rng.standard_normal(size=(n_series, times.size))
     b, a = butter(N=order, Wn=np.array([fmin, fmax]) / fs * 2, btype="bandpass")
     data = filtfilt(b, a, data, axis=1)
-    return normalize_power(data)
+    return normalize_variance(data)
 
 
 def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
@@ -98,7 +98,7 @@ def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
     data = cn.powerlaw_psd_gaussian(
         slope, size=(n_series, times.size), random_state=random_state
     )
-    return normalize_power(data)
+    return normalize_variance(data)
 
 
 def white_noise(n_series, times, *, random_state=None):
@@ -126,4 +126,4 @@ def white_noise(n_series, times, *, random_state=None):
 
     rng = np.random.default_rng(seed=random_state)
     data = rng.standard_normal(size=(n_series, times.size))
-    return normalize_power(data)
+    return normalize_variance(data)

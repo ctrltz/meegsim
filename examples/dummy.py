@@ -72,13 +72,14 @@ sc = sim.simulate(
     sfreq,
     duration,
     fwd=fwd,
-    snr_global=10,
+    snr_global=None,
     snr_params=dict(fmin=8, fmax=12),
     random_state=seed,
 )
 raw = sc.to_raw(fwd, info, sensor_noise_level=0.05)
 
 print([np.var(s.waveform) for s in sc._sources.values()])
+print([np.mean(s.waveform**2) for s in sc._sources.values()])
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot(sphere="eeglab")
