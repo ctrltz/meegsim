@@ -340,9 +340,9 @@ class SourceSimulator:
         self,
         sfreq,
         duration,
+        fwd=None,
         snr_global=None,
         snr_params=dict(),
-        fwd=None,
         random_state=None,
     ):
         """
@@ -354,6 +354,9 @@ class SourceSimulator:
             The sampling frequency of the simulated data, in Hz.
         duration : float
             Duration of the simulated data, in seconds.
+        fwd : mne.Forward, optional
+            The forward model, only to be used for the adjustment of SNR.
+            If no adjustment is performed, the forward model is not required.
         snr_global : float or None, optional
             The value of global SNR, only used if the ``snr_mode`` is set to
             ``"global"``. If None (default), no adjustment of global SNR is performed.
@@ -361,9 +364,6 @@ class SourceSimulator:
             Additional parameters required for the adjustment of global SNR.
             Specify ``fmin`` and ``fmax`` here to define the frequency band which
             should used for calculating the SNR.
-        fwd : mne.Forward, optional
-            The forward model, only to be used for the adjustment of SNR.
-            If no adjustment is performed, the forward model is not required.
         random_state : int or None, optional
             The random state can be provided to obtain reproducible configurations.
             If None (default), the simulated data will differ between function calls.

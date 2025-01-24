@@ -8,6 +8,7 @@ from meegsim.snr import (
     get_sensor_space_variance,
     amplitude_adjustment_factor,
     _adjust_snr_local,
+    _adjust_snr_global,
 )
 from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
 
@@ -157,8 +158,13 @@ def test_amplitude_adjustment_zero_noise_var():
         amplitude_adjustment_factor(signal_var, noise_var, target_snr=1)
 
 
+# ====================
+# _adjust_snr_local
+# ====================
+
+
 @patch("meegsim.snr.amplitude_adjustment_factor", return_value=2.0)
-def test_adjust_snr_point(adjust_snr_mock):
+def test_adjust_snr_local_point(adjust_snr_mock):
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
     fwd = prepare_forward(5, 4)
 
@@ -200,7 +206,7 @@ def test_adjust_snr_point(adjust_snr_mock):
 
 
 @patch("meegsim.snr.amplitude_adjustment_factor", return_value=2.0)
-def test_adjust_snr_patch(adjust_snr_mock):
+def test_adjust_snr_local_patch(adjust_snr_mock):
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
     fwd = prepare_forward(5, 4)
 
@@ -242,10 +248,102 @@ def test_adjust_snr_patch(adjust_snr_mock):
     assert np.all(sources["s2"].waveform == 1)
 
 
-def test_adjust_snr_no_noise_sources_raises():
+def test_adjust_snr_local_no_noise_sources_raises():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
     fwd = prepare_forward(5, 4)
 
     # it's only important that the noise sources list is empty
     with pytest.raises(ValueError, match="No noise sources"):
         _adjust_snr_local(src, fwd, 0.01, [], [], [])
+
+
+# ====================
+# _adjust_snr_global
+# ====================
+
+
+@patch("meegsim.snr.amplitude_adjustment_factor", return_value=2.0)
+def test_adjust_snr_global_point(adjust_snr_mock):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    # Define sources
+    # SNR should be adjusted for both s1 and s2 by the same factor
+    sources = {
+        "s1": prepare_point_source(name="s1"),
+        "s2": prepare_point_source(name="s2"),
+    }
+    noise_sources = {"n1": prepare_point_source(name="n1")}
+    tstep = 0.01
+
+    sources = _adjust_snr_global(
+        src,
+        fwd,
+        snr_global=5,
+        snr_params=dict(fmin=8, fmax=12),
+        tstep=tstep,
+        sources=sources,
+        noise_sources=noise_sources,
+    )
+
+    # Check the SNR adjustment was performed only once
+    adjust_snr_mock.assert_called_once()
+
+    # Check that the amplitudes of s1 and s2 were adjusted equally
+    assert np.all(sources["s1"].waveform == 2)
+    assert np.all(sources["s2"].waveform == 2)
+
+
+@patch("meegsim.snr.amplitude_adjustment_factor", return_value=2.0)
+def test_adjust_snr_global_patch(adjust_snr_mock):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    # Define sources
+    # SNR should be adjusted for both s1 and s2 by the same factor
+    sources = {
+        "s1": prepare_patch_source(name="s1"),
+        "s2": prepare_patch_source(name="s2"),
+    }
+    noise_sources = {"n1": prepare_point_source(name="n1")}
+    tstep = 0.01
+
+    sources = _adjust_snr_global(
+        src,
+        fwd,
+        snr_global=5,
+        snr_params=dict(fmin=8, fmax=12),
+        tstep=tstep,
+        sources=sources,
+        noise_sources=noise_sources,
+    )
+
+    # Check the SNR adjustment was performed only once
+    adjust_snr_mock.assert_called_once()
+
+    # Check that the amplitudes of s1 and s2 were adjusted equally
+    assert np.all(sources["s1"].waveform == 2)
+    assert np.all(sources["s2"].waveform == 2)
+
+
+def test_adjust_snr_global_no_sources_warns():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    # it's only important that the noise sources list is empty
+    with pytest.warns(UserWarning, match="No point/patch sources"):
+        _adjust_snr_global(src, fwd, 5, dict(fmin=8, fmax=12), 0.01, dict(), [])
+
+
+def test_adjust_snr_global_no_noise_sources_raises():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    sources = {
+        "s1": prepare_patch_source(name="s1"),
+        "s2": prepare_patch_source(name="s2"),
+    }
+
+    # it's only important that the noise sources list is empty
+    with pytest.raises(ValueError, match="No noise sources"):
+        _adjust_snr_global(src, fwd, 5, dict(fmin=8, fmax=12), 0.01, sources, [])

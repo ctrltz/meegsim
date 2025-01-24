@@ -49,10 +49,8 @@ sim.add_noise_sources(location=select_random, location_params=dict(n=10))
 sim.add_point_sources(
     location=select_random,
     waveform=narrowband_oscillation,
-    snr=1,
     location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
-    snr_params=dict(fmin=8, fmax=12),
     names=["s1", "s2", "s3"],
 )
 
@@ -70,8 +68,17 @@ sim.set_coupling(
 print(sim._coupling_graph)
 print(sim._coupling_graph.edges(data=True))
 
-sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
-raw = sc.to_raw(fwd, info, sensor_noise_level=0.1)
+sc = sim.simulate(
+    sfreq,
+    duration,
+    fwd=fwd,
+    snr_global=10,
+    snr_params=dict(fmin=8, fmax=12),
+    random_state=seed,
+)
+raw = sc.to_raw(fwd, info, sensor_noise_level=0.05)
+
+print([np.var(s.waveform) for s in sc._sources.values()])
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot(sphere="eeglab")

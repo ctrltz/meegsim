@@ -181,32 +181,50 @@ def test_sourcesimulator_set_coupling_dict(check_coupling_mock):
     assert edge_data["param"] == 1  # mock output is saved
 
 
-def test_sourcesimulator_is_snr_adjusted_false():
+def test_sourcesimulator_is_local_snr_adjusted_false():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
-    sim = SourceSimulator(src)
+    sim = SourceSimulator(src, snr_mode="local")
 
     # Add noise sources
     sim.add_noise_sources([(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)))
-
-    # SNR should not be adjusted yet
-    assert not sim.is_snr_adjusted
+    assert not sim.is_local_snr_adjusted
 
     # Add point sources WITHOUT adjustment of SNR
     sim.add_point_sources([(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)))
-
-    # SNR should not be adjusted yet
-    assert not sim.is_snr_adjusted
+    assert not sim.is_local_snr_adjusted
 
     # Add patch sources WITHOUT adjustment of SNR
     sim.add_patch_sources([(0, [0, 1]), (1, [0, 1])], np.ones((2, 100)))
+    assert not sim.is_local_snr_adjusted
 
-    # SNR should not be adjusted yet
-    assert not sim.is_snr_adjusted
+
+def test_sourcesimulator_is_local_snr_adjusted_ignored():
+    # In global SNR mode, source-specific SNR should be ignored
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    sim = SourceSimulator(src)
+
+    # Add point sources WITH adjustment of SNR
+    sim.add_point_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100)),
+        snr=5,
+        snr_params=dict(fmin=8, fmax=12),
+    )
+    assert not sim.is_local_snr_adjusted
+
+    # Add patch sources WITH adjustment of SNR
+    sim.add_patch_sources(
+        [(0, [0, 1]), (1, [0, 1])],
+        np.ones((2, 100)),
+        snr=5,
+        snr_params=dict(fmin=8, fmax=12),
+    )
+    assert not sim.is_local_snr_adjusted
 
 
 def test_sourcesimulator_is_snr_adjusted_true_point_source():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
-    sim = SourceSimulator(src)
+    sim = SourceSimulator(src, snr_mode="local")
 
     # Add point sources WITH adjustment of SNR
     sim.add_point_sources(
@@ -217,7 +235,7 @@ def test_sourcesimulator_is_snr_adjusted_true_point_source():
     )
 
     # SNR should be adjusted now
-    assert sim.is_snr_adjusted
+    assert sim.is_local_snr_adjusted
 
     # Forward model is required for simulations
     with pytest.raises(ValueError, match="A forward model"):
@@ -226,7 +244,7 @@ def test_sourcesimulator_is_snr_adjusted_true_point_source():
 
 def test_sourcesimulator_is_snr_adjusted_true_patch_source():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
-    sim = SourceSimulator(src)
+    sim = SourceSimulator(src, snr_mode="local")
 
     # Add point sources WITH adjustment of SNR
     sim.add_patch_sources(
@@ -237,7 +255,7 @@ def test_sourcesimulator_is_snr_adjusted_true_patch_source():
     )
 
     # SNR should be adjusted now
-    assert sim.is_snr_adjusted
+    assert sim.is_local_snr_adjusted
 
     # Forward model is required for simulations
     with pytest.raises(ValueError, match="A forward model"):
@@ -312,11 +330,14 @@ def test_simulate():
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, noise_sources = _simulate(
-            source_groups,
-            noise_groups,
-            nx.Graph(),
-            False,
-            src,
+            source_groups=source_groups,
+            noise_groups=noise_groups,
+            coupling_graph=nx.Graph(),
+            snr_mode="global",
+            snr_global=None,
+            snr_params=dict(),
+            is_local_snr_adjusted=False,
+            src=src,
             times=times,
             fwd=None,
             random_state=0,
@@ -336,7 +357,7 @@ def test_simulate():
 
 
 @patch("meegsim.simulate._adjust_snr_local", return_value=[])
-def test_simulate_snr_adjustment(adjust_snr_mock):
+def test_simulate_local_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source
     simulate_mock = Mock(
         side_effect=[
@@ -370,11 +391,69 @@ def test_simulate_snr_adjustment(adjust_snr_mock):
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, _ = _simulate(
-            source_groups,
-            noise_groups,
-            nx.Graph(),
-            True,
-            src,
+            source_groups=source_groups,
+            noise_groups=noise_groups,
+            coupling_graph=nx.Graph(),
+            snr_mode="local",
+            snr_global=None,
+            snr_params=dict(),
+            is_local_snr_adjusted=True,
+            src=src,
+            times=times,
+            fwd=fwd,
+            random_state=0,
+        )
+
+        # Check that the SNR adjustment was performed
+        adjust_snr_mock.assert_called()
+
+        # Check that the result (empty list in the mock) was saved as is
+        assert not sources
+
+
+@patch("meegsim.simulate._adjust_snr_global", return_value=[])
+def test_simulate_global_snr_adjustment(adjust_snr_mock):
+    # return mock PointSource's - 1 noise source, 1 signal source
+    simulate_mock = Mock(
+        side_effect=[
+            [prepare_point_source(name="n1")],
+            [prepare_point_source(name="s1")],
+        ]
+    )
+
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    # Define source groups
+    source_groups = [
+        PointSourceGroup(
+            n_sources=1,
+            location=[(0, 0)],
+            waveform=np.ones((1, 100)),
+            snr=None,
+            snr_params=dict(),
+            names=["s1"],
+        ),
+    ]
+    noise_groups = [
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ["n1"]),
+    ]
+
+    with patch.object(
+        meegsim.source_groups.PointSourceGroup, "simulate", simulate_mock
+    ):
+        sfreq = 100
+        duration = 5
+        times = np.arange(0, sfreq * duration) / sfreq
+        sources, _ = _simulate(
+            source_groups=source_groups,
+            noise_groups=noise_groups,
+            coupling_graph=nx.Graph(),
+            snr_mode="global",
+            snr_global=5,
+            snr_params=dict(fmin=8, fmax=12),
+            is_local_snr_adjusted=False,
+            src=src,
             times=times,
             fwd=fwd,
             random_state=0,
@@ -423,11 +502,14 @@ def test_simulate_coupling_setup(set_coupling_mock):
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
         sources, _ = _simulate(
-            source_groups,
-            noise_groups,
-            coupling_graph,
-            False,
-            src,
+            source_groups=source_groups,
+            noise_groups=noise_groups,
+            coupling_graph=coupling_graph,
+            snr_mode="global",
+            snr_global=None,
+            snr_params=dict(),
+            is_local_snr_adjusted=False,
+            src=src,
             times=times,
             fwd=fwd,
             random_state=0,

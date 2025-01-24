@@ -1,5 +1,6 @@
 import numpy as np
 import mne
+import warnings
 
 from scipy.signal import butter, filtfilt
 
@@ -144,19 +145,21 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
 
 def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_sources):
     # Combine signal/noise sources
+    if not sources:
+        warnings.warn(
+            "No point/patch sources were added to the simulation, "
+            "skipping the requested adjustment of global SNR."
+        )
+        return sources
+
+    stc_signal = _combine_sources_into_stc(sources.values(), src, tstep)
+
     if not noise_sources:
         raise ValueError(
             "No noise sources were added to the simulation, so the global SNR "
             "cannot be adjusted."
         )
     stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
-
-    if not sources:
-        raise ValueError(
-            "No point/patch sources were added to the simulation, "
-            "so the global SNR cannot be adjusted."
-        )
-    stc_signal = _combine_sources_into_stc(sources.values(), src, tstep)
 
     # Get sensor-space variance of signal and noise
     fmin, fmax = snr_params["fmin"], snr_params["fmax"]
