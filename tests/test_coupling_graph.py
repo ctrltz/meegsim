@@ -139,7 +139,7 @@ def test_set_coupling(generate_mock):
     coupling_graph.add_edges_from(coupling)
     times = np.arange(100) / 100
 
-    sources = _set_coupling(sources, coupling_graph, times, random_state=0)
+    _set_coupling(sources, coupling_graph, times, random_state=0)
 
     # Check that the coupled waveforms were saved correctly
     # First value in the tuple is the provided argument for kappa
@@ -159,7 +159,7 @@ def test_set_coupling_random_state(generate_mock):
     times = np.arange(100) / 100
     random_state = 1234
 
-    sources = _set_coupling(sources, coupling_graph, times, random_state)
+    _set_coupling(sources, coupling_graph, times, random_state)
 
     # Check that the random state was forwarded to low-level functions
     assert generate_mock.call_args.kwargs["random_state"] == random_state

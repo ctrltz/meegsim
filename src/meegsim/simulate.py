@@ -467,26 +467,24 @@ def _simulate(
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
     if coupling_graph.number_of_edges() > 0:
-        sources = _set_coupling(
-            sources, coupling_graph, times, random_state=random_state
-        )
-
-    # Adjust the SNR if needed
-    if snr_mode == "global" and snr_global is not None:
-        tstep = times[1] - times[0]
-        sources = _adjust_snr_global(
-            src, fwd, snr_global, snr_params, tstep, sources, noise_sources
-        )
-    elif is_local_snr_adjusted:
-        tstep = times[1] - times[0]
-        sources = _adjust_snr_local(
-            src, fwd, tstep, sources, source_groups, noise_sources
-        )
+        _set_coupling(sources, coupling_graph, times, random_state=random_state)
 
     # Set the base amplitude
+    # NOTE: this should also be helpful to get less warnings about unreasonably
+    # high values from apply_forward_raw
     for s in sources.values():
         s.waveform *= base_amplitude
     for ns in noise_sources.values():
         ns.waveform *= base_amplitude
+
+    # Adjust the SNR if needed
+    if snr_mode == "global" and snr_global is not None:
+        tstep = times[1] - times[0]
+        _adjust_snr_global(
+            src, fwd, snr_global, snr_params, tstep, sources, noise_sources
+        )
+    elif is_local_snr_adjusted:
+        tstep = times[1] - times[0]
+        _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
 
     return sources, noise_sources

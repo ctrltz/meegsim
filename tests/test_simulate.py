@@ -340,6 +340,7 @@ def test_simulate():
             src=src,
             times=times,
             fwd=None,
+            base_amplitude=1e-9,
             random_state=0,
         )
 
@@ -355,8 +356,14 @@ def test_simulate():
         assert len(sources) == 2, f"Expected 2 sources, got {len(sources)}"
         assert len(noise_sources) == 4, f"Expected 4 sources, got {len(noise_sources)}"
 
+        # Check that all source waveform were scaled by the base amplitude
+        for s in sources.values():
+            assert np.allclose(s.waveform, 1e-9)
+        for ns in noise_sources.values():
+            assert np.allclose(s.waveform, 1e-9)
 
-@patch("meegsim.simulate._adjust_snr_local", return_value=[])
+
+@patch("meegsim.simulate._adjust_snr_local")
 def test_simulate_local_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source
     simulate_mock = Mock(
@@ -390,7 +397,7 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=nx.Graph(),
@@ -401,17 +408,15 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_amplitude=1e-9,
             random_state=0,
         )
 
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
 
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources
 
-
-@patch("meegsim.simulate._adjust_snr_global", return_value=[])
+@patch("meegsim.simulate._adjust_snr_global")
 def test_simulate_global_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source
     simulate_mock = Mock(
@@ -445,7 +450,7 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=nx.Graph(),
@@ -456,17 +461,15 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_amplitude=1e-9,
             random_state=0,
         )
 
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
 
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources
 
-
-@patch("meegsim.simulate._set_coupling", return_value=[])
+@patch("meegsim.simulate._set_coupling")
 def test_simulate_coupling_setup(set_coupling_mock):
     # return 2 mock PointSource's
     simulate_mock = Mock(
@@ -501,7 +504,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=coupling_graph,
@@ -512,11 +515,9 @@ def test_simulate_coupling_setup(set_coupling_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_amplitude=1e-9,
             random_state=0,
         )
 
         # Check that the coupling setup was performed
         set_coupling_mock.assert_called()
-
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources
