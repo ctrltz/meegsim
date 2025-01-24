@@ -37,7 +37,6 @@ class SourceSimulator:
         The source activity is scaled by the base amplitude before projecting to
         sensor space. By default, the base amplitude is equal to :math:`10^{-9}`,
         corresponding to 1 nAm.
-
     """
 
     def __init__(self, src, snr_mode="global", base_amplitude=1e-9):
@@ -469,13 +468,13 @@ def _simulate(
     if coupling_graph.number_of_edges() > 0:
         _set_coupling(sources, coupling_graph, times, random_state=random_state)
 
-    # Set the base amplitude
+    # Set the standard deviation of all sources w.r.t. base amplitude
     # NOTE: this should also be helpful to get less warnings about unreasonably
     # high values from apply_forward_raw
     for s in sources.values():
-        s.waveform *= base_amplitude
+        s.waveform *= base_amplitude * s.std
     for ns in noise_sources.values():
-        ns.waveform *= base_amplitude
+        ns.waveform *= base_amplitude * s.std
 
     # Adjust the SNR if needed
     if snr_mode == "global" and snr_global is not None:
