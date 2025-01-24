@@ -140,3 +140,36 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
             s.waveform *= factor
 
     return sources
+
+
+def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_sources):
+    # Combine signal/noise sources
+    if not noise_sources:
+        raise ValueError(
+            "No noise sources were added to the simulation, so the global SNR "
+            "cannot be adjusted."
+        )
+    stc_noise = _combine_sources_into_stc(noise_sources.values(), src, tstep)
+
+    if not sources:
+        raise ValueError(
+            "No point/patch sources were added to the simulation, "
+            "so the global SNR cannot be adjusted."
+        )
+    stc_signal = _combine_sources_into_stc(sources.values(), src, tstep)
+
+    # Get sensor-space variance of signal and noise
+    fmin, fmax = snr_params["fmin"], snr_params["fmax"]
+    noise_var = get_sensor_space_variance(
+        stc_noise, fwd, fmin=fmin, fmax=fmax, filter=True
+    )
+    signal_var = get_sensor_space_variance(
+        stc_signal, fwd, fmin=fmin, fmax=fmax, filter=True
+    )
+
+    # Adjust the amplitudes of all sources by the same (!) factor
+    factor = amplitude_adjustment_factor(signal_var, noise_var, snr_global)
+    for s in sources.values():
+        s.waveform *= factor
+
+    return sources

@@ -35,6 +35,16 @@ def check_numeric(context, value, bounds=(None, None), allow_none=True):
     return value
 
 
+def check_option(context, value, allowed_values, allow_none=False):
+    if allow_none and value is None:
+        return value
+
+    if value not in allowed_values:
+        raise ValueError(f"The value {value} is not allowed for {context}")
+
+    return value
+
+
 def check_callable(context, fun, *args, **kwargs):
     """
     Check whether the provided function can be run successfully.
