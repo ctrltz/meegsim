@@ -378,7 +378,7 @@ class SourceSimulator:
         if not (self._source_groups or self._noise_groups):
             raise ValueError("No sources were added to the configuration.")
 
-        # We expect one value that applies to all sources or None
+        # We expect None or one value that applies to all sources
         snr_global = check_snr(snr_global, n_sources=1)
         snr_params = check_snr_params(snr_params, snr_global)
 
@@ -448,7 +448,7 @@ def _simulate(
         )
 
     # Adjust the SNR if needed
-    if snr_mode == "global":
+    if snr_mode == "global" and snr_global is not None:
         tstep = times[1] - times[0]
         sources = _adjust_snr_global(
             src, fwd, snr_global, snr_params, tstep, sources, noise_sources
