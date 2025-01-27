@@ -1,6 +1,6 @@
 import networkx as nx
 
-from ._check import check_coupling, check_option, check_numeric_list, check_snr_params
+from ._check import check_coupling, check_option, check_numeric_array, check_snr_params
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
@@ -406,7 +406,7 @@ class SourceSimulator:
             raise ValueError("No sources were added to the configuration.")
 
         # We expect None or one value that applies to all sources
-        snr_global = check_numeric_list(
+        snr_global = check_numeric_array(
             "global SNR", snr_global, n_sources=1, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr_global)

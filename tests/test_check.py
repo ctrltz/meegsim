@@ -11,7 +11,7 @@ from meegsim._check import (
     check_location,
     check_waveform,
     check_names,
-    check_numeric_list,
+    check_numeric_array,
     check_snr_params,
     check_if_source_exists,
     check_coupling,
@@ -208,33 +208,38 @@ def test_check_waveform_callable_bad_shape_raises():
         )
 
 
-def test_check_snr_is_none_passes():
-    snr = check_numeric_list(None, 5)
+def test_check_numeric_array_none_passes_if_allowed():
+    snr = check_numeric_array("value", None, 5, allow_none=True)
     assert snr is None
 
 
+def test_check_numeric_array_none_raises_if_not_allowed():
+    with pytest.raises(ValueError, match="Expected value to be a float number"):
+        check_numeric_array("value", None, 5, allow_none=False)
+
+
 @pytest.mark.parametrize("n_sources", [1, 5, 10])
-def test_check_snr_float_passes(n_sources):
-    snr = check_numeric_list(1.0, n_sources)
+def test_check_numeric_array_float_passes(n_sources):
+    snr = check_numeric_array("float", 1.0, n_sources)
     assert snr.size == n_sources
     assert np.all(snr == 1.0)
 
 
-def test_check_snr_array_valid_shape_passes():
+def test_check_numeric_array_out_of_bounds_raises():
+    with pytest.raises(ValueError, match="Expected float to be 0 or greater"):
+        check_numeric_array("float", -1.0, 1, bounds=(0, None))
+
+
+def test_check_numeric_array_valid_shape_passes():
     initial = [1, 2, 3, 4, 5]
-    snr = check_numeric_list(initial, 5)
+    snr = check_numeric_array("array", initial, 5)
     assert np.array_equal(snr, initial)
 
 
-def test_check_snr_array_invalid_shape_raises():
+def test_check_numeric_array_invalid_shape_raises():
     initial = [1, 2, 3, 4, 5]
     with pytest.raises(ValueError, match="of the 3 sources, got 5"):
-        check_numeric_list(initial, 3)
-
-
-def test_check_snr_negative_snr_raises():
-    with pytest.raises(ValueError, match="Each SNR value should be positive"):
-        check_numeric_list([-1, 0, 1], 3)
+        check_numeric_array("array", initial, 3)
 
 
 def test_check_snr_params_snr_is_none():

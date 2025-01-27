@@ -334,25 +334,31 @@ def check_names(names, n_sources, existing):
         raise ValueError("All names should be unique")
 
 
-def check_numeric_list(
+def check_numeric_array(
     context, value, n_sources, bounds=(None, None), allow_none=False
 ):
     """
-    Check the user input for SNR: it can either be None (no adjustment of SNR),
-    a single float value that applies to all sources or an array of values
-    with one for each source.
+    Check the user input in case a list of numeric values for several sources
+    is expected. If allowed, it can be None, a single float value that applies
+    to all sources or an array of values with one for each source.
 
     Parameters
     ----------
-    snr: None, float, or array
-        The provided value(s) for SNR
-    n_sources: int
+    context : str
+        Context information for the error message
+    value : None, float, or array
+        The provided value(s).
+    n_sources : int
         The number of sources.
+    bounds : tuple
+        Bounds for the provided numeric values.
+    allow_none : bool
+        Whether None value is allowed.
 
     Raises
     ------
     ValueError
-        If the provided SNR value(s) do not follow the format described above.
+        If the provided value(s) do not follow the format described above.
     """
 
     if value is None and allow_none:

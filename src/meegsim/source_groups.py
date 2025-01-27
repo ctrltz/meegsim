@@ -6,7 +6,7 @@ defined by the user until we actually start simulating the data.
 from ._check import (
     check_location,
     check_waveform,
-    check_numeric_list,
+    check_numeric_array,
     check_snr_params,
     check_names,
     check_extents,
@@ -137,11 +137,11 @@ class PointSourceGroup(_BaseSourceGroup):
         # Check the user input
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
-        snr = check_numeric_list(
+        snr = check_numeric_array(
             "SNR", snr, n_sources, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr)
-        std = check_numeric_list("std", std, n_sources, bounds=(0, None))
+        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
 
         # Auto-generate or check the provided source names
         if not names:
@@ -254,11 +254,11 @@ class PatchSourceGroup(_BaseSourceGroup):
         # Check the user input
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
-        snr = check_numeric_list(
+        snr = check_numeric_array(
             "SNR", snr, n_sources, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr)
-        std = check_numeric_list("std", std, n_sources, bounds=(0, None))
+        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
         extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names
