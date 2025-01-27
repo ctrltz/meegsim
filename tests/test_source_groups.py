@@ -29,7 +29,7 @@ def test_basesourcegroup_is_abstract():
 
 
 def test_pointsourcegroup_repr_no_callables():
-    point_sg = PointSourceGroup(4, [(0, 0)], np.array([0]), None, dict(), [])
+    point_sg = PointSourceGroup(4, [(0, 0)], np.array([0]), None, dict(), 1, [])
     assert "4 sources" in repr(point_sg)
     assert "location=list" in repr(point_sg)
     assert "waveform=array" in repr(point_sg)
@@ -43,7 +43,7 @@ def test_pointsourcegroup_repr_with_callables():
         return x
 
     point_sg = PointSourceGroup(
-        4, partial(my_location, x=1), partial(my_waveform, x=1), None, dict(), []
+        4, partial(my_location, x=1), partial(my_waveform, x=1), None, dict(), 1, []
     )
     assert "4 sources" in repr(point_sg)
     assert "location=my_location" in repr(point_sg)
@@ -61,6 +61,7 @@ def test_pointsourcegroup_create_using_arrays(location_mock, waveform_mock):
         location,
         waveform,
         snr=None,
+        std=1,
         location_params=dict(pick=1),
         waveform_params=dict(value=1),
         snr_params=dict(),
@@ -94,6 +95,7 @@ def test_pointsourcegroup_create_using_callables(location_mock, waveform_mock):
         location_fun,
         waveform_fun,
         snr=None,
+        std=1,
         location_params=dict(pick=1),
         waveform_params=dict(value=1),
         snr_params=dict(),

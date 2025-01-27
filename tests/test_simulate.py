@@ -308,17 +308,18 @@ def test_simulate():
     # some dummy data - 2 sources + (1 + 3 = 4) noise sources expected
     source_groups = [
         PointSourceGroup(
-            2, [(0, 0), (0, 1)], np.ones((2, 100)), None, dict(), ["s2", "s3"]
+            2, [(0, 0), (0, 1)], np.ones((2, 100)), None, dict(), 1, ["s2", "s3"]
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), ["s1"]),
+        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), 1, ["s1"]),
         PointSourceGroup(
             3,
             [(0, 0), (0, 1), (1, 0)],
             np.ones((3, 100)),
             None,
             dict(),
+            1,
             ["s4", "s5", "s6"],
         ),
     ]
@@ -384,11 +385,12 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=np.array([5.0]),
             snr_params=dict(fmin=8, fmax=12),
+            std=1,
             names=["s1"],
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ["n1"]),
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), 1, ["n1"]),
     ]
 
     with patch.object(
@@ -437,11 +439,12 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=None,
             snr_params=dict(),
+            std=1,
             names=["s1"],
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ["n1"]),
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), 1, ["n1"]),
     ]
 
     with patch.object(
@@ -490,6 +493,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
             waveform=np.ones((2, 500)),
             snr=None,
             snr_params=dict(),
+            std=1,
             names=["s1", "s2"],
         ),
     ]

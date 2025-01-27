@@ -177,6 +177,7 @@ def test_adjust_snr_local_point(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=np.array([5.0]),
             snr_params=dict(fmin=8, fmax=12),
+            std=1,
             names=["s1"],
         ),
         PointSourceGroup(
@@ -185,6 +186,7 @@ def test_adjust_snr_local_point(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=None,
             snr_params=dict(),
+            std=1,
             names=["s2"],
         ),
     ]
@@ -218,6 +220,7 @@ def test_adjust_snr_local_patch(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=np.array([5.0]),
             snr_params=dict(fmin=8, fmax=12),
+            std=1,
             extents=None,
             names=["s1"],
         ),
@@ -227,6 +230,7 @@ def test_adjust_snr_local_patch(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=None,
             snr_params=dict(),
+            std=1,
             extents=None,
             names=["s2"],
         ),

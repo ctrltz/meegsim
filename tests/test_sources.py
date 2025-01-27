@@ -122,14 +122,16 @@ def test_pointsource_create_from_arrays():
     times = np.arange(n_samples) / sfreq
     location = [(0, 0), (1, 1)]
     waveform = np.tile(np.arange(n_sources), (n_samples, 1)).T
+    stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, names)
+    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
     assert [s.vertno for s in sources] == [0, 1]
     assert [s.waveform[0] for s in sources] == [0, 1]
+    assert [s.std for s in sources] == stds
     assert [s.name for s in sources] == names
 
 
@@ -148,14 +150,16 @@ def test_pointsource_create_from_callables():
     times = np.arange(n_samples) / sfreq
     location = location_pick_first
     waveform = waveform_constant
+    stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, names)
+    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
     assert [s.vertno for s in sources] == [0, 0]
     assert [s.waveform[0] for s in sources] == [0, 1]
+    assert [s.std for s in sources] == stds
     assert [s.name for s in sources] == names
 
 
@@ -224,7 +228,7 @@ def test_patchsource_to_stc_bad_vertno_raises():
         s.to_stc(src, tstep=0.01, subject="mysubject")
 
 
-def test_patch_source_with_extent():
+def test_patchsource_create_with_extent():
     """Test that PatchSource properly handles 'extent' parameter."""
 
     src = prepare_source_space(
@@ -251,6 +255,7 @@ def test_patch_source_with_extent():
             ),
         ]
     )  # Two waveforms for two sources
+    stds = [1, 2]
     names = ["source_1", "source_2"]
 
     # Mock extents for each source
@@ -270,6 +275,7 @@ def test_patch_source_with_extent():
             n_sources=n_sources,
             location=location,
             waveform=waveform,
+            stds=stds,
             names=names,
             extents=extents,
             random_state=None,
@@ -283,12 +289,14 @@ def test_patch_source_with_extent():
         assert source_1.name == "source_1", "First source name mismatch"
         assert source_1.src_idx == 0, "First source src_idx mismatch"
         assert source_1.vertno == vertno, "First source vertno mismatch"
+        assert source_1.std == 1, "First source std mismatch"
 
         # Check the second source (without extent)
         source_2 = sources[1]
         assert source_2.name == "source_2", "Second source name mismatch"
         assert source_2.src_idx == 1, "Second source src_idx mismatch"
         assert source_2.vertno == [8], "Second source vertno mismatch"
+        assert source_2.std == 2, "Second source std mismatch"
 
         # Verify that grow_labels was called once for the source with extent
         mock_grow_labels.assert_called_once_with("meegsim", 2, 3, 0, subjects_dir=None)
