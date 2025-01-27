@@ -75,8 +75,8 @@ class SourceConfiguration:
         show_noise_sources : bool, optional
             Controls whether noise sources should be displayed (True by default).
         show_candidate_locations : bool, optional
-            Controls whether all candidate sources in the source space should
-            be displayed (False by default).
+            Controls whether candidate source locations (all vertices present in
+            the source space) should be displayed (False by default).
         **kwargs: dict, optional
             Additional parameters that should be passed to
             :meth:`mne.SourceEstimate.plot`.
