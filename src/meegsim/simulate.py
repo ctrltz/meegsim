@@ -1,10 +1,10 @@
 import networkx as nx
 
-from ._check import check_coupling
+from ._check import check_coupling, check_option, check_snr, check_snr_params
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
-from .snr import _adjust_snr
+from .snr import _adjust_snr_local, _adjust_snr_global
 from .waveform import one_over_f_noise
 
 
@@ -17,9 +17,26 @@ class SourceSimulator:
     ----------
     src : mne.SourceSpaces
         The source space that contains all candidate source locations.
+    snr_mode : {'global', 'local'}
+        The desired mode for the adjustment of the signal-to-noise ratio (SNR).
+
+        .. note::
+
+          * If ``'global'`` (default), the total power of **all** point/patch sources is
+            adjusted relative to the total power of **all** noise sources. The target
+            value of SNR should be provided in the ``snr_global`` argument of
+            :meth:`~meegsim.simulate.SourceSimulator.simulate`.
+
+          * If ``'local'``, the power of **each** point/patch source is adjusted relative
+            to the total power of **all** noise sources. The target value(s) of SNR
+            should be provided in the ``snr`` argument when adding sources to the
+            simulation via either
+            :meth:`~meegsim.simulate.SourceSimulator.add_point_sources` or
+            :meth:`~meegsim.simulate.SourceSimulator.add_patch_sources`
+
     """
 
-    def __init__(self, src):
+    def __init__(self, src, snr_mode="global"):
         self.src = src
 
         # Store groups of sources that were defined with one command
@@ -35,7 +52,11 @@ class SourceSimulator:
 
         # Keep track whether SNR of any source should be adjusted
         # If yes, then a forward model is required for simulation
-        self.is_snr_adjusted = False
+        self.is_local_snr_adjusted = False
+
+        # Global adjustment of SNR: combined signal vs. combined noise
+        # Local adjustment of SNR: each signal separately vs. combined noise
+        self.snr_mode = check_option("snr_mode", snr_mode, ["global", "local"])
 
     def add_point_sources(
         self,
@@ -63,8 +84,9 @@ class SourceSimulator:
             for every configuration) or as a function that generates the waveforms
             (but differ between configurations if the generation is random).
         snr : None, float, or array, optional
-            SNR values for the defined sources. Can be None (no adjustment of SNR),
-            a single value that is used for all sources or an array with one SNR
+            SNR values for the defined sources, only used if ``snr_mode`` is set to
+            ``'local'``. Can be None (no adjustment of SNR), a single value
+            that is used for all sources or an array with one SNR
             value per source.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
@@ -106,8 +128,8 @@ class SourceSimulator:
         self._sources.extend(point_sg.names)
 
         # Check if SNR should be adjusted
-        if point_sg.snr is not None:
-            self.is_snr_adjusted = True
+        if point_sg.snr is not None and self.snr_mode == "local":
+            self.is_local_snr_adjusted = True
 
         # Return the names of newly added sources
         return point_sg.names
@@ -144,8 +166,9 @@ class SourceSimulator:
             (might differ between configurations if the generation is random).
             For each vertex in the patch, the same waveform is currently used.
         snr : None (default), float, or array
-            SNR values for the defined sources. Can be None (no adjustment of SNR,
-            default), a single value that is used for all sources or an array
+            SNR values for the defined sources, only used if ``snr_mode`` is set to
+            ``'local'``. Can be None (no adjustment of SNR, default),
+            a single value that is used for all sources or an array
             with one SNR value per source.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -194,8 +217,8 @@ class SourceSimulator:
         self._sources.extend(patch_sg.names)
 
         # Check if SNR should be adjusted
-        if patch_sg.snr is not None:
-            self.is_snr_adjusted = True
+        if patch_sg.snr is not None and self.snr_mode == "local":
+            self.is_local_snr_adjusted = True
 
         # Return the names of newly added sources
         return patch_sg.names
@@ -330,7 +353,15 @@ class SourceSimulator:
             source, target = coupling_edge
             self._coupling_graph.add_edge(source, target, **params)
 
-    def simulate(self, sfreq, duration, fwd=None, random_state=None):
+    def simulate(
+        self,
+        sfreq,
+        duration,
+        fwd=None,
+        snr_global=None,
+        snr_params=dict(),
+        random_state=None,
+    ):
         """
         Simulate a configuration of defined sources.
 
@@ -343,7 +374,14 @@ class SourceSimulator:
         fwd : mne.Forward, optional
             The forward model, only to be used for the adjustment of SNR.
             If no adjustment is performed, the forward model is not required.
-        random_state : int or None (default)
+        snr_global : float or None, optional
+            The value of global SNR, only used if the ``snr_mode`` is set to
+            ``'global'``. If None (default), no adjustment of global SNR is performed.
+        snr_params : dict, optional
+            Additional parameters required for the adjustment of global SNR.
+            Specify ``fmin`` and ``fmax`` here to define the frequency band which
+            should used for calculating the SNR.
+        random_state : int or None, optional
             The random state can be provided to obtain reproducible configurations.
             If None (default), the simulated data will differ between function calls.
 
@@ -357,7 +395,13 @@ class SourceSimulator:
         if not (self._source_groups or self._noise_groups):
             raise ValueError("No sources were added to the configuration.")
 
-        if self.is_snr_adjusted and fwd is None:
+        # We expect None or one value that applies to all sources
+        snr_global = check_snr(snr_global, n_sources=1)
+        snr_params = check_snr_params(snr_params, snr_global)
+
+        is_global_snr_adjusted = self.snr_mode == "global" and snr_global is not None
+        is_local_snr_adjusted = self.snr_mode == "local" and self.is_local_snr_adjusted
+        if (is_global_snr_adjusted or is_local_snr_adjusted) and fwd is None:
             raise ValueError("A forward model is required for the adjustment of SNR.")
 
         # Initialize the SourceConfiguration
@@ -365,12 +409,15 @@ class SourceSimulator:
 
         # Simulate signal and noise
         sources, noise_sources = _simulate(
-            self._source_groups,
-            self._noise_groups,
-            self._coupling_graph,
-            self.is_snr_adjusted,
-            self.src,
-            sc.times,
+            source_groups=self._source_groups,
+            noise_groups=self._noise_groups,
+            coupling_graph=self._coupling_graph,
+            snr_mode=self.snr_mode,
+            snr_global=snr_global,
+            snr_params=snr_params,
+            is_local_snr_adjusted=self.is_local_snr_adjusted,
+            src=self.src,
+            times=sc.times,
             fwd=fwd,
             random_state=random_state,
         )
@@ -386,7 +433,10 @@ def _simulate(
     source_groups,
     noise_groups,
     coupling_graph,
-    is_snr_adjusted,
+    snr_mode,
+    snr_global,
+    snr_params,
+    is_local_snr_adjusted,
     src,
     times,
     fwd,
@@ -415,8 +465,15 @@ def _simulate(
         )
 
     # Adjust the SNR if needed
-    if is_snr_adjusted:
+    if snr_mode == "global" and snr_global is not None:
         tstep = times[1] - times[0]
-        sources = _adjust_snr(src, fwd, tstep, sources, source_groups, noise_sources)
+        sources = _adjust_snr_global(
+            src, fwd, snr_global, snr_params, tstep, sources, noise_sources
+        )
+    elif is_local_snr_adjusted:
+        tstep = times[1] - times[0]
+        sources = _adjust_snr_local(
+            src, fwd, tstep, sources, source_groups, noise_sources
+        )
 
     return sources, noise_sources

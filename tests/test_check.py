@@ -19,6 +19,7 @@ from meegsim._check import (
     check_numeric,
     check_colors,
     check_scale_factors,
+    check_option,
 )
 
 from utils.prepare import prepare_source_space
@@ -45,6 +46,15 @@ def test_check_numeric_out_of_bounds():
 
     with pytest.raises(ValueError, match="Expected var to be 2 or lower"):
         check_numeric("var", 5, bounds=[0, 2])
+
+
+def test_check_option_should_pass():
+    check_option("", "aaa", ["aaa", "bbb"])
+
+
+def test_check_option_bad_option():
+    with pytest.raises(ValueError, match="The value aaa is not allowed for bbb"):
+        check_option("bbb", "aaa", ["ccc", "ddd"])
 
 
 def test_check_callable():

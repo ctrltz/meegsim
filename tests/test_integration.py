@@ -28,7 +28,7 @@ def test_builtin_methods():
     duration = 10
     seed = 1234
 
-    sim = SourceSimulator(src)
+    sim = SourceSimulator(src, snr_mode="local")
 
     # 1/f noise (default), fixed location
     sim.add_noise_sources(location=[(0, 0), (0, 2), (0, 4)])
@@ -75,7 +75,7 @@ def test_builtin_methods():
     )
 
     # Actual simulation
-    sc = sim.simulate(sfreq, duration, fwd, random_state=seed)
+    sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
 
     # SourceConfiguration methods
     stc = sc.to_stc()
@@ -83,10 +83,21 @@ def test_builtin_methods():
     sc.to_raw(fwd, info, sensor_noise_level=0.25)
 
     # Check that it is possible to simulate data multiple times
-    sc_new = sim.simulate(sfreq, duration, fwd, random_state=seed)
+    sc_new = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
     stc_new = sc_new.to_stc()
     raw_new = sc_new.to_raw(fwd, info)
 
     # Check that the result is reproducible
     assert np.allclose(stc.data, stc_new.data)
     assert np.allclose(raw.get_data(), raw_new.get_data())
+
+    # Check that the global adjustment of SNR works
+    sim.snr_mode = "global"
+    sc = sim.simulate(
+        sfreq,
+        duration,
+        snr_global=5,
+        snr_params=dict(fmin=8, fmax=12),
+        fwd=fwd,
+        random_state=seed,
+    )
