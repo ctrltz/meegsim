@@ -341,7 +341,7 @@ def test_simulate():
             src=src,
             times=times,
             fwd=None,
-            base_amplitude=1e-9,
+            base_std=1e-9,
             random_state=0,
         )
 
@@ -357,10 +357,10 @@ def test_simulate():
         assert len(sources) == 2, f"Expected 2 sources, got {len(sources)}"
         assert len(noise_sources) == 4, f"Expected 4 sources, got {len(noise_sources)}"
 
-        # Check that all source waveform were scaled by the base amplitude
+        # Check that all source waveform were scaled by the base std
         for s in sources.values():
             assert np.allclose(s.waveform, 1e-9)
-        for ns in noise_sources.values():
+        for s in noise_sources.values():
             assert np.allclose(s.waveform, 1e-9)
 
 
@@ -410,7 +410,7 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
-            base_amplitude=1e-9,
+            base_std=1e-9,
             random_state=0,
         )
 
@@ -464,7 +464,7 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
-            base_amplitude=1e-9,
+            base_std=1e-9,
             random_state=0,
         )
 
@@ -519,9 +519,12 @@ def test_simulate_coupling_setup(set_coupling_mock):
             src=src,
             times=times,
             fwd=fwd,
-            base_amplitude=1e-9,
+            base_std=1e-9,
             random_state=0,
         )
 
         # Check that the coupling setup was performed
         set_coupling_mock.assert_called()
+
+
+# std affects only the chosen source, not the noise ones

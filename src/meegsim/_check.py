@@ -339,8 +339,8 @@ def check_numeric_array(
 ):
     """
     Check the user input in case a list of numeric values for several sources
-    is expected. If allowed, it can be None, a single float value that applies
-    to all sources or an array of values with one for each source.
+    is expected. If allowed, it can be None. Otherwise, a single float value
+    that applies to all sources or an array of values with one for each source.
 
     Parameters
     ----------

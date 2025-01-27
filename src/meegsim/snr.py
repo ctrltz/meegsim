@@ -108,7 +108,8 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
 def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
     """
     Perform the adjustment of local SNR: the power of each source is adjusted
-    relative to the power of all noise sources combined.
+    relative to the power of all noise sources combined. The waveforms are
+    adjusted in-place.
     """
     # Get the stc and leadfield of all noise sources
     if not noise_sources:
@@ -148,7 +149,8 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
 def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_sources):
     """
     Perform the adjustment of global SNR: the power of all sources combined
-    is adjusted relative to the power of all noise sources combined.
+    is adjusted relative to the power of all noise sources combined. The
+    waveforms are adjusted in-place.
     """
     # Combine signal/noise sources
     if not sources:

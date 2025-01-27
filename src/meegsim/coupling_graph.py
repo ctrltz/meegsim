@@ -81,7 +81,8 @@ def _set_coupling(sources, coupling_graph, times, random_state):
     Parameters
     ----------
     sources : dict
-        Simulated sources.
+        Simulated sources. Their waveforms are modified in-place by the
+        coupling function(s).
     coupling_graph : nx.Graph
         The coupling graph that describes the desired connectivity pattern.
     times : array-like

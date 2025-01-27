@@ -33,15 +33,15 @@ class SourceSimulator:
             simulation via either
             :meth:`~meegsim.simulate.SourceSimulator.add_point_sources` or
             :meth:`~meegsim.simulate.SourceSimulator.add_patch_sources`
-    base_amplitude : float, optional
-        The source activity is scaled by the base amplitude before projecting to
-        sensor space. By default, the base amplitude is equal to :math:`10^{-9}`,
-        corresponding to 1 nAm.
+    base_std : float, optional
+        The source activity is scaled by the base standard deviation before
+        projecting to sensor space. By default, it is equal to :math:`10^{-9}`,
+        corresponding to the dipolar moment of 1 nAm.
     """
 
-    def __init__(self, src, snr_mode="global", base_amplitude=1e-9):
+    def __init__(self, src, snr_mode="global", base_std=1e-9):
         self.src = src
-        self.base_amplitude = base_amplitude
+        self.base_std = base_std
 
         # Store groups of sources that were defined with one command
         # Store 'signal' and 'noise' separately to ease the calculation of SNR
@@ -431,7 +431,7 @@ class SourceSimulator:
             src=self.src,
             times=sc.times,
             fwd=fwd,
-            base_amplitude=self.base_amplitude,
+            base_std=self.base_std,
             random_state=random_state,
         )
 
@@ -453,7 +453,7 @@ def _simulate(
     src,
     times,
     fwd,
-    base_amplitude,
+    base_std,
     random_state=None,
 ):
     """
@@ -476,13 +476,13 @@ def _simulate(
     if coupling_graph.number_of_edges() > 0:
         _set_coupling(sources, coupling_graph, times, random_state=random_state)
 
-    # Set the standard deviation of all sources w.r.t. base amplitude
+    # Set the standard deviation of all sources w.r.t. base std
     # NOTE: this should also be helpful to get less warnings about unreasonably
     # high values from apply_forward_raw
     for s in sources.values():
-        s.waveform *= base_amplitude * s.std
-    for ns in noise_sources.values():
-        ns.waveform *= base_amplitude * s.std
+        s.waveform *= base_std * s.std
+    for s in noise_sources.values():
+        s.waveform *= base_std * s.std
 
     # Adjust the SNR if needed
     if snr_mode == "global" and snr_global is not None:
