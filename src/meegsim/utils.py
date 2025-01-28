@@ -213,6 +213,13 @@ def vertices_to_mne(vertices, src):
     return packed_vertices
 
 
+def _hemi_to_index(hemi):
+    """
+    Get the index of the hemisphere (0 for lh, 1 for rh).
+    """
+    return ["lh", "rh"].index(hemi)
+
+
 def get_param_from_stc(stc, vertices):
     values = np.zeros((len(vertices),))
     offsets = [0, len(stc.vertices[0])]

@@ -76,6 +76,17 @@ sim.add_point_sources(
     names=["s1", "s2", "s3"],
 )
 
+sim.add_patch_sources(
+    location=select_random,
+    waveform=narrowband_oscillation,
+    snr=1,
+    location_params=dict(n=3),
+    waveform_params=dict(fmin=8, fmax=12),
+    snr_params=dict(fmin=8, fmax=12),
+    extents=[10, 20, 50],
+    names=["s4", "s5", "s6"],
+)
+
 # Set coupling
 sim.set_coupling(
     coupling={
@@ -101,6 +112,8 @@ sc = sim.simulate(
 raw = sc.to_raw(fwd, info, sensor_noise_level=0.05)
 
 print([np.var(s.waveform) for s in sc._sources.values()])
+
+sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot_topomap(bands={"alpha": (8, 12)}, sphere="eeglab")
