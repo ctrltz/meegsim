@@ -25,7 +25,9 @@ class SourceSimulator:
           * If ``'global'`` (default), the total power of **all** point/patch sources is
             adjusted relative to the total power of **all** noise sources. The target
             value of SNR should be provided in the ``snr_global`` argument of
-            :meth:`~meegsim.simulate.SourceSimulator.simulate`.
+            :meth:`~meegsim.simulate.SourceSimulator.simulate`. The spatial distribution
+            of source activity can be controlled using the ``std`` argument when adding
+            sources.
 
           * If ``'local'``, the power of **each** point/patch source is adjusted relative
             to the total power of **all** noise sources. The target value(s) of SNR
