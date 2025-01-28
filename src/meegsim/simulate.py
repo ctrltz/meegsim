@@ -67,7 +67,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
-        std=1,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -93,6 +93,14 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR), a single value
             that is used for all sources or an array with one SNR
             value per source.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applied to all sources or an array with one value per
+            source. This parameter can be used in combination with the global SNR
+            mode to set an arbitrary spatial distribution of source activity.
+            By default, 1 is used so the variance of all sources is the same.
+            If the value local SNR is specified, this parameter will effectively
+            be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
             if a function is provided.
@@ -145,7 +153,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
-        std=1,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -177,6 +185,14 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR, default),
             a single value that is used for all sources or an array
             with one SNR value per source.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applied to all sources or an array with one value per
+            source. This parameter can be used in combination with the global SNR
+            mode to set an arbitrary spatial distribution of source activity.
+            By default, 1 is used so the variance of all sources is the same.
+            If the value local SNR is specified, this parameter will effectively
+            be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
             function is provided.
@@ -235,7 +251,7 @@ class SourceSimulator:
         self,
         location,
         waveform=one_over_f_noise,
-        std=1,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
     ):
@@ -254,6 +270,11 @@ class SourceSimulator:
         waveform : array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise with the slope of 1 is used for all noise sources.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applied to all sources or an array with one value per
+            source. By default, 1 is used so the variance of all noise sources is
+            the same.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
             function is provided.

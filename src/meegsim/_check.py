@@ -340,12 +340,13 @@ def check_numeric_array(
     """
     Check the user input in case a list of numeric values for several sources
     is expected. If allowed, it can be None. Otherwise, a single float value
-    that applies to all sources or an array of values with one for each source.
+    that applies to all sources or an array of values with one for each source
+    are expected.
 
     Parameters
     ----------
     context : str
-        Context information for the error message
+        Context information for the error message.
     value : None, float, or array
         The provided value(s).
     n_sources : int
@@ -371,7 +372,7 @@ def check_numeric_array(
             f"one {context} value for each of the {n_sources} sources, got {values.size}"
         )
 
-    # Check that are values are numeric and in bounds
+    # Check that values are numeric and, if required, in bounds
     for value in values:
         check_numeric(context, value, bounds=bounds, allow_none=allow_none)
 
