@@ -74,7 +74,6 @@ sim.add_point_sources(
     waveform_params=dict(fmin=8, fmax=12),
     std=std_stc,
     names=["s1", "s2", "s3"],
-    extents=10,
 )
 
 # Set coupling

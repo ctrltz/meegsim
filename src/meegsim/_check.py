@@ -604,5 +604,5 @@ def check_stc_as_param(stc, src):
             raise ValueError(
                 f"The provided stc does not contain all vertices of the "
                 f"source space that used for simulations. Missing vertices: "
-                f"{", ".join(list(missing_vertno))}"
+                f"{', '.join(list(missing_vertno))}"
             )
