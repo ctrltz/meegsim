@@ -6,8 +6,10 @@ import pytest
 from meegsim.sources import (
     _BaseSource,
     PointSource,
-    _combine_sources_into_stc,
     PatchSource,
+    _combine_sources_into_stc,
+    _get_point_sources_in_hemi,
+    _get_patch_sources_in_hemis,
 )
 
 from utils.prepare import prepare_source_space
@@ -23,6 +25,8 @@ def test_basesource_is_abstract():
 # =================================
 # Point source
 # =================================
+
+
 @pytest.mark.parametrize(
     "src_idx,vertno,hemi",
     [
@@ -302,9 +306,9 @@ def test_patchsource_create_with_extent():
         mock_grow_labels.assert_called_once_with("meegsim", 2, 3, 0, subjects_dir=None)
 
 
-###
-# _combine_sources_into_stc
-###
+# =================================
+# Helper functions
+# =================================
 
 
 def test_combine_sources_into_stc_point():
@@ -341,3 +345,48 @@ def test_combine_sources_into_stc_patch():
     stc2 = _combine_sources_into_stc([s1, s3], src, tstep=0.01)
     assert stc2.data.shape[0] == 2, "Expected 2 active vertices in stc"
     assert np.all(stc2.data == 2), "Expected source activity to be summed"
+
+
+def test_get_point_sources_in_hemi():
+    sources = [
+        # left hemisphere
+        PointSource("s1", 0, 0, []),
+        PointSource("s2", 0, 1, []),
+        # right hemisphere
+        PointSource("s3", 1, 2, []),
+        PointSource("s4", 1, 3, []),
+    ]
+
+    assert _get_point_sources_in_hemi(sources, "lh") == [0, 1]
+    assert _get_point_sources_in_hemi(sources, "rh") == [2, 3]
+
+
+def test_get_patch_sources_in_hemis_no_patches():
+    src = prepare_source_space(["surf", "surf"], [[0, 1], [0, 1]])
+    sources = [
+        PointSource("s1", 0, 0, []),
+        PointSource("s2", 0, 1, []),
+    ]
+
+    stc = _get_patch_sources_in_hemis(sources, src, ["lh", "rh"])
+    assert np.allclose(stc.data, 0, atol=0.1)  # ignore 0.01s
+
+
+def test_get_patch_sources_in_hemis():
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2, 3], [0, 1, 2, 3]])
+    sources = [
+        PatchSource("s1", 0, [0], []),
+        PatchSource("s2", 1, [1, 2, 3], []),
+    ]
+
+    stc_both = _get_patch_sources_in_hemis(sources, src, ["lh", "rh"])
+    assert stc_both.data.size == 8
+    assert np.allclose(stc_both.data.sum(), 4, atol=0.1)  # ignore 0.01s
+
+    stc_lh = _get_patch_sources_in_hemis(sources, src, ["lh"])
+    assert stc_lh.data.size == 8
+    assert np.allclose(stc_lh.data.sum(), 1, atol=0.1)  # ignore 0.01s
+
+    stc_rh = _get_patch_sources_in_hemis(sources, src, ["rh"])
+    assert stc_rh.data.size == 8
+    assert np.allclose(stc_rh.data.sum(), 3, atol=0.1)  # ignore 0.01s

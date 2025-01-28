@@ -10,11 +10,16 @@ for SourceSimulator:
 """
 
 import numpy as np
-
-from functools import partial
+import matplotlib.pyplot as plt
 import warnings
 
-from .utils import logger
+from functools import partial
+from matplotlib.colors import is_color_like
+
+from meegsim.utils import logger
+
+
+VIZ_SOURCE_TYPES = ["point", "patch", "noise", "candidate"]
 
 
 def check_numeric(context, value, bounds=(None, None), allow_none=True):
@@ -593,3 +598,65 @@ def check_extents(extents, n_sources):
                 )
 
     return extents
+
+
+def check_colors(colors):
+    """
+    Check the dictionary with colors provided for the visualization of the
+    source configuration.
+
+    Parameters
+    ----------
+    color: dict
+        The colors for different source types.
+
+    Raises
+    ------
+    ValueError
+        If the source type is not recognized or the color value is invalid.
+    """
+    if colors is None:
+        return
+
+    for key, color in colors.items():
+        if key not in VIZ_SOURCE_TYPES:
+            raise ValueError(f"Unexpected source type: {key}")
+
+        # We expect a colormap for patches (easier for now but later we can
+        # consider constructing a colormap from the provided color)
+        if key == "patch" and color not in plt.colormaps():
+            raise ValueError(
+                "Expected a valid matplotlib colormap for the patch sources"
+            )
+
+        # For all other source types, one color is expected
+        if key != "patch" and not is_color_like(color):
+            raise ValueError(f"Expected a valid matplotlib color for the {key} sources")
+
+
+def check_scale_factors(scale_factors):
+    """
+    Check the dictionary with scale factors provided for the visualization of the
+    source configuration.
+
+    Parameters
+    ----------
+    scale_factors: dict
+        The scale factors for different source types.
+
+    Raises
+    ------
+    ValueError
+        If the source type is not recognized or the scale factor is negative or not
+        numeric.
+    """
+    if scale_factors is None:
+        return
+
+    for key, scale_factor in scale_factors.items():
+        if key not in VIZ_SOURCE_TYPES:
+            raise ValueError(f"Unexpected source type: {key}")
+
+        check_numeric(
+            f"scale_factor of {key} sources", scale_factor, (0, None), allow_none=False
+        )
