@@ -8,7 +8,7 @@ to the original time series.
 import numpy as np
 import mne
 
-from .utils import vertices_to_mne, _extract_hemi
+from meegsim.utils import vertices_to_mne, _extract_hemi, get_param_from_stc
 
 
 class _BaseSource:
@@ -175,9 +175,15 @@ class PointSource(_BaseSource):
         if data.shape[1] != len(times):
             raise ValueError("The number of samples in waveform does not match")
 
+        # Get the std values if an stc was provided
+        if isinstance(stds, mne.SourceEstimate):
+            stds = get_param_from_stc(stds, vertices)
+
         # Create point sources and save them as a group
         sources = []
-        for (src_idx, vertno), waveform, std, name in zip(vertices, data, stds, names):
+        for (src_idx, vertno), waveform, std, name in zip(
+            vertices, data, stds, names, strict=True
+        ):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
                 cls(
@@ -229,7 +235,10 @@ class PatchSource(_BaseSource):
 
     @property
     def data(self):
-        return np.tile(self.waveform, (len(self.vertno), 1))
+        # NOTE: the scaling factor is introduced to make the total variance of
+        # patch activity invariant to the number of vertices in the patch
+        scaling_factor = 1 / np.sqrt(len(self.vertno))
+        return np.tile(self.waveform, (len(self.vertno), 1)) * scaling_factor
 
     @property
     def vertices(self):
@@ -273,6 +282,7 @@ class PatchSource(_BaseSource):
         # find patch vertices
         subject = src[0].get("subject_his_id", None)
         patch_vertices = []
+        patch_stds = [] if isinstance(stds, mne.SourceEstimate) else stds
         for isource, extent in enumerate(extents):
             src_idx, vertno = vertices[isource]
 
@@ -288,6 +298,11 @@ class PatchSource(_BaseSource):
                 subject, vertno, extent, src_idx, subjects_dir=None
             )[0]
 
+            # Get the std values if an stc was provided
+            if isinstance(stds, mne.SourceEstimate):
+                std = get_param_from_stc(stds, [(src_idx, vertno)])
+                patch_stds.append(std)
+
             # Prune vertices
             patch_vertno = [
                 vert for vert in patch.vertices if vert in src[src_idx]["vertno"]
@@ -297,7 +312,7 @@ class PatchSource(_BaseSource):
         # Create patch sources and save them as a group
         sources = []
         for (src_idx, _), patch_vertno, waveform, std, name in zip(
-            vertices, patch_vertices, data, stds, names
+            vertices, patch_vertices, data, patch_stds, names, strict=True
         ):
             hemi = _extract_hemi(src[src_idx])
             sources.append(

@@ -593,3 +593,16 @@ def check_extents(extents, n_sources):
                 )
 
     return extents
+
+
+def check_stc_as_param(stc, src):
+    for src_idx, s in enumerate(src):
+        common = np.intersect1d(stc.vertices[src_idx], s["vertno"], assume_unique=True)
+
+        missing_vertno = set(s["vertno"]) - set(common)
+        if missing_vertno:
+            raise ValueError(
+                f"The provided stc does not contain all vertices of the "
+                f"source space that used for simulations. Missing vertices: "
+                f"{", ".join(list(missing_vertno))}"
+            )

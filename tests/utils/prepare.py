@@ -13,7 +13,7 @@ def prepare_source_space(types, vertices):
 
     # Create a simple dummy data structure for testing purposes
     src = []
-    for i, (src_type, src_vertno) in enumerate(zip(types, vertices)):
+    for i, (src_type, src_vertno) in enumerate(zip(types, vertices, strict=True)):
         n_verts = len(src_vertno)
 
         # Generate random positions and random normals

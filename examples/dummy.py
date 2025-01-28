@@ -19,6 +19,13 @@ def to_json(sources):
     return json.dumps({k: str(s) for k, s in sources.items()}, indent=4)
 
 
+def data2stc(data, src):
+    vertno = [s["vertno"] for s in src]
+    return mne.SourceEstimate(
+        data=data, vertices=vertno, tmin=0, tstep=0.01, subject="fsaverage"
+    )
+
+
 # Load the head model
 fs_dir = Path("~/mne_data/MNE-fsaverage-data/fsaverage/")
 fwd_path = fs_dir / "bem_copy" / "fsaverage-oct6-fwd.fif"
@@ -44,6 +51,17 @@ info.set_montage("standard_1020")
 fwd = mne.convert_forward_solution(fwd, force_fixed=True)
 fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
+# Create a dummy stc for std based on the y-position of the sources
+ypos = np.hstack([1 - 8 * np.abs(s["rr"][s["inuse"] > 0, 1]) for s in src])
+std_stc = data2stc(ypos, src)
+std_stc.plot(
+    subject="fsaverage",
+    hemi="split",
+    views=["lat", "med"],
+    clim=dict(kind="value", lims=[0, 1, 2]),
+    transparent=False,
+)
+
 sim = SourceSimulator(src)
 
 sim.add_noise_sources(location=select_random, location_params=dict(n=10))
@@ -54,8 +72,9 @@ sim.add_point_sources(
     waveform=narrowband_oscillation,
     location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
-    std=[1, 1, 10],
+    std=std_stc,
     names=["s1", "s2", "s3"],
+    extents=10,
 )
 
 # Set coupling
