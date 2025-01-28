@@ -8,7 +8,7 @@ to the original time series.
 import numpy as np
 import mne
 
-from .utils import vertices_to_mne, _extract_hemi
+from .utils import vertices_to_mne, _extract_hemi, _hemi_to_index
 
 
 class _BaseSource:
@@ -360,3 +360,66 @@ def _combine_sources_into_stc(sources, src, tstep):
     vertices = vertices_to_mne(unique_vertices, src)
 
     return mne.SourceEstimate(data, vertices, tmin=0, tstep=tstep)
+
+
+def _get_point_sources_in_hemi(sources, hemi):
+    """
+    Collect the indices of vertices (vertno) for all point sources
+    belonging to the provided hemisphere.
+
+    Parameters
+    ----------
+    sources: list
+        A list of sources that were added to the configuration.
+    hemi: str
+        Hemisphere (lh or rh).
+
+    Returns
+    -------
+    vertno: list
+        List of indices of the corresponding vertices.
+    """
+    src_idx = _hemi_to_index(hemi)
+    return [
+        s.vertno for s in sources if isinstance(s, PointSource) and s.src_idx == src_idx
+    ]
+
+
+def _get_patch_sources_in_hemis(sources, src, hemis):
+    """
+    Collect the vertices for all patch sources belonging to the provided
+    hemisphere(s).
+
+    Parameters
+    ----------
+    sources: list
+        A list of sources that were added to the configuration.
+    src: SourceSpaces
+        The source space that contains all candidate locations.
+    hemis: list
+        The list of hemispheres to consider.
+
+    Returns
+    -------
+    stc: SourceEstimate
+        An stc object that contains 1 for every vertex that is included at least
+        in one of the patches and a small value near zero for all other sources.
+        Non-zero value is required for the subsequent stc.plot() call.
+    """
+    src_indices = [_hemi_to_index(hemi) for hemi in hemis]
+    n_vertno = [len(s["vertno"]) for s in src]
+    # NOTE: we use a small non-zero value here to avoid problems with the
+    # calculation of colorbar range in mne.viz.Brain. It is chosen to be smaller
+    # than the transparency threshold (0.5) so that visually it is not noticeable
+    data = [np.full((n,), 0.01) for n in n_vertno]
+    for s in sources:
+        if not isinstance(s, PatchSource) or s.src_idx not in src_indices:
+            continue
+
+        indices = np.searchsorted(src[s.src_idx]["vertno"], s.vertno)
+        data[s.src_idx][indices] = 1
+    data = np.hstack(data)
+
+    return mne.SourceEstimate(
+        data=data, vertices=[s["vertno"] for s in src], tmin=0.0, tstep=1.0
+    )

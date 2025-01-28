@@ -10,6 +10,7 @@ from meegsim.utils import (
     normalize_power,
     get_sfreq,
     vertices_to_mne,
+    _hemi_to_index,
 )
 
 from utils.prepare import prepare_source_space
@@ -162,3 +163,8 @@ def test_vertices_to_mne():
 
     packed = vertices_to_mne([(1, 0), (1, 2)], src)
     assert packed == [[], [0, 2]]
+
+
+def test_hemi_to_index():
+    assert _hemi_to_index("lh") == 0
+    assert _hemi_to_index("rh") == 1

@@ -39,7 +39,7 @@ Documentation = "https://meegsim.readthedocs.io/"
 Issues = "https://github.com/ctrltz/meegsim/issues"
 
 [project.optional-dependencies]
-dev = ["meegsim[deploy,docs,test]"]
+dev = ["meegsim[deploy,docs,plot,test]"]
 deploy = [
     "build",
     "twine"
@@ -52,6 +52,15 @@ docs = [
     "sphinx",
     "sphinx-copybutton",
     "sphinxcontrib-bibtex"
+]
+# copied from MNE-Python, last updated on 27.01.2025
+plot = [
+    "darkdetect",
+    "nibabel",
+    "pyvista >= 0.32, != 0.35.2, != 0.38.0, != 0.38.1, != 0.38.2, != 0.38.3, != 0.38.4, != 0.38.5, != 0.38.6, != 0.42.0",
+    "pyvistaqt >= 0.4",
+    "PyQt6 != 6.6.0",
+    "PyQt6-Qt6 != 6.6.0, != 6.7.0"
 ]
 test = [
     "harmoni",
