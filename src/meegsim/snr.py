@@ -4,7 +4,7 @@ import warnings
 
 from scipy.signal import butter, filtfilt
 
-from .sources import _combine_sources_into_stc
+from meegsim.sources import _combine_sources_into_stc
 
 
 def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
