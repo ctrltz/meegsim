@@ -7,7 +7,7 @@ from scipy.signal import butter, filtfilt
 from .sources import _combine_sources_into_stc
 
 
-def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
+def get_sensor_space_variance(stc, fwd, info, fmin=None, fmax=None, filter=False):
     """
     Estimate the sensor space variance of the provided stc
 
@@ -31,10 +31,18 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     Returns
     -------
     stc_var: float
-        Variance with respect to leadfield.
+        Sensor space variance in the frequency band, if specified.
     """
 
-    stc_data = stc.data
+    try:
+        raw = mne.apply_forward_raw(fwd, stc, fwd["info"], on_missing="raise")
+    except ValueError:
+        raise ValueError(
+            "The provided forward model does not contain some of the "
+            "simulated sources, so the SNR cannot be adjusted."
+        )
+
+    raw_data = raw.get_data()
     if filter:
         if fmin is None or fmax is None:
             raise ValueError(
@@ -42,22 +50,11 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
             )
 
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype="bandpass")
-        stc_data = filtfilt(b, a, stc_data, axis=1)
+        raw_data = filtfilt(b, a, raw_data, axis=1)
 
-    try:
-        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, on_missing="raise")
-        leadfield_restict = fwd_restrict["sol"]["data"]
-    except ValueError:
-        raise ValueError(
-            "The provided forward model does not contain some of the "
-            "simulated sources, so the SNR cannot be adjusted."
-        )
-
-    n_samples = stc_data.shape[1]
-    n_sensors = leadfield_restict.shape[0]
-    source_cov = (stc_data @ stc_data.T) / n_samples
-    sensor_cov = leadfield_restict @ source_cov @ leadfield_restict.T
-    sensor_var = np.trace(sensor_cov) / n_sensors
+    n_samples = raw_data.shape[1]
+    sensor_cov = (raw_data @ raw_data.T) / (n_samples - 1)
+    sensor_var = np.mean(np.diag(sensor_cov))
 
     return sensor_var
 
@@ -105,7 +102,7 @@ def amplitude_adjustment_factor(signal_var, noise_var, target_snr):
     return factor
 
 
-def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
+def _adjust_snr_local(src, fwd, info, tstep, sources, source_groups, noise_sources):
     """
     Perform the adjustment of local SNR: the power of each source is adjusted
     relative to the power of all noise sources combined. The waveforms are
@@ -127,7 +124,7 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
         # Estimate the noise variance in the specified frequency band
         fmin, fmax = sg.snr_params["fmin"], sg.snr_params["fmax"]
         noise_var = get_sensor_space_variance(
-            stc_noise, fwd, fmin=fmin, fmax=fmax, filter=True
+            stc_noise, fwd, info, fmin=fmin, fmax=fmax, filter=True
         )
 
         # Adjust the amplitude of each source in the group to match the target SNR
@@ -137,7 +134,7 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
             # NOTE: taking a safer approach for now and filtering
             # even if the signal is already a narrowband oscillation
             signal_var = get_sensor_space_variance(
-                s.to_stc(src, tstep), fwd, fmin=fmin, fmax=fmax, filter=True
+                s.to_stc(src, tstep), fwd, info, fmin=fmin, fmax=fmax, filter=True
             )
 
             # NOTE: patch sources might require more complex calculations
@@ -146,7 +143,9 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
             s.waveform *= factor
 
 
-def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_sources):
+def _adjust_snr_global(
+    src, fwd, info, snr_global, snr_params, tstep, sources, noise_sources
+):
     """
     Perform the adjustment of global SNR: the power of all sources combined
     is adjusted relative to the power of all noise sources combined. The
@@ -172,10 +171,10 @@ def _adjust_snr_global(src, fwd, snr_global, snr_params, tstep, sources, noise_s
     # Get sensor-space variance of signal and noise
     fmin, fmax = snr_params["fmin"], snr_params["fmax"]
     noise_var = get_sensor_space_variance(
-        stc_noise, fwd, fmin=fmin, fmax=fmax, filter=True
+        stc_noise, fwd, info, fmin=fmin, fmax=fmax, filter=True
     )
     signal_var = get_sensor_space_variance(
-        stc_signal, fwd, fmin=fmin, fmax=fmax, filter=True
+        stc_signal, fwd, info, fmin=fmin, fmax=fmax, filter=True
     )
 
     # Adjust the amplitudes of all sources by the same (!) factor
