@@ -97,7 +97,7 @@ class SourceSimulator:
             value per source.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
@@ -189,7 +189,7 @@ class SourceSimulator:
             with one SNR value per source.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
@@ -274,7 +274,7 @@ class SourceSimulator:
             By default, 1/f noise with the slope of 1 is used for all noise sources.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. By default, 1 is used so the variance of all noise sources is
             the same.
         location_params : dict, optional
