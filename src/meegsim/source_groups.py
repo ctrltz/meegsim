@@ -117,7 +117,7 @@ class PointSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr: None, float, or array
             The SNR values provided by the user.
-        std: float or array
+        std: float, array, or mne.SourceEstimate
             The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
@@ -237,7 +237,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr:
             The SNR values provided by the user.
-        std: float or array
+        std: float, array, or mne.SourceEstimate
             The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
