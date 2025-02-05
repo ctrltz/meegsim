@@ -9,7 +9,6 @@ import numpy as np
 
 from pathlib import Path
 
-from meegsim.coupling import ppc_von_mises
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
@@ -24,6 +23,10 @@ def data2stc(data, src):
     return mne.SourceEstimate(
         data=data, vertices=vertno, tmin=0, tstep=0.01, subject="fsaverage"
     )
+
+
+def extents_from_areas_cm2(areas_cm2):
+    return list(np.sqrt(np.array(areas_cm2) * 100 / np.pi))
 
 
 # Load the head model
@@ -60,46 +63,22 @@ std_stc.plot(
     views=["lat", "med"],
     clim=dict(kind="value", lims=[0, 1, 2]),
     transparent=False,
+    background="white",
 )
 
 sim = SourceSimulator(src)
 
-sim.add_noise_sources(location=select_random, location_params=dict(n=10))
+sim.add_noise_sources(location=select_random, location_params=dict(n=500))
 
 # Select some vertices randomly
-sim.add_point_sources(
-    location=[(0, 0), (0, 87780), (0, 106307)],
-    waveform=narrowband_oscillation,
-    location_params=dict(n=3),
-    waveform_params=dict(fmin=8, fmax=12),
-    std=std_stc,
-    names=["s1", "s2", "s3"],
-)
-
 sim.add_patch_sources(
     location=select_random,
     waveform=narrowband_oscillation,
-    snr=1,
-    location_params=dict(n=3),
+    location_params=dict(n=68),
     waveform_params=dict(fmin=8, fmax=12),
-    snr_params=dict(fmin=8, fmax=12),
-    extents=[10, 20, 50],
-    names=["s4", "s5", "s6"],
+    std=std_stc,
+    extents=extents_from_areas_cm2([8]),
 )
-
-# Set coupling
-sim.set_coupling(
-    coupling={
-        ("s1", "s2"): dict(kappa=1, phase_lag=np.pi / 3),
-        ("s2", "s3"): dict(kappa=10, phase_lag=-np.pi / 2),
-    },
-    method=ppc_von_mises,
-    fmin=8,
-    fmax=12,
-)
-
-print(sim._coupling_graph)
-print(sim._coupling_graph.edges(data=True))
 
 sc = sim.simulate(
     sfreq,
@@ -109,9 +88,22 @@ sc = sim.simulate(
     snr_params=dict(fmin=8, fmax=12),
     random_state=seed,
 )
+stc = sc.to_stc()
 raw = sc.to_raw(fwd, info, sensor_noise_level=0.05)
 
-print([np.var(s.waveform) for s in sc._sources.values()])
+source_std = np.std(stc.data, axis=1)
+lim = np.max(source_std)
+std_stc_est = mne.SourceEstimate(source_std, stc.vertices, tmin=0, tstep=0.01)
+std_stc_est.plot(
+    subject="fsaverage",
+    hemi="split",
+    views=["lat", "med"],
+    clim=dict(kind="value", lims=[0, lim / 2, lim]),
+    colormap="Reds",
+    time_viewer=False,
+    transparent=False,
+    background="white",
+)
 
 sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
 

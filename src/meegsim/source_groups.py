@@ -268,12 +268,11 @@ class PatchSourceGroup(_BaseSourceGroup):
             "SNR", snr, n_sources, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr)
-        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
-        extents = check_extents(extents, n_sources)
         if isinstance(std, mne.SourceEstimate):
             check_stc_as_param(std, src)
         else:
             std = check_numeric_array("std", std, n_sources, bounds=(0, None))
+        extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names
         if not names:
