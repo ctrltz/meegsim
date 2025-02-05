@@ -97,11 +97,11 @@ class SourceSimulator:
             value per source.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applied to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value local SNR is specified, this parameter will effectively
+            If the value of local SNR is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
@@ -189,11 +189,11 @@ class SourceSimulator:
             with one SNR value per source.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applied to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value local SNR is specified, this parameter will effectively
+            If the value of local SNR is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -274,7 +274,7 @@ class SourceSimulator:
             By default, 1/f noise with the slope of 1 is used for all noise sources.
         std : float or array, optional
             Desired standard deviation of the source activity, provided either as a
-            single value that applied to all sources or an array with one value per
+            single value that applies to all sources or as an array with one value per
             source. By default, 1 is used so the variance of all noise sources is
             the same.
         location_params : dict, optional
@@ -501,7 +501,7 @@ def _simulate(
 
     # Set the standard deviation of all sources w.r.t. base std
     # NOTE: this should also be helpful to get less warnings about unreasonably
-    # high values from apply_forward_raw
+    # high values of source activity from apply_forward_raw
     for s in sources.values():
         s.waveform *= base_std * s.std
     for s in noise_sources.values():
