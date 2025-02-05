@@ -131,7 +131,7 @@ def _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources):
         )
 
         # Adjust the amplitude of each source in the group to match the target SNR
-        for name, target_snr in zip(sg.names, sg.snr, strict=True):
+        for name, target_snr in zip(sg.names, sg.snr):
             s = sources[name]
 
             # NOTE: taking a safer approach for now and filtering

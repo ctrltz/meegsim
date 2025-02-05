@@ -129,7 +129,7 @@ def test_extract_hemi():
     )
     expected_hemis = ["lh", "rh", None, None]
 
-    for s, hemi in zip(src, expected_hemis, strict=True):
+    for s, hemi in zip(src, expected_hemis):
         assert _extract_hemi(s) == hemi, f"Failed for {s['type']}"
 
 

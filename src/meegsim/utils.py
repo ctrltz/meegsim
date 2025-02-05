@@ -40,7 +40,7 @@ def combine_stcs(stc1, stc2):
 
     stc = stc1.copy()
     new_data = stc2.data.copy()
-    for vi, (v_old, v_new) in enumerate(zip(stc.vertices, stc2.vertices, strict=True)):
+    for vi, (v_old, v_new) in enumerate(zip(stc.vertices, stc2.vertices)):
         v_common, ind1, ind2 = np.intersect1d(v_old, v_new, return_indices=True)
         if v_common.size > 0:
             # Sum up signals for vertices common to stc1 and stc2
@@ -60,7 +60,7 @@ def combine_stcs(stc1, stc2):
         offsets_old += [len(v_old)]
         offsets_new += [len(v_new)]
 
-    inds = [ii + offset for ii, offset in zip(inserters, offsets_old[:-1], strict=True)]
+    inds = [ii + offset for ii, offset in zip(inserters, offsets_old[:-1])]
     inds = np.concatenate(inds)
     stc.data = np.insert(stc.data, inds, new_data, axis=0)
 

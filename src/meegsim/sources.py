@@ -186,9 +186,7 @@ class PointSource(_BaseSource):
 
         # Create point sources and save them as a group
         sources = []
-        for (src_idx, vertno), waveform, std, name in zip(
-            vertices, data, stds, names, strict=True
-        ):
+        for (src_idx, vertno), waveform, std, name in zip(vertices, data, stds, names):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
                 cls(
@@ -320,7 +318,7 @@ class PatchSource(_BaseSource):
         # Create patch sources and save them as a group
         sources = []
         for (src_idx, _), patch_vertno, waveform, std, name in zip(
-            vertices, patch_vertices, data, patch_stds, names, strict=True
+            vertices, patch_vertices, data, patch_stds, names
         ):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
