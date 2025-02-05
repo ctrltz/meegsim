@@ -68,16 +68,16 @@ std_stc.plot(
 
 sim = SourceSimulator(src)
 
-sim.add_noise_sources(location=select_random, location_params=dict(n=500))
+sim.add_noise_sources(location=select_random, location_params=dict(n=10))
 
 # Select some vertices randomly
 sim.add_patch_sources(
     location=select_random,
     waveform=narrowband_oscillation,
-    location_params=dict(n=68),
+    location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
     std=std_stc,
-    extents=extents_from_areas_cm2([8]),
+    extents=extents_from_areas_cm2([2, 4, 8]),
 )
 
 sc = sim.simulate(
