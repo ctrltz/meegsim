@@ -36,7 +36,7 @@ def test_get_sensor_space_variance_no_filter():
     # Since the leadfield values are opposite for these vertices, the
     # activity should cancel out in sensor space
     expected_variance = 0.0
-    variance = get_sensor_space_variance(stc, fwd, filter=False)
+    variance = get_sensor_space_variance(stc, fwd, fwd["info"], filter=False)
     assert np.isclose(
         variance, expected_variance
     ), f"Expected variance {expected_variance}, but got {variance}"
@@ -49,7 +49,7 @@ def test_get_sensor_space_variance_no_filter_sel_vert():
 
     # Both vertices in the stc have corresponding zero time series
     expected_variance = 0
-    variance = get_sensor_space_variance(stc, fwd, filter=False)
+    variance = get_sensor_space_variance(stc, fwd, fwd["info"], filter=False)
     assert np.isclose(
         variance, expected_variance
     ), f"Expected variance {expected_variance}, but got {variance}"
@@ -61,7 +61,9 @@ def test_get_sensor_space_variance_with_filter(butter_mock, filtfilt_mock):
     fwd = prepare_forward(5, 10)
     vertices = [[0, 1], [0, 1]]
     stc = prepare_stc(vertices)
-    variance = get_sensor_space_variance(stc, fwd, fmin=8, fmax=12, filter=True)
+    variance = get_sensor_space_variance(
+        stc, fwd, fwd["info"], fmin=8, fmax=12, filter=True
+    )
 
     # Check that butter and filtfilt were called
     butter_mock.assert_called()
@@ -90,7 +92,7 @@ def test_get_sensor_space_variance_with_filter_fmin_fmax(butter_mock, filtfilt_m
     fwd = prepare_forward(5, 10)
     vertices = [[0, 1], [0, 1]]
     stc = prepare_stc(vertices)
-    get_sensor_space_variance(stc, fwd, filter=True, fmin=20.0, fmax=30.0)
+    get_sensor_space_variance(stc, fwd, fwd["info"], filter=True, fmin=20.0, fmax=30.0)
 
     # Check that butter and filtfilt were called
     butter_mock.assert_called()
@@ -117,15 +119,15 @@ def test_get_sensor_space_variance_no_fmin_fmax():
     stc = prepare_stc(vertices)
 
     # No filtering required - should pass
-    get_sensor_space_variance(stc, fwd, filter=False)
+    get_sensor_space_variance(stc, fwd, fwd["info"], filter=False)
 
     # No fmin
     with pytest.raises(ValueError, match="Frequency band limits are required"):
-        get_sensor_space_variance(stc, fwd, fmax=12, filter=True)
+        get_sensor_space_variance(stc, fwd, fwd["info"], fmax=12, filter=True)
 
     # No fmax
     with pytest.raises(ValueError, match="Frequency band limits are required"):
-        get_sensor_space_variance(stc, fwd, fmin=8, filter=True)
+        get_sensor_space_variance(stc, fwd, fwd["info"], fmin=8, filter=True)
 
 
 @pytest.mark.parametrize("target_snr", np.logspace(-6, 6, 10))
@@ -197,7 +199,9 @@ def test_adjust_snr_local_point(adjust_snr_mock):
     noise_sources = {"n1": prepare_point_source(name="n1")}
     tstep = 0.01
 
-    _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
+    _adjust_snr_local(
+        src, fwd, fwd["info"], tstep, sources, source_groups, noise_sources
+    )
 
     # Check the SNR adjustment was performed only once
     adjust_snr_mock.assert_called_once()
@@ -242,7 +246,9 @@ def test_adjust_snr_local_patch(adjust_snr_mock):
     noise_sources = {"n1": prepare_point_source(name="n1")}
     tstep = 0.01
 
-    _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
+    _adjust_snr_local(
+        src, fwd, fwd["info"], tstep, sources, source_groups, noise_sources
+    )
 
     # Check the SNR adjustment was performed only once
     adjust_snr_mock.assert_called_once()
@@ -258,7 +264,7 @@ def test_adjust_snr_local_no_noise_sources_raises():
 
     # it's only important that the noise sources list is empty
     with pytest.raises(ValueError, match="No noise sources"):
-        _adjust_snr_local(src, fwd, 0.01, [], [], [])
+        _adjust_snr_local(src, fwd, fwd["info"], 0.01, [], [], [])
 
 
 # ====================
@@ -283,6 +289,7 @@ def test_adjust_snr_global_point(adjust_snr_mock):
     _adjust_snr_global(
         src,
         fwd,
+        fwd["info"],
         snr_global=5,
         snr_params=dict(fmin=8, fmax=12),
         tstep=tstep,
@@ -315,6 +322,7 @@ def test_adjust_snr_global_patch(adjust_snr_mock):
     _adjust_snr_global(
         src,
         fwd,
+        fwd["info"],
         snr_global=5,
         snr_params=dict(fmin=8, fmax=12),
         tstep=tstep,
@@ -336,7 +344,9 @@ def test_adjust_snr_global_no_sources_warns():
 
     # it's only important that the noise sources list is empty
     with pytest.warns(UserWarning, match="No point/patch sources"):
-        _adjust_snr_global(src, fwd, 5, dict(fmin=8, fmax=12), 0.01, dict(), [])
+        _adjust_snr_global(
+            src, fwd, fwd["info"], 5, dict(fmin=8, fmax=12), 0.01, dict(), []
+        )
 
 
 def test_adjust_snr_global_no_noise_sources_raises():
@@ -350,4 +360,6 @@ def test_adjust_snr_global_no_noise_sources_raises():
 
     # it's only important that the noise sources list is empty
     with pytest.raises(ValueError, match="No noise sources"):
-        _adjust_snr_global(src, fwd, 5, dict(fmin=8, fmax=12), 0.01, sources, [])
+        _adjust_snr_global(
+            src, fwd, fwd["info"], 5, dict(fmin=8, fmax=12), 0.01, sources, []
+        )

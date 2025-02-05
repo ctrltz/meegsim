@@ -341,6 +341,7 @@ def test_simulate():
             src=src,
             times=times,
             fwd=None,
+            info=None,
             base_std=1e-9,
             random_state=0,
         )
@@ -416,6 +417,7 @@ def test_simulate_std_adjustment():
         src=src,
         times=times,
         fwd=fwd,
+        info=fwd["info"],
         base_std=1,
         random_state=0,
     )
@@ -473,6 +475,7 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            info=fwd["info"],
             base_std=1e-9,
             random_state=0,
         )
@@ -527,6 +530,7 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            info=fwd["info"],
             base_std=1e-9,
             random_state=0,
         )
@@ -582,6 +586,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
             src=src,
             times=times,
             fwd=fwd,
+            info=fwd["info"],
             base_std=1e-9,
             random_state=0,
         )
