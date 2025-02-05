@@ -11,7 +11,7 @@ import mne
 from meegsim.utils import (
     vertices_to_mne,
     _extract_hemi,
-    get_param_from_stc,
+    _get_param_from_stc,
     _hemi_to_index,
 )
 
@@ -182,7 +182,7 @@ class PointSource(_BaseSource):
 
         # Get the std values if an stc was provided
         if isinstance(stds, mne.SourceEstimate):
-            stds = get_param_from_stc(stds, vertices)
+            stds = _get_param_from_stc(stds, vertices)
 
         # Create point sources and save them as a group
         sources = []
@@ -305,7 +305,7 @@ class PatchSource(_BaseSource):
 
             # Get the std values if an stc was provided
             if isinstance(stds, mne.SourceEstimate):
-                std = get_param_from_stc(stds, [(src_idx, vertno)])
+                std = _get_param_from_stc(stds, [(src_idx, vertno)])
                 patch_stds.append(std)
 
             # Prune vertices
