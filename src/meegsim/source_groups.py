@@ -114,6 +114,8 @@ class PointSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr: None, float, or array
             The SNR values provided by the user.
+        std: float or array
+            The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
         waveform_params: dict, optional
@@ -206,10 +208,10 @@ class PatchSourceGroup(_BaseSourceGroup):
         location,
         waveform,
         snr,
+        std,
         location_params,
         waveform_params,
         snr_params,
-        std,
         extents,
         names,
         group,
@@ -228,13 +230,15 @@ class PatchSourceGroup(_BaseSourceGroup):
         waveform: list of callable
             The waveform provided by the user.
         snr:
-            TODO: fix when finalizing SNR
+            The SNR values provided by the user.
+        std: float or array
+            The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
         waveform_params: dict, optional
             Additional keyword arguments for the waveform function.
         snr_params:
-            TODO: fix when finalizing SNR
+            Additional parameters for the adjustment of SNR.
         extents: list
             Extents (radius in mm) of each patch provided by the user.
         names:

@@ -18,7 +18,7 @@ class _BaseSource:
 
     kind = "base"
 
-    def __init__(self, waveform, std=1):
+    def __init__(self, waveform, std=1.0):
         # Current constraint: one source corresponds to one waveform
         # Point source: the waveform is present in one vertex
         # Patch source: the waveform is mixed with noise in several vertices
@@ -128,7 +128,7 @@ class PointSource(_BaseSource):
 
     kind = "point"
 
-    def __init__(self, name, src_idx, vertno, waveform, std=1, hemi=None):
+    def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
         super().__init__(waveform, std)
 
         self.name = name
@@ -212,7 +212,7 @@ class PatchSource(_BaseSource):
 
     kind = "patch"
 
-    def __init__(self, name, src_idx, vertno, waveform, std=1, hemi=None):
+    def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
         super().__init__(waveform, std)
 
         self.name = name

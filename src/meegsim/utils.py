@@ -69,7 +69,8 @@ def combine_stcs(stc1, stc2):
 
 def normalize_variance(data):
     """
-    Divide the time series by its standard deviation to normalize the variance.
+    Divide the time series by their standard deviation to make their
+    variance equal to 1.
 
     Parameters
     ----------
