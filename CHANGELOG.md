@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 - A possibility to plot the source configuration ([#59](https://github.com/ctrltz/meegsim/pull/59))
 - Adjustment of global (all signal vs. all noise sources) SNR ([#64](https://github.com/ctrltz/meegsim/pull/64))
+- Adjustment of the standard deviation of source activity ([#66](https://github.com/ctrltz/meegsim/pull/66))
+
+### Changed
+
+- Reworked normalization of source activity: by default, all source time courses are scaled to make their standard deviation equal to 1 nAm ([#66](https://github.com/ctrltz/meegsim/pull/66))
 
 ## Version 0.0.1 (2024-10-31)
 

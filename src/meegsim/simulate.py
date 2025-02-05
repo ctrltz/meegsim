@@ -1,6 +1,6 @@
 import networkx as nx
 
-from ._check import check_coupling, check_option, check_snr, check_snr_params
+from ._check import check_coupling, check_option, check_numeric_array, check_snr_params
 from .configuration import SourceConfiguration
 from .coupling_graph import _set_coupling
 from .source_groups import PointSourceGroup, PatchSourceGroup
@@ -25,7 +25,9 @@ class SourceSimulator:
           * If ``'global'`` (default), the total power of **all** point/patch sources is
             adjusted relative to the total power of **all** noise sources. The target
             value of SNR should be provided in the ``snr_global`` argument of
-            :meth:`~meegsim.simulate.SourceSimulator.simulate`.
+            :meth:`~meegsim.simulate.SourceSimulator.simulate`. The spatial distribution
+            of source activity can be controlled using the ``std`` argument when adding
+            sources.
 
           * If ``'local'``, the power of **each** point/patch source is adjusted relative
             to the total power of **all** noise sources. The target value(s) of SNR
@@ -33,11 +35,15 @@ class SourceSimulator:
             simulation via either
             :meth:`~meegsim.simulate.SourceSimulator.add_point_sources` or
             :meth:`~meegsim.simulate.SourceSimulator.add_patch_sources`
-
+    base_std : float, optional
+        The source activity is scaled by the base standard deviation before
+        projecting to sensor space. By default, it is equal to :math:`10^{-9}`,
+        corresponding to the dipolar moment of 1 nAm.
     """
 
-    def __init__(self, src, snr_mode="global"):
+    def __init__(self, src, snr_mode="global", base_std=1e-9):
         self.src = src
+        self.base_std = base_std
 
         # Store groups of sources that were defined with one command
         # Store 'signal' and 'noise' separately to ease the calculation of SNR
@@ -63,6 +69,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -88,6 +95,14 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR), a single value
             that is used for all sources or an array with one SNR
             value per source.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applies to all sources or as an array with one value per
+            source. This parameter can be used in combination with the global SNR
+            mode to set an arbitrary spatial distribution of source activity.
+            By default, 1 is used so the variance of all sources is the same.
+            If the value of local SNR is specified, this parameter will effectively
+            be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
             if a function is provided.
@@ -115,6 +130,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=snr,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             snr_params=snr_params,
@@ -139,6 +155,7 @@ class SourceSimulator:
         location,
         waveform,
         snr=None,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
         snr_params=dict(),
@@ -170,6 +187,14 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR, default),
             a single value that is used for all sources or an array
             with one SNR value per source.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applies to all sources or as an array with one value per
+            source. This parameter can be used in combination with the global SNR
+            mode to set an arbitrary spatial distribution of source activity.
+            By default, 1 is used so the variance of all sources is the same.
+            If the value of local SNR is specified, this parameter will effectively
+            be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
             function is provided.
@@ -203,6 +228,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=snr,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             extents=extents,
@@ -227,6 +253,7 @@ class SourceSimulator:
         self,
         location,
         waveform=one_over_f_noise,
+        std=1.0,
         location_params=dict(),
         waveform_params=dict(),
     ):
@@ -245,6 +272,11 @@ class SourceSimulator:
         waveform : array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise with the slope of 1 is used for all noise sources.
+        std : float or array, optional
+            Desired standard deviation of the source activity, provided either as a
+            single value that applies to all sources or as an array with one value per
+            source. By default, 1 is used so the variance of all noise sources is
+            the same.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
             function is provided.
@@ -270,6 +302,7 @@ class SourceSimulator:
             location,
             waveform,
             snr=None,
+            std=std,
             location_params=location_params,
             waveform_params=waveform_params,
             snr_params=dict(),
@@ -396,7 +429,9 @@ class SourceSimulator:
             raise ValueError("No sources were added to the configuration.")
 
         # We expect None or one value that applies to all sources
-        snr_global = check_snr(snr_global, n_sources=1)
+        snr_global = check_numeric_array(
+            "global SNR", snr_global, n_sources=1, bounds=(0, None), allow_none=True
+        )
         snr_params = check_snr_params(snr_params, snr_global)
 
         is_global_snr_adjusted = self.snr_mode == "global" and snr_global is not None
@@ -419,6 +454,7 @@ class SourceSimulator:
             src=self.src,
             times=sc.times,
             fwd=fwd,
+            base_std=self.base_std,
             random_state=random_state,
         )
 
@@ -440,6 +476,7 @@ def _simulate(
     src,
     times,
     fwd,
+    base_std,
     random_state=None,
 ):
     """
@@ -460,20 +497,24 @@ def _simulate(
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
     if coupling_graph.number_of_edges() > 0:
-        sources = _set_coupling(
-            sources, coupling_graph, times, random_state=random_state
-        )
+        _set_coupling(sources, coupling_graph, times, random_state=random_state)
+
+    # Set the standard deviation of all sources w.r.t. base std
+    # NOTE: this should also be helpful to get less warnings about unreasonably
+    # high values of source activity from apply_forward_raw
+    for s in sources.values():
+        s.waveform *= base_std * s.std
+    for s in noise_sources.values():
+        s.waveform *= base_std * s.std
 
     # Adjust the SNR if needed
     if snr_mode == "global" and snr_global is not None:
         tstep = times[1] - times[0]
-        sources = _adjust_snr_global(
+        _adjust_snr_global(
             src, fwd, snr_global, snr_params, tstep, sources, noise_sources
         )
     elif is_local_snr_adjusted:
         tstep = times[1] - times[0]
-        sources = _adjust_snr_local(
-            src, fwd, tstep, sources, source_groups, noise_sources
-        )
+        _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
 
     return sources, noise_sources

@@ -86,13 +86,7 @@ def test_sourceconfiguration_to_raw(apply_forward_mock):
     raw = sc.to_raw([], [])
     apply_forward_mock.assert_called()
     stc = apply_forward_mock.call_args.args[1]
-    assert np.all(stc.data == 1e-6), "Default scaling factor was not applied correctly"
-    assert raw == 0, "Output of apply_forward_raw should not be changed"
-
-    raw = sc.to_raw([], [], scaling_factor=10)
-    apply_forward_mock.assert_called()
-    stc = apply_forward_mock.call_args.args[1]
-    assert np.all(stc.data == 10), "Custom scaling factor was not applied correctly"
+    assert np.all(stc.data == 1), "Source time courses should not be changed"
     assert raw == 0, "Output of apply_forward_raw should not be changed"
 
 

@@ -18,11 +18,12 @@ class _BaseSource:
 
     kind = "base"
 
-    def __init__(self, waveform):
+    def __init__(self, waveform, std=1.0):
         # Current constraint: one source corresponds to one waveform
         # Point source: the waveform is present in one vertex
         # Patch source: the waveform is mixed with noise in several vertices
         self.waveform = waveform
+        self.std = std
 
     @property
     def data(self):
@@ -127,8 +128,8 @@ class PointSource(_BaseSource):
 
     kind = "point"
 
-    def __init__(self, name, src_idx, vertno, waveform, hemi=None):
-        super().__init__(waveform)
+    def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
+        super().__init__(waveform, std)
 
         self.name = name
         self.src_idx = src_idx
@@ -150,7 +151,7 @@ class PointSource(_BaseSource):
 
     @classmethod
     def create(
-        cls, src, times, n_sources, location, waveform, names, random_state=None
+        cls, src, times, n_sources, location, waveform, stds, names, random_state=None
     ):
         """
         This function creates point sources according to the provided input.
@@ -176,7 +177,7 @@ class PointSource(_BaseSource):
 
         # Create point sources and save them as a group
         sources = []
-        for (src_idx, vertno), waveform, name in zip(vertices, data, names):
+        for (src_idx, vertno), waveform, std, name in zip(vertices, data, stds, names):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
                 cls(
@@ -184,6 +185,7 @@ class PointSource(_BaseSource):
                     src_idx=src_idx,
                     vertno=vertno,
                     waveform=waveform,
+                    std=std,
                     hemi=hemi,
                 )
             )
@@ -210,8 +212,8 @@ class PatchSource(_BaseSource):
 
     kind = "patch"
 
-    def __init__(self, name, src_idx, vertno, waveform, hemi=None):
-        super().__init__(waveform)
+    def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
+        super().__init__(waveform, std)
 
         self.name = name
         self.src_idx = src_idx
@@ -241,6 +243,7 @@ class PatchSource(_BaseSource):
         n_sources,
         location,
         waveform,
+        stds,
         names,
         extents,
         random_state=None,
@@ -293,8 +296,8 @@ class PatchSource(_BaseSource):
 
         # Create patch sources and save them as a group
         sources = []
-        for (src_idx, _), patch_vertno, waveform, name in zip(
-            vertices, patch_vertices, data, names
+        for (src_idx, _), patch_vertno, waveform, std, name in zip(
+            vertices, patch_vertices, data, stds, names
         ):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
@@ -303,6 +306,7 @@ class PatchSource(_BaseSource):
                     src_idx=src_idx,
                     vertno=patch_vertno,
                     waveform=waveform,
+                    std=std,
                     hemi=hemi,
                 )
             )

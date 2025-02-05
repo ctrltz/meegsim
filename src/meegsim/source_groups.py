@@ -6,7 +6,7 @@ defined by the user until we actually start simulating the data.
 from ._check import (
     check_location,
     check_waveform,
-    check_snr,
+    check_numeric_array,
     check_snr_params,
     check_names,
     check_extents,
@@ -43,7 +43,7 @@ class _BaseSourceGroup:
 
 
 class PointSourceGroup(_BaseSourceGroup):
-    def __init__(self, n_sources, location, waveform, snr, snr_params, names):
+    def __init__(self, n_sources, location, waveform, snr, snr_params, std, names):
         super().__init__()
 
         # Store the defined number of vertices to raise an error
@@ -55,6 +55,7 @@ class PointSourceGroup(_BaseSourceGroup):
         self.waveform = waveform
         self.snr = snr
         self.snr_params = snr_params
+        self.std = std
         self.names = names
 
     def __repr__(self):
@@ -79,6 +80,7 @@ class PointSourceGroup(_BaseSourceGroup):
             self.n_sources,
             self.location,
             self.waveform,
+            self.std,
             self.names,
             random_state=random_state,
         )
@@ -90,6 +92,7 @@ class PointSourceGroup(_BaseSourceGroup):
         location,
         waveform,
         snr,
+        std,
         location_params,
         waveform_params,
         snr_params,
@@ -111,6 +114,8 @@ class PointSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr: None, float, or array
             The SNR values provided by the user.
+        std: float or array
+            The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
         waveform_params: dict, optional
@@ -134,8 +139,11 @@ class PointSourceGroup(_BaseSourceGroup):
         # Check the user input
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
-        snr = check_snr(snr, n_sources)
+        snr = check_numeric_array(
+            "SNR", snr, n_sources, bounds=(0, None), allow_none=True
+        )
         snr_params = check_snr_params(snr_params, snr)
+        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
 
         # Auto-generate or check the provided source names
         if not names:
@@ -143,11 +151,13 @@ class PointSourceGroup(_BaseSourceGroup):
         else:
             check_names(names, n_sources, existing)
 
-        return cls(n_sources, location, waveform, snr, snr_params, names)
+        return cls(n_sources, location, waveform, snr, snr_params, std, names)
 
 
 class PatchSourceGroup(_BaseSourceGroup):
-    def __init__(self, n_sources, location, waveform, snr, snr_params, extents, names):
+    def __init__(
+        self, n_sources, location, waveform, snr, snr_params, std, extents, names
+    ):
         super().__init__()
 
         # Store the defined number of vertices to raise an error
@@ -159,6 +169,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         self.waveform = waveform
         self.snr = snr
         self.snr_params = snr_params
+        self.std = std
         self.names = names
         self.extents = extents
 
@@ -184,6 +195,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             self.n_sources,
             self.location,
             self.waveform,
+            self.std,
             self.names,
             self.extents,
             random_state=random_state,
@@ -196,6 +208,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         location,
         waveform,
         snr,
+        std,
         location_params,
         waveform_params,
         snr_params,
@@ -217,13 +230,15 @@ class PatchSourceGroup(_BaseSourceGroup):
         waveform: list of callable
             The waveform provided by the user.
         snr:
-            TODO: fix when finalizing SNR
+            The SNR values provided by the user.
+        std: float or array
+            The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
         waveform_params: dict, optional
             Additional keyword arguments for the waveform function.
         snr_params:
-            TODO: fix when finalizing SNR
+            Additional parameters for the adjustment of SNR.
         extents: list
             Extents (radius in mm) of each patch provided by the user.
         names:
@@ -243,8 +258,11 @@ class PatchSourceGroup(_BaseSourceGroup):
         # Check the user input
         location, n_sources = check_location(location, location_params, src)
         waveform = check_waveform(waveform, waveform_params, n_sources)
-        snr = check_snr(snr, n_sources)
+        snr = check_numeric_array(
+            "SNR", snr, n_sources, bounds=(0, None), allow_none=True
+        )
         snr_params = check_snr_params(snr_params, snr)
+        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
         extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names
@@ -253,4 +271,4 @@ class PatchSourceGroup(_BaseSourceGroup):
         else:
             check_names(names, n_sources, existing)
 
-        return cls(n_sources, location, waveform, snr, snr_params, extents, names)
+        return cls(n_sources, location, waveform, snr, snr_params, std, extents, names)

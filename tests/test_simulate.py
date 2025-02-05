@@ -6,7 +6,7 @@ import pytest
 from mock import patch, Mock
 
 from meegsim.simulate import SourceSimulator, _simulate
-from meegsim.source_groups import PointSourceGroup
+from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
 
 from utils.prepare import prepare_source_space, prepare_forward, prepare_point_source
 
@@ -308,17 +308,18 @@ def test_simulate():
     # some dummy data - 2 sources + (1 + 3 = 4) noise sources expected
     source_groups = [
         PointSourceGroup(
-            2, [(0, 0), (0, 1)], np.ones((2, 100)), None, dict(), ["s2", "s3"]
+            2, [(0, 0), (0, 1)], np.ones((2, 100)), None, dict(), 1, ["s2", "s3"]
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), ["s1"]),
+        PointSourceGroup(1, [(0, 0)], np.array([0]), None, dict(), 1, ["s1"]),
         PointSourceGroup(
             3,
             [(0, 0), (0, 1), (1, 0)],
             np.ones((3, 100)),
             None,
             dict(),
+            1,
             ["s4", "s5", "s6"],
         ),
     ]
@@ -340,6 +341,7 @@ def test_simulate():
             src=src,
             times=times,
             fwd=None,
+            base_std=1e-9,
             random_state=0,
         )
 
@@ -355,8 +357,77 @@ def test_simulate():
         assert len(sources) == 2, f"Expected 2 sources, got {len(sources)}"
         assert len(noise_sources) == 4, f"Expected 4 sources, got {len(noise_sources)}"
 
+        # Check that all source waveform were scaled by the base std
+        for s in sources.values():
+            assert np.allclose(s.waveform, 1e-9)
+        for s in noise_sources.values():
+            assert np.allclose(s.waveform, 1e-9)
 
-@patch("meegsim.simulate._adjust_snr_local", return_value=[])
+
+def test_simulate_std_adjustment():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    fwd = prepare_forward(5, 4)
+
+    # Define source groups
+    source_groups = [
+        PointSourceGroup(
+            n_sources=1,
+            location=[(0, 0)],
+            waveform=np.ones((1, 100)),
+            snr=None,
+            snr_params=dict(),
+            std=[2],
+            names=["point"],
+        ),
+        PatchSourceGroup(
+            n_sources=1,
+            location=[(1, [0, 1])],
+            waveform=np.ones((1, 100)),
+            snr=None,
+            snr_params=dict(),
+            std=[3],
+            extents=[None],
+            names=["patch"],
+        ),
+    ]
+    noise_groups = [
+        PointSourceGroup(
+            n_sources=2,
+            location=[(0, 1), (1, 0)],
+            waveform=np.ones((2, 100)),
+            snr=None,
+            snr_params=dict(),
+            std=[0.5, 1],
+            names=["noise1", "noise2"],
+        ),
+    ]
+
+    sfreq = 20
+    duration = 5
+    times = np.arange(0, sfreq * duration) / sfreq
+    sources, noise_sources = _simulate(
+        source_groups=source_groups,
+        noise_groups=noise_groups,
+        coupling_graph=nx.Graph(),
+        snr_mode="local",
+        snr_global=None,
+        snr_params=dict(),
+        is_local_snr_adjusted=False,
+        src=src,
+        times=times,
+        fwd=fwd,
+        base_std=1,
+        random_state=0,
+    )
+
+    # Check that all waveforms were scaled according to the requested std
+    assert np.all(sources["point"].data == 2), "point"
+    assert np.all(sources["patch"].data == 3), "patch"
+    assert np.all(noise_sources["noise1"].data == 0.5), "noise"
+    assert np.all(noise_sources["noise2"].data == 1), "noise"
+
+
+@patch("meegsim.simulate._adjust_snr_local")
 def test_simulate_local_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source
     simulate_mock = Mock(
@@ -377,11 +448,12 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=np.array([5.0]),
             snr_params=dict(fmin=8, fmax=12),
+            std=1,
             names=["s1"],
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ["n1"]),
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), 1, ["n1"]),
     ]
 
     with patch.object(
@@ -390,7 +462,7 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=nx.Graph(),
@@ -401,17 +473,15 @@ def test_simulate_local_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_std=1e-9,
             random_state=0,
         )
 
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
 
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources
 
-
-@patch("meegsim.simulate._adjust_snr_global", return_value=[])
+@patch("meegsim.simulate._adjust_snr_global")
 def test_simulate_global_snr_adjustment(adjust_snr_mock):
     # return mock PointSource's - 1 noise source, 1 signal source
     simulate_mock = Mock(
@@ -432,11 +502,12 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             waveform=np.ones((1, 100)),
             snr=None,
             snr_params=dict(),
+            std=1,
             names=["s1"],
         ),
     ]
     noise_groups = [
-        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), ["n1"]),
+        PointSourceGroup(1, [(1, 1)], np.ones((1, 100)), None, dict(), 1, ["n1"]),
     ]
 
     with patch.object(
@@ -445,7 +516,7 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=nx.Graph(),
@@ -456,17 +527,15 @@ def test_simulate_global_snr_adjustment(adjust_snr_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_std=1e-9,
             random_state=0,
         )
 
         # Check that the SNR adjustment was performed
         adjust_snr_mock.assert_called()
 
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources
 
-
-@patch("meegsim.simulate._set_coupling", return_value=[])
+@patch("meegsim.simulate._set_coupling")
 def test_simulate_coupling_setup(set_coupling_mock):
     # return 2 mock PointSource's
     simulate_mock = Mock(
@@ -487,6 +556,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
             waveform=np.ones((2, 500)),
             snr=None,
             snr_params=dict(),
+            std=1,
             names=["s1", "s2"],
         ),
     ]
@@ -501,7 +571,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
         sfreq = 100
         duration = 5
         times = np.arange(0, sfreq * duration) / sfreq
-        sources, _ = _simulate(
+        _simulate(
             source_groups=source_groups,
             noise_groups=noise_groups,
             coupling_graph=coupling_graph,
@@ -512,11 +582,9 @@ def test_simulate_coupling_setup(set_coupling_mock):
             src=src,
             times=times,
             fwd=fwd,
+            base_std=1e-9,
             random_state=0,
         )
 
         # Check that the coupling setup was performed
         set_coupling_mock.assert_called()
-
-        # Check that the result (empty list in the mock) was saved as is
-        assert not sources

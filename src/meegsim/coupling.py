@@ -7,6 +7,8 @@ import numpy as np
 from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
 
+from meegsim.utils import normalize_variance
+
 
 def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None):
     """
@@ -51,7 +53,7 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
     waveform_coupled = waveform_amp * np.exp(
         1j * m / n * waveform_angle + 1j * phase_lag
     )
-    return np.real(waveform_coupled)
+    return normalize_variance(np.real(waveform_coupled))
 
 
 def ppc_von_mises(
@@ -122,4 +124,4 @@ def ppc_von_mises(
     tmp_waveform = filtfilt(b, a, tmp_waveform)
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 
-    return np.real(waveform_coupled)
+    return normalize_variance(np.real(waveform_coupled))

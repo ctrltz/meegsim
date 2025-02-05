@@ -147,7 +147,7 @@ class SourceConfiguration:
 
         return _combine_sources_into_stc(all_sources, self.src, self.tstep)
 
-    def to_raw(self, fwd, info, scaling_factor=1e-6, sensor_noise_level=None):
+    def to_raw(self, fwd, info, sensor_noise_level=None):
         """
         Project the activity of all simulated sources to sensor space.
 
@@ -157,9 +157,6 @@ class SourceConfiguration:
             The forward model.
         info : Info
             The info structure that describes the channel layout.
-        scaling_factor : float, optional
-            The source activity is scaled by this factor before projecting to
-            sensor space. By default, the scaling factor is equal to :math:`10^{-6}`.
         sensor_noise_level : float, optional
             The desired level of sensor-space noise between 0 and 1. For example,
             if 0.1 is specified, 10% of total sensor-space power will stem from
@@ -192,10 +189,8 @@ class SourceConfiguration:
         """
         check_numeric("sensor_noise_level", sensor_noise_level, [0.0, 1.0])
 
-        # Multiply the combined stc by the scaling factor
-        stc_combined = self.to_stc() * scaling_factor
-
-        # Project to sensor space and return
+        # Project source activity to sensor space
+        stc_combined = self.to_stc()
         raw = mne.apply_forward_raw(fwd, stc_combined, info)
 
         # Add sensor space noise if needed

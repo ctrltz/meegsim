@@ -34,7 +34,9 @@ target_snr = 20
 
 # Channel info
 montage = mne.channels.make_standard_montage("standard_1020")
-ch_names = [ch for ch in montage.ch_names if ch not in ["O9", "O10"]]
+ch_names = [
+    ch for ch in montage.ch_names if ch not in ["O9", "O10", "T3", "T4", "T5", "T6"]
+]
 info = mne.create_info(ch_names, sfreq, ch_types="eeg")
 info.set_montage("standard_1020")
 
@@ -48,10 +50,11 @@ sim.add_noise_sources(location=select_random, location_params=dict(n=10))
 
 # Select some vertices randomly
 sim.add_point_sources(
-    location=select_random,
+    location=[(0, 0), (0, 87780), (0, 106307)],
     waveform=narrowband_oscillation,
     location_params=dict(n=3),
     waveform_params=dict(fmin=8, fmax=12),
+    std=[1, 1, 10],
     names=["s1", "s2", "s3"],
 )
 
@@ -84,7 +87,7 @@ sc = sim.simulate(
     sfreq,
     duration,
     fwd=fwd,
-    snr_global=10,
+    snr_global=4,
     snr_params=dict(fmin=8, fmax=12),
     random_state=seed,
 )
@@ -95,5 +98,6 @@ print([np.var(s.waveform) for s in sc._sources.values()])
 sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
 
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
+spec.plot_topomap(bands={"alpha": (8, 12)}, sphere="eeglab")
 spec.plot(sphere="eeglab")
 plt.show(block=True)

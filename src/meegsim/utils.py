@@ -67,9 +67,10 @@ def combine_stcs(stc1, stc2):
     return stc
 
 
-def normalize_power(data):
+def normalize_variance(data):
     """
-    Divide the time series by its norm to normalize the variance.
+    Divide the time series by their standard deviation to make their
+    variance equal to 1.
 
     Parameters
     ----------
@@ -79,10 +80,13 @@ def normalize_power(data):
     Returns
     -------
     data: array
-        Normalized time series. The norm of each row is equal to 1.
+        Normalized time series. The variance of each row is equal to 1.
     """
 
-    data /= np.linalg.norm(data, axis=1)[:, np.newaxis]
+    if data.ndim == 1:
+        return data / np.std(data)
+
+    data /= np.std(data, axis=-1)[:, np.newaxis]
     return data
 
 
