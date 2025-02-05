@@ -291,6 +291,14 @@ class PatchSource(_BaseSource):
         for isource, extent in enumerate(extents):
             src_idx, vertno = vertices[isource]
 
+            # Get the std values if an stc was provided
+            # The resulting value either corresponds to the center of the
+            # patch (extent is not None) or to the average over all
+            # vertices of the patch
+            if isinstance(stds, mne.SourceEstimate):
+                std = _get_param_from_stc(stds, [(src_idx, vertno)])
+                patch_stds.append(std.mean())
+
             # Add vertices as they are if no extent provided
             if extent is None:
                 # Wrap vertno in a list if it is a single number
@@ -302,11 +310,6 @@ class PatchSource(_BaseSource):
             patch = mne.grow_labels(
                 subject, vertno, extent, src_idx, subjects_dir=None
             )[0]
-
-            # Get the std values if an stc was provided
-            if isinstance(stds, mne.SourceEstimate):
-                std = _get_param_from_stc(stds, [(src_idx, vertno)])
-                patch_stds.append(std)
 
             # Prune vertices
             patch_vertno = [

@@ -382,7 +382,8 @@ def test_simulate_std_adjustment():
         PatchSourceGroup(
             n_sources=1,
             location=[(1, [0, 1])],
-            waveform=np.ones((1, 100)),
+            # adjust the waveform to account for scaling in .data
+            waveform=np.ones((1, 100)) * np.sqrt(2),
             snr=None,
             snr_params=dict(),
             std=[3],
@@ -422,7 +423,7 @@ def test_simulate_std_adjustment():
 
     # Check that all waveforms were scaled according to the requested std
     assert np.all(sources["point"].data == 2), "point"
-    assert np.all(sources["patch"].data == 3), "patch"
+    assert np.allclose(sources["patch"].data, 3), "patch"
     assert np.all(noise_sources["noise1"].data == 0.5), "noise"
     assert np.all(noise_sources["noise2"].data == 1), "noise"
 
