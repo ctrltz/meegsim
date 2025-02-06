@@ -391,7 +391,6 @@ class SourceSimulator:
         sfreq,
         duration,
         fwd=None,
-        info=None,
         snr_global=None,
         snr_params=dict(),
         random_state=None,
@@ -405,7 +404,7 @@ class SourceSimulator:
             The sampling frequency of the simulated data, in Hz.
         duration : float
             Duration of the simulated data, in seconds.
-        fwd : mne.Forward, optional
+        fwd : None or Forward, optional
             The forward model, only to be used for the adjustment of SNR.
             If no adjustment is performed, the forward model is not required.
         snr_global : float or None, optional
@@ -440,8 +439,6 @@ class SourceSimulator:
         is_local_snr_adjusted = self.snr_mode == "local" and self.is_local_snr_adjusted
         if (is_global_snr_adjusted or is_local_snr_adjusted) and fwd is None:
             raise ValueError("A forward model is required for the adjustment of SNR.")
-        if fwd is not None and info is None:
-            info = fwd["info"]
 
         # Initialize the SourceConfiguration
         sc = SourceConfiguration(self.src, sfreq, duration, random_state=random_state)
@@ -458,7 +455,6 @@ class SourceSimulator:
             src=self.src,
             times=sc.times,
             fwd=fwd,
-            info=info,
             base_std=self.base_std,
             random_state=random_state,
         )
@@ -481,7 +477,6 @@ def _simulate(
     src,
     times,
     fwd,
-    info,
     base_std,
     random_state=None,
 ):
@@ -517,10 +512,10 @@ def _simulate(
     if snr_mode == "global" and snr_global is not None:
         tstep = times[1] - times[0]
         _adjust_snr_global(
-            src, fwd, info, snr_global, snr_params, tstep, sources, noise_sources
+            src, fwd, snr_global, snr_params, tstep, sources, noise_sources
         )
     elif is_local_snr_adjusted:
         tstep = times[1] - times[0]
-        _adjust_snr_local(src, fwd, info, tstep, sources, source_groups, noise_sources)
+        _adjust_snr_local(src, fwd, tstep, sources, source_groups, noise_sources)
 
     return sources, noise_sources
