@@ -404,7 +404,7 @@ class SourceSimulator:
             The sampling frequency of the simulated data, in Hz.
         duration : float
             Duration of the simulated data, in seconds.
-        fwd : mne.Forward, optional
+        fwd : None or Forward, optional
             The forward model, only to be used for the adjustment of SNR.
             If no adjustment is performed, the forward model is not required.
         snr_global : float or None, optional
@@ -434,6 +434,7 @@ class SourceSimulator:
         )
         snr_params = check_snr_params(snr_params, snr_global)
 
+        # Check the forward model and auto-fill info if needed
         is_global_snr_adjusted = self.snr_mode == "global" and snr_global is not None
         is_local_snr_adjusted = self.snr_mode == "local" and self.is_local_snr_adjusted
         if (is_global_snr_adjusted or is_local_snr_adjusted) and fwd is None:

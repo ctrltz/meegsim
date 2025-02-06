@@ -7,7 +7,7 @@ from scipy.signal import butter, filtfilt
 from .sources import _combine_sources_into_stc
 
 
-def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
+def get_sensor_space_variance(stc, fwd, fmin=None, fmax=None, filter=False):
     """
     Estimate the sensor space variance of the provided stc
 
@@ -31,10 +31,18 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
     Returns
     -------
     stc_var: float
-        Variance with respect to leadfield.
+        Sensor space variance in the frequency band, if specified.
     """
 
-    stc_data = stc.data
+    try:
+        raw = mne.apply_forward_raw(fwd, stc, fwd["info"], on_missing="raise")
+    except ValueError:
+        raise ValueError(
+            "The provided forward model does not contain some of the "
+            "simulated sources, so the SNR cannot be adjusted."
+        )
+
+    raw_data = raw.get_data()
     if filter:
         if fmin is None or fmax is None:
             raise ValueError(
@@ -42,22 +50,11 @@ def get_sensor_space_variance(stc, fwd, *, fmin=None, fmax=None, filter=False):
             )
 
         b, a = butter(2, np.array([fmin, fmax]) / stc.sfreq * 2, btype="bandpass")
-        stc_data = filtfilt(b, a, stc_data, axis=1)
+        raw_data = filtfilt(b, a, raw_data, axis=1)
 
-    try:
-        fwd_restrict = mne.forward.restrict_forward_to_stc(fwd, stc, on_missing="raise")
-        leadfield_restict = fwd_restrict["sol"]["data"]
-    except ValueError:
-        raise ValueError(
-            "The provided forward model does not contain some of the "
-            "simulated sources, so the SNR cannot be adjusted."
-        )
-
-    n_samples = stc_data.shape[1]
-    n_sensors = leadfield_restict.shape[0]
-    source_cov = (stc_data @ stc_data.T) / n_samples
-    sensor_cov = leadfield_restict @ source_cov @ leadfield_restict.T
-    sensor_var = np.trace(sensor_cov) / n_sensors
+    n_samples = raw_data.shape[1]
+    sensor_cov = (raw_data @ raw_data.T) / (n_samples - 1)
+    sensor_var = np.mean(np.diag(sensor_cov))
 
     return sensor_var
 
