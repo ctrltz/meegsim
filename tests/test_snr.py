@@ -315,7 +315,7 @@ def test_adjust_snr_global_patch(adjust_snr_mock):
     _adjust_snr_global(
         src,
         fwd,
-        fwd["info"],
+        snr_global=5,
         snr_params=dict(fmin=8, fmax=12),
         tstep=tstep,
         sources=sources,
