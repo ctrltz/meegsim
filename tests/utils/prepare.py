@@ -46,15 +46,19 @@ def prepare_source_space(types, vertices):
     return mne.SourceSpaces(src)
 
 
-def prepare_forward(n_channels, n_sources, ch_names=None, ch_types=None, sfreq=250):
-    assert n_sources % 2 == 0, "Only an even number of sources is supported"
-
-    # Create a dummy info structure
+def prepare_info(n_channels, ch_names=None, ch_types=None, sfreq=250):
     if ch_names is None:
         ch_names = [f"EEG{i+1}" for i in range(n_channels)]
     if ch_types is None:
         ch_types = ["eeg"] * n_channels
-    info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
+    return mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
+
+
+def prepare_forward(n_channels, n_sources, ch_names=None, ch_types=None, sfreq=250):
+    assert n_sources % 2 == 0, "Only an even number of sources is supported"
+
+    # Create a dummy info structure
+    info = prepare_info(n_channels, ch_names=ch_names, ch_types=ch_types, sfreq=sfreq)
 
     # Generate random source space data (e.g., forward operator)
     fwd_data = np.random.randn(n_channels, n_sources)
@@ -74,7 +78,7 @@ def prepare_forward(n_channels, n_sources, ch_names=None, ch_types=None, sfreq=2
 
     # Create a forward solution
     forward = {
-        "sol": {"data": fwd_data, "row_names": ch_names},
+        "sol": {"data": fwd_data, "row_names": info.ch_names},
         "_orig_sol": fwd_data,
         "sol_grad": None,
         "info": info,
