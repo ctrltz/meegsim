@@ -14,6 +14,7 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 - A possibility to plot the source configuration ([#59](https://github.com/ctrltz/meegsim/pull/59))
 - Adjustment of global (all signal vs. all noise sources) SNR ([#64](https://github.com/ctrltz/meegsim/pull/64))
 - Adjustment of the standard deviation of source activity ([#66](https://github.com/ctrltz/meegsim/pull/66))
+- Allow specifying standard deviation via a SourceEstimate object ([#67](https://github.com/ctrltz/meegsim/pull/67))
 
 ### Changed
 

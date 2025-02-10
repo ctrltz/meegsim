@@ -20,9 +20,10 @@ from meegsim._check import (
     check_colors,
     check_scale_factors,
     check_option,
+    check_stc_as_param,
 )
 
-from utils.prepare import prepare_source_space
+from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_check_numeric_should_pass():
@@ -456,6 +457,23 @@ def test_check_coupling_bad_params():
 
     with pytest.raises(TypeError, match="argument: 'fmax'"):
         check_coupling(("a", "b"), coupling_params, common, sources, existing)
+
+
+def test_check_stc_as_param_should_pass():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    std_stc = prepare_source_estimate(data=[1, 1, 1, 1], vertices=[[0, 1], [0, 1]])
+
+    check_stc_as_param(std_stc, src)
+
+
+def test_check_stc_as_param_raises():
+    src = prepare_source_space(
+        types=["surf", "surf"], vertices=[[0, 1, 2, 3], [0, 1, 2, 3]]
+    )
+    std_stc = prepare_source_estimate(data=[1, 1, 1, 1], vertices=[[0, 1], [0, 1]])
+
+    with pytest.raises(ValueError, match="vertices from src\[0\] are missing: 2, 3"):
+        check_stc_as_param(std_stc, src)
 
 
 def test_check_colors_should_pass():
