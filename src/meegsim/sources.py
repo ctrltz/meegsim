@@ -294,7 +294,7 @@ class PatchSource(_BaseSource):
             # patch (extent is not None) or to the average over all
             # vertices of the patch
             if isinstance(stds, mne.SourceEstimate):
-                std = _get_param_from_stc(stds, [(src_idx, vertno)])
+                std = _get_param_from_stc(stds, [(src_idx, v) for v in vertno])
                 patch_stds.append(std.mean())
 
             # Add vertices as they are if no extent provided
