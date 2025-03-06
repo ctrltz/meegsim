@@ -188,7 +188,7 @@ class SourceConfiguration:
 
         .. math::
             
-            P_{total} & = (1 - \\gamma) \\cdot P_{brain} + \\gamma \\cdot P_{noise}
+            P_{total} = (1 - \\gamma) \\cdot P_{brain} + \\gamma \\cdot P_{noise}
         """
         check_numeric("sensor_noise_level", sensor_noise_level, [0.0, 1.0])
 
