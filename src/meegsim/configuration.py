@@ -181,11 +181,14 @@ class SourceConfiguration:
 
         .. math::
 
-            \\begin{eqnarray}
-                y & = \\sqrt{1 - \\gamma} \\cdot y_{brain} + \\sqrt{\\gamma} \\cdot y_{noise} \\\\
-                \\\\
-                P_{total} & = (1 - \\gamma) \\cdot P_{brain} + \\gamma \\cdot P_{noise}
-            \\end{eqnarray}
+            y = \\sqrt{1 - \\gamma} \\cdot y_{brain} + \\sqrt{\\gamma} \\cdot y_{noise}
+
+        If the sensor noise is independent from projected brain activity, the following 
+        relationship will hold for the total sensor space power:
+
+        .. math::
+            
+            P_{total} & = (1 - \\gamma) \\cdot P_{brain} + \\gamma \\cdot P_{noise}
         """
         check_numeric("sensor_noise_level", sensor_noise_level, [0.0, 1.0])
 
