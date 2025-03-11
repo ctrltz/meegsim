@@ -11,7 +11,9 @@ __pycache__
 
 # Sphinx
 _build/
+docs/auto_blocks/
 docs/generated/
+docs/sg_execution_times.rst
 
 # Build
 dist/
