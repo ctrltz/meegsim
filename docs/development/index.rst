@@ -6,3 +6,4 @@ Development
 
    setup
    whats_new
+   internals/index

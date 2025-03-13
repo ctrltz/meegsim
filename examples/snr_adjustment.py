@@ -1,5 +1,7 @@
 """
 Testing the adjustment of SNR
+=============================
+
 """
 
 import mne
@@ -65,4 +67,4 @@ for i_snr, target_snr in enumerate(snr_values):
     axes[i_snr].set_ylim([0, 1.25])
 
 fig.tight_layout()
-plt.show(block=True)
+plt.show()
