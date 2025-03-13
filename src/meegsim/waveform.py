@@ -80,7 +80,8 @@ def one_over_f_noise(n_series, times, *, slope=1, random_state=None):
         The number of time series to generate.
 
     times : array
-        Array of time points (each one represents time in seconds).
+        Array of time points (each one represents time in seconds). Only the size
+        of the array is used for noise generation.
 
     slope : float, optional
         Exponent of the power-law spectrum. By default, it is equal to 1.
@@ -112,7 +113,8 @@ def white_noise(n_series, times, *, random_state=None):
         Number of time series to generate.
 
     times : array
-        Array of time points (each one represents time in seconds).
+        Array of time points (each one represents time in seconds). Only the size
+        of the array is used for noise generation.
 
     random_state : None (default) or int
         Seed for the random number generator. If None (default), results will vary

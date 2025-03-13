@@ -7,7 +7,9 @@ import numpy as np
 from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
 
+from meegsim.snr import get_variance, amplitude_adjustment_factor
 from meegsim.utils import normalize_variance
+from meegsim.waveform import narrowband_oscillation
 
 
 def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None):
@@ -125,3 +127,40 @@ def ppc_von_mises(
     waveform_coupled = waveform_amp * np.exp(1j * np.angle(hilbert(tmp_waveform)))
 
     return normalize_variance(np.real(waveform_coupled))
+
+
+def _shifted_copy_with_noise(waveform, sfreq, snr, phase_lag, fmin, fmax, random_state):
+    """
+    Generate a coupled time series by (1) applying a constant phase shift to the input
+    waveform and (2) mixing it with noise to achieve a desired level of signal-to-noise
+    ratio. The SNR is related to the obtained phase-phase and amplitude-amplitude
+    coupling.
+    """
+    shifted_waveform = constant_phase_shift(waveform, sfreq, phase_lag)
+    signal_var = get_variance(shifted_waveform, sfreq, fmin, fmax, filter=True)
+
+    # NOTE: we use another randomly generated narrowband oscillation as noise here
+    # so that only the frequency band of interest is affected. If a broadband signal
+    # is provided as input, this behavior might not be desirable (?)
+    times = np.arange(waveform.size) / sfreq
+    noise_waveform = narrowband_oscillation(
+        1, times, fmin, fmax, random_state=random_state
+    )
+    noise_var = get_variance(noise_waveform, sfreq, fmin, fmax, filter=True)
+
+    factor = amplitude_adjustment_factor(signal_var, noise_var, snr)
+    coupled_waveform = factor * shifted_waveform + noise_waveform
+
+    return normalize_variance(coupled_waveform)
+
+
+def ppc_shifted_copy_with_noise(
+    waveform, sfreq, coh, phase_lag, fmin, fmax, random_state=None
+):
+    """
+    Generate a time series with desired level of coherence with the provided waveform.
+    """
+    snr = coh**2 / (1 - coh**2)
+    return _shifted_copy_with_noise(
+        waveform, sfreq, snr, phase_lag, fmin, fmax, random_state
+    )

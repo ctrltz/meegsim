@@ -7,6 +7,12 @@ from scipy.signal import butter, filtfilt
 from .sources import _combine_sources_into_stc
 
 
+def get_variance(waveform, sfreq, fmin=None, fmax=None, filter=False):
+    b, a = butter(2, np.array([fmin, fmax]) / sfreq * 2, btype="bandpass")
+    filtered_waveform = filtfilt(b, a, waveform)
+    return np.var(filtered_waveform)
+
+
 def get_sensor_space_variance(stc, fwd, fmin=None, fmax=None, filter=False):
     """
     Estimate the sensor space variance of the provided stc
