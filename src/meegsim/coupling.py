@@ -144,9 +144,15 @@ def _shifted_copy_with_noise(waveform, sfreq, snr, phase_lag, fmin, fmax, random
     # it can be addressed with an additional parameter
     times = np.arange(waveform.size) / sfreq
     noise_waveform = narrowband_oscillation(
-        1, times, fmin, fmax, random_state=random_state
+        n_series=1, times=times, fmin=fmin, fmax=fmax, random_state=random_state
     )
     noise_var = get_variance(noise_waveform, sfreq, fmin, fmax, filter=True)
+
+    # Process the corner cases
+    if np.isinf(snr):
+        return shifted_waveform
+    if np.isclose(snr, 0):
+        return noise_waveform
 
     factor = amplitude_adjustment_factor(signal_var, noise_var, snr)
     coupled_waveform = factor * shifted_waveform + noise_waveform
