@@ -1,3 +1,11 @@
+"""
+Phase-phase coupling based on von Mises distribution
+====================================================
+
+This example illustrates how the choice of kappa affects the obtained phase-phase
+coupling if the method based on von Mises distribution is used.
+"""
+
 import numpy as np
 from harmoni.extratools import compute_plv
 from matplotlib import pyplot as plt

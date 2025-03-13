@@ -33,6 +33,7 @@ extensions = [
     "numpydoc",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_gallery.gen_gallery",
     "sphinxcontrib.bibtex",
 ]
 
@@ -123,3 +124,10 @@ intersphinx_mapping = get_intersphinx_mapping(packages={"mne", "numpy", "python"
 # BibTeX
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
+
+
+# Sphinx Gallery
+sphinx_gallery_conf = {
+    "examples_dirs": "../examples",
+    "gallery_dirs": "auto_examples",
+}
