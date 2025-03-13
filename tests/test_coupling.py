@@ -4,7 +4,7 @@ import pytest
 from harmoni.extratools import compute_plv
 from scipy.signal import hilbert
 
-from meegsim.coupling import constant_phase_shift, ppc_von_mises
+from meegsim.coupling import constant_phase_shift, ppc_von_mises, _get_required_snr
 from meegsim.utils import get_sfreq, theoretical_plv
 
 
@@ -137,3 +137,21 @@ def test_reproducibility_with_random_state():
 
     # Test that results are identical
     np.testing.assert_array_almost_equal(result1, result2)
+
+
+@pytest.mark.parametrize(
+    "coh,expected_snr",
+    [
+        (1.0, np.inf),
+        (1.0 / np.sqrt(2), 1.0),
+        (0.0, 0.0),
+    ],
+)
+def test_get_required_snr(coh, expected_snr):
+    assert np.isclose(_get_required_snr(coh), expected_snr)
+
+
+# TODO: tests for shifted copy with noise
+# - cover the case of infinite SNR
+def test_shifted_copy_with_noise():
+    pass

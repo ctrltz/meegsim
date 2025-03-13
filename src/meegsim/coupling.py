@@ -133,15 +133,15 @@ def _shifted_copy_with_noise(waveform, sfreq, snr, phase_lag, fmin, fmax, random
     """
     Generate a coupled time series by (1) applying a constant phase shift to the input
     waveform and (2) mixing it with noise to achieve a desired level of signal-to-noise
-    ratio. The SNR is related to the obtained phase-phase and amplitude-amplitude
-    coupling.
+    ratio, which defined phase-phase and amplitude-amplitude coupling.
     """
     shifted_waveform = constant_phase_shift(waveform, sfreq, phase_lag)
     signal_var = get_variance(shifted_waveform, sfreq, fmin, fmax, filter=True)
 
     # NOTE: we use another randomly generated narrowband oscillation as noise here
     # so that only the frequency band of interest is affected. If a broadband signal
-    # is provided as input, this behavior might not be desirable (?)
+    # is provided as input, this behavior might not be desirable (?). In this case,
+    # it can be addressed with an additional parameter
     times = np.arange(waveform.size) / sfreq
     noise_waveform = narrowband_oscillation(
         1, times, fmin, fmax, random_state=random_state
@@ -154,13 +154,23 @@ def _shifted_copy_with_noise(waveform, sfreq, snr, phase_lag, fmin, fmax, random
     return normalize_variance(coupled_waveform)
 
 
+def _get_required_snr(coh):
+    return np.divide(coh**2, 1 - coh**2)
+
+
 def ppc_shifted_copy_with_noise(
     waveform, sfreq, coh, phase_lag, fmin, fmax, random_state=None
 ):
     """
     Generate a time series with desired level of coherence with the provided waveform.
     """
-    snr = coh**2 / (1 - coh**2)
+    snr = _get_required_snr(coh)
     return _shifted_copy_with_noise(
-        waveform, sfreq, snr, phase_lag, fmin, fmax, random_state
+        waveform=waveform,
+        sfreq=sfreq,
+        snr=snr,
+        phase_lag=phase_lag,
+        fmin=fmin,
+        fmax=fmax,
+        random_state=random_state,
     )
