@@ -153,5 +153,6 @@ def test_get_required_snr(coh, expected_snr):
 
 # TODO: tests for shifted copy with noise
 # - cover the case of infinite SNR
+# - check random state
 def test_shifted_copy_with_noise():
     pass
