@@ -6,5 +6,5 @@ User Guide
 
    install
    get_started/index
-   ../auto_blocks/index
+   ../auto_examples/index
    advanced/index

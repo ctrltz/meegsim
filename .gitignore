@@ -11,7 +11,7 @@ __pycache__
 
 # Sphinx
 _build/
-docs/auto_blocks/
+docs/auto_examples/
 docs/generated/
 docs/sg_execution_times.rst
 

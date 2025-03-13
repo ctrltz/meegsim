@@ -128,6 +128,6 @@ bibtex_default_style = "unsrt"
 
 # Sphinx Gallery
 sphinx_gallery_conf = {
-    "examples_dirs": "../blocks",
-    "gallery_dirs": "auto_blocks",
+    "examples_dirs": "../examples",
+    "gallery_dirs": "auto_examples",
 }
