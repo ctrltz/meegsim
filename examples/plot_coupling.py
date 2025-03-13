@@ -65,4 +65,4 @@ for i_lag, lag in enumerate(phase_lags):
     ax_lag.set_xlabel("Target coherence")
     ax_lag.set_ylabel("Obtained phase lag (degrees)")
 fig.tight_layout()
-plt.show(block=True)
+plt.show()
