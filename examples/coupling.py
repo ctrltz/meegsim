@@ -1,3 +1,8 @@
+"""
+Phase-phase coupling using shifted copy with noise
+==================================================
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
