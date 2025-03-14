@@ -18,6 +18,7 @@ from utils.prepare import (
     prepare_forward,
     prepare_point_source,
     prepare_patch_source,
+    prepare_sinusoid,
 )
 
 
@@ -29,10 +30,7 @@ def prepare_stc(vertices, num_samples=500):
 
 def test_get_variance():
     sfreq = 100
-    duration = 30
-    times = np.arange(sfreq * duration) / sfreq
-    f = 10
-    waveform = np.sin(2 * np.pi * f * times)
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
 
     # int_0^{2*pi}(sin^2(x)dx) / (2 * pi) = 1/2
     assert np.isclose(get_variance(waveform, sfreq), 0.5)
@@ -42,10 +40,7 @@ def test_get_variance():
 
 def test_get_variance_with_filter():
     sfreq = 100
-    duration = 30
-    times = np.arange(sfreq * duration) / sfreq
-    f = 10
-    waveform = np.sin(2 * np.pi * f * times)
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
 
     # We intentionally filter out the oscillation, so the variance should
     # be close to zero

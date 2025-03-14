@@ -20,6 +20,11 @@ def constant_phase_shift(waveform, sfreq, phase_lag, m=1, n=1, random_state=None
     This function can be used to set up both within-frequency (1:1, default) and
     cross-frequency (n:m) coupling.
 
+    .. note::
+        This function is using Hilbert transform for manipulating the phase of
+        the time series, so the result might not be meaningful if applied to
+        broadband data.
+
     Parameters
     ----------
     waveform : array
@@ -67,6 +72,11 @@ def ppc_von_mises(
 
     This function can be used to set up both within-frequency (1:1, default) and
     cross-frequency (n:m) coupling.
+
+    .. note::
+        This function is using Hilbert transform for manipulating the phase of
+        the time series, so the result might not be meaningful if applied to
+        broadband data.
 
     Parameters
     ----------
@@ -133,7 +143,7 @@ def _shifted_copy_with_noise(waveform, sfreq, snr, phase_lag, fmin, fmax, random
     """
     Generate a coupled time series by (1) applying a constant phase shift to the input
     waveform and (2) mixing it with noise to achieve a desired level of signal-to-noise
-    ratio, which defined phase-phase and amplitude-amplitude coupling.
+    ratio, which determines the resulting phase-phase and amplitude-amplitude coupling.
     """
     shifted_waveform = constant_phase_shift(waveform, sfreq, phase_lag)
     signal_var = get_variance(shifted_waveform, sfreq, fmin, fmax, filter=True)
