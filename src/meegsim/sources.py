@@ -18,10 +18,11 @@ class _BaseSource:
 
     kind = "base"
 
-    def __init__(self, waveform, std=1.0, name=""):
-        # Current constraint: one source corresponds to one waveform
-        # Point source: the waveform is present in one vertex
-        # Patch source: the waveform is mixed with noise in several vertices
+    def __init__(self, src_idx, waveform, std=1.0, name=""):
+        # Current constraints:
+        #  - one source corresponds to one waveform
+        #  - all vertices belong to the same source space (e.g., hemisphere)
+        self.src_idx = src_idx
         self.waveform = waveform
         self.std = std
         self.name = name
@@ -87,26 +88,18 @@ class _BaseSource:
         """
         self._check_compatibility(src)
 
-        # Make sure that the source can be turned into a label
-        src_idx = np.unique(self.vertices[:, 0])
-        if src_idx.size > 1:
+        # Make sure that we can the source turned into a label
+        if src[self.src_idx]["type"] != "surf":
             raise ValueError(
-                "Sources that contains vertices from multiple "
-                "source spaces are currently not supported"
-            )
-        if src[src_idx]["kind"] != "surface":
-            raise ValueError(
-                "Only sources in surface source spaces can be " "converted into a label"
+                "Only sources in surface source spaces can be converted into a label"
             )
 
-        # Extract the index of source space as an int scalar and sort
-        # vertices before constructing the label
-        src_idx = src_idx.item(0)
+        # NOTE: we need to sort vertices before constructing the label
         vertno = np.atleast_1d(np.sort(self.vertices[:, 1]))
         return mne.Label(
             vertices=vertno,
-            pos=src[src_idx]["rr"][vertno, :],
-            hemi="rh" if src_idx else "lh",
+            pos=src[self.src_idx]["rr"][vertno, :],
+            hemi="rh" if self.src_idx else "lh",
             name=self.name,
         )
 
@@ -173,9 +166,8 @@ class PointSource(_BaseSource):
     kind = "point"
 
     def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
-        super().__init__(waveform, std, name)
+        super().__init__(src_idx, waveform, std, name)
 
-        self.src_idx = src_idx
         self.vertno = vertno
         self.hemi = hemi
 
@@ -260,9 +252,8 @@ class PatchSource(_BaseSource):
     kind = "patch"
 
     def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
-        super().__init__(waveform, std, name)
+        super().__init__(src_idx, waveform, std, name)
 
-        self.src_idx = src_idx
         self.vertno = vertno
         self.hemi = hemi
 

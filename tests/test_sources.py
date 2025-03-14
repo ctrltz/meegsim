@@ -17,7 +17,7 @@ from utils.prepare import prepare_source_space
 
 def test_basesource_is_abstract():
     waveform = np.ones((100,))
-    s = _BaseSource(waveform)
+    s = _BaseSource(0, waveform)
     with pytest.raises(NotImplementedError, match="in a subclass"):
         s.data
 
@@ -47,6 +47,25 @@ def test_pointsource_repr(src_idx, vertno, hemi):
 
     assert str(vertno) in repr(s)
     assert "mysource" in repr(s)
+
+
+@pytest.mark.parametrize("src_idx,hemi", [(0, "lh"), (1, "rh")])
+def test_pointsource_to_label_should_pass(src_idx, hemi):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    s = PointSource("mysource", src_idx, 1, np.array([]), hemi=hemi)
+    label = s.to_label(src)
+
+    assert np.isin(1, label.vertices)
+    assert label.hemi == hemi
+
+
+def test_pointsource_to_label_bad_source_space_type():
+    src = prepare_source_space(
+        types=["surf", "surf", "vol"], vertices=[[0, 1], [0, 1], [0, 1, 2]]
+    )
+    s = PointSource("mysource", 2, 1, np.array([]))
+    with pytest.raises(ValueError, match="Only sources in surface"):
+        s.to_label(src)
 
 
 @pytest.mark.parametrize("src_idx,vertno", [(0, 0), (1, 1)])
@@ -196,6 +215,17 @@ def test_patchsource_repr(src_idx, vertno, hemi):
 
     assert str(len(vertno)) in repr(s)
     assert "mysource" in repr(s)
+
+
+@pytest.mark.parametrize("src_idx,hemi", [(0, "lh"), (1, "rh")])
+def test_patchsource_to_label_should_pass(src_idx, hemi):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    s = PatchSource("mysource", src_idx, [0, 1], np.array([]), hemi=hemi)
+    label = s.to_label(src)
+
+    assert np.isin(0, label.vertices)
+    assert np.isin(1, label.vertices)
+    assert label.hemi == hemi
 
 
 @pytest.mark.parametrize("src_idx,vertno", [(0, [0, 1]), (1, [1, 2])])
