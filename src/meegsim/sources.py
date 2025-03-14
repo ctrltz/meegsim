@@ -18,12 +18,13 @@ class _BaseSource:
 
     kind = "base"
 
-    def __init__(self, waveform, std=1.0):
+    def __init__(self, waveform, std=1.0, name=""):
         # Current constraint: one source corresponds to one waveform
         # Point source: the waveform is present in one vertex
         # Patch source: the waveform is mixed with noise in several vertices
         self.waveform = waveform
         self.std = std
+        self.name = name
 
     @property
     def data(self):
@@ -69,15 +70,55 @@ class _BaseSource:
                 f"contain the following vertices: {report_missing}"
             )
 
+    def to_label(self, src):
+        """
+        Get an mne.Label object containing all vertices belonging to the current
+        source.
+
+        Parameters
+        ----------
+        src : SourceSpaces
+            The source space where the source should be considered.
+
+        Returns
+        -------
+        label : Label
+            The constructed label.
+        """
+        self._check_compatibility(src)
+
+        # Make sure that the source can be turned into a label
+        src_idx = np.unique(self.vertices[:, 0])
+        if src_idx.size > 1:
+            raise ValueError(
+                "Sources that contains vertices from multiple "
+                "source spaces are currently not supported"
+            )
+        if src[src_idx]["kind"] != "surface":
+            raise ValueError(
+                "Only sources in surface source spaces can be " "converted into a label"
+            )
+
+        # Extract the index of source space as an int scalar and sort
+        # vertices before constructing the label
+        src_idx = src_idx.item(0)
+        vertno = np.atleast_1d(np.sort(self.vertices[:, 1]))
+        return mne.Label(
+            vertices=vertno,
+            pos=src[src_idx]["rr"][vertno, :],
+            hemi="rh" if src_idx else "lh",
+            name=self.name,
+        )
+
     def to_stc(self, src, tstep, subject=None):
         """
-        Convert the point source into a SourceEstimate object in the context
+        Convert the source into a SourceEstimate object in the context
         of the provided SourceSpaces.
 
         Parameters
         ----------
         src: mne.SourceSpaces
-            The source space where the point source should be considered.
+            The source space where the source should be considered.
         tstep: float
             The sampling interval of the source time series (1 / sfreq).
         subject: str or None, optional
@@ -87,8 +128,7 @@ class _BaseSource:
         Returns
         -------
         stc: mne.SourceEstimate
-            SourceEstimate that corresponds to the provided src and contains
-            one active vertex.
+            SourceEstimate that corresponds to the source in the provided src.
 
         Raises
         ------
@@ -129,9 +169,8 @@ class PointSource(_BaseSource):
     kind = "point"
 
     def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
-        super().__init__(waveform, std)
+        super().__init__(waveform, std, name)
 
-        self.name = name
         self.src_idx = src_idx
         self.vertno = vertno
         self.hemi = hemi
@@ -213,9 +252,8 @@ class PatchSource(_BaseSource):
     kind = "patch"
 
     def __init__(self, name, src_idx, vertno, waveform, std=1.0, hemi=None):
-        super().__init__(waveform, std)
+        super().__init__(waveform, std, name)
 
-        self.name = name
         self.src_idx = src_idx
         self.vertno = vertno
         self.hemi = hemi

@@ -100,6 +100,7 @@ numpydoc_xref_aliases = {
     # MNE-Python
     "Forward": "mne.Forward",
     "Info": "mne.Info",
+    "Label": "mne.Label",
     "Raw": "mne.io.Raw",
     "SourceSpaces": "mne.SourceSpaces",
     "SourceEstimate": "mne.SourceEstimate",
