@@ -8,6 +8,27 @@ from .sources import _combine_sources_into_stc
 
 
 def get_variance(waveform, sfreq, fmin=None, fmax=None, filter=False):
+    """
+    Estimate the variance of time series, optionally in a frequency band of interest.
+
+    Parameters
+    ----------
+    waveform : array, shape (n_times,)
+        The input waveform.
+    sfreq : float
+        The sampling frequency, in Hz.
+    fmin : float or None, optional
+        Lower frequency cutoff for the frequency band of interest, in Hz.
+    fmax : float or None, optional
+        Upper frequency cutoff for the frequency band of interest, in Hz.
+    filter : bool
+        Whether filtering in a frequency band should be applied.
+
+    Returns
+    -------
+    var : float
+        Variance of the input waveform.
+    """
     if filter:
         b, a = butter(2, np.array([fmin, fmax]) / sfreq * 2, btype="bandpass")
         waveform = filtfilt(b, a, waveform)
