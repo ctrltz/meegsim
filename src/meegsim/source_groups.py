@@ -74,7 +74,7 @@ class PointSourceGroup(_BaseSourceGroup):
         return f"<PointSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
-        return PointSource.create(
+        return PointSource._create(
             src,
             times,
             self.n_sources,
@@ -189,7 +189,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         return f"<PatchSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
-        return PatchSource.create(
+        return PatchSource._create(
             src,
             times,
             self.n_sources,

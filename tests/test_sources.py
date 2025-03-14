@@ -129,7 +129,9 @@ def test_pointsource_create_from_arrays():
     stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
@@ -157,7 +159,9 @@ def test_pointsource_create_from_callables():
     stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
@@ -273,7 +277,7 @@ def test_patchsource_create_with_extent():
         mock_grow_labels.return_value = [MagicMock(vertices=vertno)]
 
         # Call the create method
-        sources = PatchSource.create(
+        sources = PatchSource._create(
             src=src,
             times=times,
             n_sources=n_sources,

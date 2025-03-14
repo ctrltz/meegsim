@@ -117,17 +117,17 @@ class _BaseSource:
 
         Parameters
         ----------
-        src: mne.SourceSpaces
+        src : SourceSpaces
             The source space where the source should be considered.
-        tstep: float
+        tstep : float
             The sampling interval of the source time series (1 / sfreq).
-        subject: str or None, optional
+        subject : str or None, optional
             Name of the subject that the stc corresponds to.
             If None, the subject name from the provided src is used if present.
 
         Returns
         -------
-        stc: mne.SourceEstimate
+        stc : SourceEstimate
             SourceEstimate that corresponds to the source in the provided src.
 
         Raises
@@ -156,13 +156,17 @@ class PointSource(_BaseSource):
 
     Attributes
     ----------
-    src_idx: int
+    name : str
+        The name of source.
+    src_idx : int
         The index of source space that the point source belong to.
-    vertno: int
+    vertno : int
         The vertex that the point source correspond to
-    waveform: np.array
+    waveform : array
         The waveform of source activity.
-    hemi: str or None, optional
+    std : float, optional
+        The standard deviation of the source activity (1 by default).
+    hemi : str or None, optional
         Human-readable name of the hemisphere (e.g, lh or rh).
     """
 
@@ -189,7 +193,7 @@ class PointSource(_BaseSource):
         return np.atleast_2d(np.array([self.src_idx, self.vertno]))
 
     @classmethod
-    def create(
+    def _create(
         cls, src, times, n_sources, location, waveform, stds, names, random_state=None
     ):
         """
@@ -239,13 +243,17 @@ class PatchSource(_BaseSource):
 
     Attributes
     ----------
-    src_idx: int
+    name : str
+        The name of source.
+    src_idx : int
         The index of source space that the patch source belong to.
-    vertno: list
+    vertno : list
         The vertices that the patch sources correspond to including the central vertex.
-    waveform: np.array
+    waveform : np.array
         The waveform of source activity.
-    hemi: str or None, optional
+    std : float, optional
+        The standard deviation of the source activity (1 by default).
+    hemi : str or None, optional
         Human-readable name of the hemisphere (e.g, lh or rh).
     """
 
@@ -274,7 +282,7 @@ class PatchSource(_BaseSource):
         return np.array([[self.src_idx, v] for v in self.vertno])
 
     @classmethod
-    def create(
+    def _create(
         cls,
         src,
         times,
