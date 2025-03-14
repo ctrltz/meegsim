@@ -11,9 +11,10 @@ from meegsim.utils import (
     get_sfreq,
     vertices_to_mne,
     _hemi_to_index,
+    _get_param_from_stc,
 )
 
-from utils.prepare import prepare_source_space
+from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_unpack_single_list():
@@ -168,3 +169,27 @@ def test_vertices_to_mne():
 def test_hemi_to_index():
     assert _hemi_to_index("lh") == 0
     assert _hemi_to_index("rh") == 1
+
+
+def test_get_param_from_stc_lh():
+    stc = prepare_source_estimate(data=[0, 1, 0, 0], vertices=[[0, 1], [0, 1]])
+    assert _get_param_from_stc(stc, [(0, 1)]) == 1
+
+
+def test_get_param_from_stc_rh():
+    stc = prepare_source_estimate(data=[0, 0, 0, 1], vertices=[[0, 1], [0, 1]])
+    assert _get_param_from_stc(stc, [(1, 1)]) == 1
+
+
+def test_get_param_from_stc_multiple():
+    stc = prepare_source_estimate(data=[0, 1, 2, 3], vertices=[[0, 1], [0, 1]])
+    all_vertices = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    assert np.allclose(_get_param_from_stc(stc, all_vertices), np.arange(4))
+
+
+def test_get_param_from_stc_duplicate_vertex():
+    stc = prepare_source_estimate(data=[0, 0, 0, 1], vertices=[[0, 1], [0, 1]])
+
+    # Request the same vertex multiple times
+    all_vertices = [(1, 1), (1, 1), (1, 1)]
+    assert np.allclose(_get_param_from_stc(stc, all_vertices), np.ones((3,)))
