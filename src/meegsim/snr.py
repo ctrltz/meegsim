@@ -8,9 +8,10 @@ from .sources import _combine_sources_into_stc
 
 
 def get_variance(waveform, sfreq, fmin=None, fmax=None, filter=False):
-    b, a = butter(2, np.array([fmin, fmax]) / sfreq * 2, btype="bandpass")
-    filtered_waveform = filtfilt(b, a, waveform)
-    return np.var(filtered_waveform)
+    if filter:
+        b, a = butter(2, np.array([fmin, fmax]) / sfreq * 2, btype="bandpass")
+        waveform = filtfilt(b, a, waveform)
+    return np.var(waveform)
 
 
 def get_sensor_space_variance(stc, fwd, fmin=None, fmax=None, filter=False):
