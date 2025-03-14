@@ -180,7 +180,13 @@ def test_ppc_shifted_copy_with_noise(target_coh, tol):
 
     phase_lag = 0
     coupled = ppc_shifted_copy_with_noise(
-        waveform, sfreq, target_coh, phase_lag, fmin=8, fmax=12, random_state=seed
+        waveform=waveform,
+        sfreq=sfreq,
+        phase_lag=phase_lag,
+        coh=target_coh,
+        fmin=8,
+        fmax=12,
+        random_state=seed,
     )
     actual_coh = compute_plv(waveform, coupled, m=1, n=1, coh=True)
     assert np.abs(actual_coh - target_coh) < tol
@@ -188,7 +194,13 @@ def test_ppc_shifted_copy_with_noise(target_coh, tol):
     # Coupling should work regardless of the phase lag
     phase_lag = np.pi / 2
     coupled = ppc_shifted_copy_with_noise(
-        waveform, sfreq, target_coh, phase_lag, fmin=8, fmax=12, random_state=seed
+        waveform=waveform,
+        sfreq=sfreq,
+        phase_lag=phase_lag,
+        coh=target_coh,
+        fmin=8,
+        fmax=12,
+        random_state=seed,
     )
     actual_coh = compute_plv(waveform, coupled, m=1, n=1, coh=True)
     assert np.abs(actual_coh - target_coh) < tol
@@ -200,7 +212,7 @@ def test_shifted_copy_with_noise_infinite_snr():
     waveform = np.sqrt(2) * prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
 
     # Infinite SNR with no phase lag should return the input
-    coupled = _shifted_copy_with_noise(waveform, sfreq, np.inf, 0, 8, 12, None)
+    coupled = _shifted_copy_with_noise(waveform, sfreq, 0, np.inf, 8, 12, None)
     assert np.allclose(coupled, waveform)
 
 
