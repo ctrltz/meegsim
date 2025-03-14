@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from meegsim.snr import (
+    get_variance,
     get_sensor_space_variance,
     amplitude_adjustment_factor,
     _adjust_snr_local,
@@ -17,6 +18,7 @@ from utils.prepare import (
     prepare_forward,
     prepare_point_source,
     prepare_patch_source,
+    prepare_sinusoid,
 )
 
 
@@ -24,6 +26,25 @@ def prepare_stc(vertices, num_samples=500):
     # Fill in dummy data as a constant time series equal to the vertex number
     data = np.tile(vertices[0] + vertices[1], reps=(num_samples, 1)).T
     return mne.SourceEstimate(data, vertices, tmin=0, tstep=0.01)
+
+
+def test_get_variance():
+    sfreq = 100
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
+
+    # int_0^{2*pi}(sin^2(x)dx) / (2 * pi) = 1/2
+    assert np.isclose(get_variance(waveform, sfreq), 0.5)
+    # amplitude x 2 -> variance x 4
+    assert np.isclose(get_variance(2 * waveform, sfreq), 2)
+
+
+def test_get_variance_with_filter():
+    sfreq = 100
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
+
+    # We intentionally filter out the oscillation, so the variance should
+    # be close to zero
+    assert get_variance(waveform, sfreq, 20, 30, filter=True) < 1e-4
 
 
 def test_get_sensor_space_variance_no_filter():
