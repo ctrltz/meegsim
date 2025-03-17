@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: MEEGsim
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Nikolai
+    family-names: Kapralov
+    email: kapralov@cbs.mpg.de
+    affiliation: >-
+      Max Planck Institute for Human Cognitive and Brain
+      Sciences, Leipzig, Germany
+    orcid: 'https://orcid.org/0000-0002-5659-7307'
+  - given-names: Alina
+    family-names: Studenova
+    email: studenova@cbs.mpg.de
+    affiliation: >-
+      Max Planck Institute for Human Cognitive and Brain
+      Sciences, Leipzig, Germany
+    orcid: 'https://orcid.org/0000-0003-0821-9966'
+  - given-names: Mina
+    family-names: Jamshidi Idaji
+    orcid: 'https://orcid.org/0000-0003-1593-3201'
+repository-code: 'https://github.com/ctrltz/meegsim'
+url: 'https://meegsim.readthedocs.io/en/stable/'
+keywords:
+  - simulation
+  - MEG
+  - EEG
+  - connectivity
+license: BSD-3-Clause
+version: 0.0.1
+date-released: '2024-10-31'
