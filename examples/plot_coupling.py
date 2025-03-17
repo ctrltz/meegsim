@@ -6,9 +6,9 @@ Phase-phase coupling using shifted copy with noise
 
 In this example, we showcase the :func:`ppc_shifted_copy_with_noise` function, which
 generates a time series with a given level of coherence and phase lag to the
-provided input. We show that the resulting coupling depends on the provided input,
-and the requested values of coherence and phase lags are obtained only on average
-across multiple simulations but not for each individual simulation.
+provided input. We show that the requested values of coherence and phase lags are
+obtained only on average across multiple simulations but not for each individual
+simulation, and the variance of the result is higher for low values of coherence.
 
 To start, we load the necessary functions first:
 """
@@ -30,12 +30,12 @@ fmin = 8
 fmax = 12
 seed = 1234
 
-phase_lags = [0, np.pi / 4, np.pi / 2]
-target_coherence = np.linspace(0, 1, num=11)
-
-n_lags = len(phase_lags)
-n_cohs = target_coherence.size
+n_lags = 3
+n_cohs = 11
 n_simulations = 25
+
+phase_lags = np.linspace(0, np.pi / 2, num=n_lags)
+target_coherence = np.linspace(0, 1, num=n_cohs)
 
 # %%
 # As the input waveform, we use a narrowband oscillation in the alpha (8-12 Hz)
@@ -80,7 +80,7 @@ for i_lag, lag in enumerate(phase_lags):
 # coherence, it can be obtained quite reliably, but the variance increases as the
 # target coherence approaches zero.
 
-target_values = np.tile(target_coherence[:, np.newaxis], (1, n_simulations))
+target_coh = np.tile(target_coherence[:, np.newaxis], (1, n_simulations))
 fig, axes = plt.subplots(nrows=2, ncols=n_lags, figsize=(9, 6))
 for i_lag, lag in enumerate(phase_lags):
     lag_in_degrees = np.rad2deg(lag)
@@ -90,7 +90,7 @@ for i_lag, lag in enumerate(phase_lags):
     mean_lag = obtained_lag.mean(axis=1)
 
     ax_coh = axes[0, i_lag]
-    ax_coh.scatter(target_values.flatten(), obtained_coh.flatten(), c="gray", alpha=0.1)
+    ax_coh.scatter(target_coh.flatten(), obtained_coh.flatten(), c="gray", alpha=0.1)
     ax_coh.plot(target_coherence, mean_coh, c="black", lw=2)
     ax_coh.set_xlim([0, 1])
     ax_coh.set_ylim([0, 1])
@@ -100,7 +100,7 @@ for i_lag, lag in enumerate(phase_lags):
     ax_coh.set_title(f"target lag = {lag_in_degrees:.0f} degrees")
 
     ax_lag = axes[1, i_lag]
-    ax_lag.scatter(target_values.flatten(), obtained_lag.flatten(), c="gray", alpha=0.1)
+    ax_lag.scatter(target_coh.flatten(), obtained_lag.flatten(), c="gray", alpha=0.1)
     ax_lag.plot(target_coherence, mean_lag, c="black", lw=2)
     ax_lag.set_xlim([0, 1])
     ax_lag.set_ylim([-180, 180])
