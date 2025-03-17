@@ -46,6 +46,7 @@ deploy = [
 ]
 docs = [
     "intersphinx-registry",
+    "harmoni",
     "myst-parser",
     "numpydoc",
     "pydata-sphinx-theme",
