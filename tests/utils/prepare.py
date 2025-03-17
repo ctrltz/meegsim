@@ -107,3 +107,8 @@ def prepare_point_source(name, src_idx=0, vertno=0, n_samples=100):
 def prepare_patch_source(name, src_idx=0, vertno=[0, 1], n_samples=100):
     waveform = np.ones((n_samples,))
     return PatchSource(name, src_idx, vertno, waveform)
+
+
+def prepare_sinusoid(f, sfreq, duration):
+    times = np.arange(sfreq * duration) / sfreq
+    return np.sin(2 * np.pi * f * times)
