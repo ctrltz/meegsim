@@ -60,6 +60,13 @@ html_theme_options = {
     ],
     # include class methods in the per-page TOC
     "show_toc_level": 2,
+    # version switcher dropdown & stable version banner
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "show_version_warning_banner": True,
+    "switcher": {
+        "json_url": "https://meegsim.readthedocs.io/en/latest/_static/versions.json",
+        "version_match": "dev" if "dev" in release else release,
+    },
 }
 
 
