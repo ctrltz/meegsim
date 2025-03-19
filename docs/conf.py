@@ -64,7 +64,7 @@ html_theme_options = {
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "show_version_warning_banner": True,
     "switcher": {
-        "json_url": "https://meegsim--75.org.readthedocs.build/en/75/_static/versions.json",
+        "json_url": "https://meegsim.readthedocs.io/en/latest/_static/versions.json",
         "version_match": "dev" if "dev" in release else release,
     },
 }
