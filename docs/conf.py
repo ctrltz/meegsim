@@ -60,6 +60,12 @@ html_theme_options = {
     ],
     # include class methods in the per-page TOC
     "show_toc_level": 2,
+    # version switcher dropdown
+    "navbar_end": ["version-switcher", "navbar-icon-links"],
+    "switcher": {
+        "json_url": "http://meegsim--75.org.readthedocs.build/en/75/_static/versions.json",
+        "version_match": release,
+    },
 }
 
 
