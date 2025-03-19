@@ -7,6 +7,7 @@
     {
         "name": "0.0.1 (stable)",
         "version": "0.0.1",
-        "url": "https://meegsim.readthedocs.io/en/stable/"
+        "url": "https://meegsim.readthedocs.io/en/stable/",
+        "preferred": true
     }
 ]
