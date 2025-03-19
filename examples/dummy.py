@@ -95,6 +95,8 @@ sc = sim.simulate(
 )
 raw = sc.to_raw(fwd, info, sensor_noise_level=0.05)
 
+print(sc._sources["s1"].to_label(src))
+print(sc._sources["s4"].to_label(src))
 print([np.var(s.waveform) for s in sc._sources.values()])
 
 sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
