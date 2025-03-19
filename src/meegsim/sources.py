@@ -88,7 +88,7 @@ class _BaseSource:
         """
         self._check_compatibility(src)
 
-        # Make sure that we can the source turned into a label
+        # Make sure that we can turn the source into a label
         if src[self.src_idx]["type"] != "surf":
             raise ValueError(
                 "Only sources in surface source spaces can be converted into a label"
@@ -99,6 +99,9 @@ class _BaseSource:
         return mne.Label(
             vertices=vertno,
             pos=src[self.src_idx]["rr"][vertno, :],
+            # XXX: we should pass weights here once we implement patches with
+            # amplitude decay
+            values=np.ones_like(vertno),
             hemi="rh" if self.src_idx else "lh",
             name=self.name,
         )
