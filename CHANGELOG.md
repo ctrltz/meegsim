@@ -15,6 +15,7 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 - Adjustment of global (all signal vs. all noise sources) SNR ([#64](https://github.com/ctrltz/meegsim/pull/64))
 - Adjustment of the standard deviation of source activity ([#66](https://github.com/ctrltz/meegsim/pull/66))
 - A method for setting phase-phase coupling by adding noise to the shifted copy of input waveform ([#71](https://github.com/ctrltz/meegsim/pull/71))
+- Function to convert the sources to mne.Label ([#73](https://github.com/ctrltz/meegsim/pull/73))
 
 ### Changed
 
