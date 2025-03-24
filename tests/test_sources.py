@@ -206,11 +206,13 @@ def test_pointsource_create_std_sourceestimate(get_param_mock):
     names = ["s1", "s2"]
 
     # Values are passed directly - the mock should not be used
-    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
     get_param_mock.assert_not_called()
 
     # Values are passed in stc - the mock should be called once
-    sources = PointSource.create(
+    sources = PointSource._create(
         src, times, n_sources, location, waveform, std_stc, names
     )
     get_param_mock.assert_called_once()
@@ -389,13 +391,13 @@ def test_patchsource_create_std_sourceestimate(get_param_mock):
     extents = [None] * n_sources
 
     # Values are passed directly - the mock should not be used
-    sources = PatchSource.create(
+    sources = PatchSource._create(
         src, times, n_sources, location, waveform, stds, names, extents
     )
     get_param_mock.assert_not_called()
 
     # Values are passed in stc - the mock should be called once per patch
-    sources = PatchSource.create(
+    sources = PatchSource._create(
         src, times, n_sources, location, waveform, std_stc, names, extents
     )
     assert get_param_mock.call_count == n_sources
