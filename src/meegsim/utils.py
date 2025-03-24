@@ -246,3 +246,29 @@ def _get_param_from_stc(stc, vertices):
         values[i] = stc.data[idx]
 
     return values
+
+
+def _get_center_of_mass(src, src_idx, vertno):
+    """
+    For a given set of vertices, select one that is the closest to the
+    center of mass in terms of Euclidean distance.
+
+    Parameters
+    ----------
+    src : SourceSpaces
+        The source spaces with information about all vertices.
+    src_idx : int
+        The index of source space to be considered.
+    vertno : list
+        The list of vertex indices to be considered.
+
+    Returns
+    -------
+    center_vertno : int
+        The vertex from the provided list that is the closest to the center of mass.
+    """
+    pos = src[src_idx]["rr"][vertno, :]
+    mean_pos = pos.mean(axis=0)
+    dist = np.sum((pos - mean_pos) ** 2, axis=1)
+
+    return vertno[np.argmin(dist)]

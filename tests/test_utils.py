@@ -12,6 +12,7 @@ from meegsim.utils import (
     vertices_to_mne,
     _hemi_to_index,
     _get_param_from_stc,
+    _get_center_of_mass,
 )
 
 from utils.prepare import prepare_source_space, prepare_source_estimate
@@ -193,3 +194,17 @@ def test_get_param_from_stc_duplicate_vertex():
     # Request the same vertex multiple times
     all_vertices = [(1, 1), (1, 1), (1, 1)]
     assert np.allclose(_get_param_from_stc(stc, all_vertices), np.ones((3,)))
+
+
+def test_get_center_of_mass_one_vertex():
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2], [0, 1, 2]])
+    for v in [0, 1, 2]:
+        assert _get_center_of_mass(src, 0, [v]) == v
+        assert _get_center_of_mass(src, 1, [v]) == v
+
+
+def test_get_center_of_mass_multiple_vertices():
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2, 3, 4], [0, 1, 2]])
+    src[0]["rr"] = np.tile(np.array([[-2], [-1], [0], [1], [2]]), (1, 3))
+    print(src[0]["rr"])
+    assert _get_center_of_mass(src, 0, [0, 1, 2, 3, 4]) == 2
