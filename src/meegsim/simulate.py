@@ -203,7 +203,7 @@ class SourceSimulator:
             - an array with one value per source
             - a :class:`~mne.SourceEstimate` object that contains values of all
               vertices of the source space. In this case, the value will be adjusted
-              for each source automatically based on its location.
+              for each source automatically based on the location of its center of mass.
 
             This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.

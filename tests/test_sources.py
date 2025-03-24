@@ -373,9 +373,8 @@ def test_patchsource_create_with_extent():
         )
 
 
-@patch("meegsim.sources._get_center_of_mass", side_effect=[0, 1])
 @patch("meegsim.sources._get_param_from_stc", side_effect=[1, 4])
-def test_patchsource_create_std_sourceestimate(get_param_mock, center_mock):
+def test_patchsource_create_std_sourceestimate(get_param_mock):
     n_sources = 2
     n_samples = 1000
     sfreq = 250
@@ -401,7 +400,6 @@ def test_patchsource_create_std_sourceestimate(get_param_mock, center_mock):
         src, times, n_sources, location, waveform, std_stc, names, extents
     )
     assert get_param_mock.call_count == n_sources
-    assert center_mock.call_count == n_sources
 
     # Mock std values should be saved
     assert np.allclose([s.std for s in sources], [1, 4])

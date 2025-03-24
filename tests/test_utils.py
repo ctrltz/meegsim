@@ -205,6 +205,7 @@ def test_get_center_of_mass_one_vertex():
 
 def test_get_center_of_mass_multiple_vertices():
     src = prepare_source_space(["surf", "surf"], [[0, 1, 2, 3, 4], [0, 1, 2]])
+
+    # Set symmetric coordinates -> the middle vertex is the center
     src[0]["rr"] = np.tile(np.array([[-2], [-1], [0], [1], [2]]), (1, 3))
-    print(src[0]["rr"])
     assert _get_center_of_mass(src, 0, [0, 1, 2, 3, 4]) == 2

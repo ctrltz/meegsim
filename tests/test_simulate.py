@@ -422,10 +422,10 @@ def test_simulate_std_adjustment():
     )
 
     # Check that all waveforms were scaled according to the requested std
-    assert np.all(sources["point"].data == 2), "point"
-    assert np.allclose(sources["patch"].data, 3), "patch"
-    assert np.all(noise_sources["noise1"].data == 0.5), "noise"
-    assert np.all(noise_sources["noise2"].data == 1), "noise"
+    assert np.allclose(sources["point"].data, 2.0), "point"
+    assert np.allclose(sources["patch"].data, 3.0), "patch"
+    assert np.allclose(noise_sources["noise1"].data, 0.5), "noise"
+    assert np.allclose(noise_sources["noise2"].data, 1), "noise"
 
 
 @patch("meegsim.simulate._adjust_snr_local")
