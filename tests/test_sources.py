@@ -368,14 +368,14 @@ def test_patchsource_create_with_extent():
         assert source_2.std == 2, "Second source std mismatch"
 
         # Verify that grow_labels was called once for the source with extent
-        mock_grow_labels.assert_called_once_with("meegsim", 2, 3, 0, subjects_dir=None)
+        mock_grow_labels.assert_called_once_with(
+            "meegsim", [2], 3, 0, subjects_dir=None
+        )
 
 
-@patch(
-    "meegsim.sources._get_param_from_stc",
-    side_effect=[np.array([1, 3]), np.array([2, 4])],
-)
-def test_patchsource_create_std_sourceestimate(get_param_mock):
+@patch("meegsim.sources._get_center_of_mass", side_effect=[0, 1])
+@patch("meegsim.sources._get_param_from_stc", side_effect=[1, 4])
+def test_patchsource_create_std_sourceestimate(get_param_mock, center_mock):
     n_sources = 2
     n_samples = 1000
     sfreq = 250
@@ -401,7 +401,10 @@ def test_patchsource_create_std_sourceestimate(get_param_mock):
         src, times, n_sources, location, waveform, std_stc, names, extents
     )
     assert get_param_mock.call_count == n_sources
-    assert [s.std for s in sources] == [2, 3]  # averaged over vertices
+    assert center_mock.call_count == n_sources
+
+    # Mock std values should be saved
+    assert np.allclose([s.std for s in sources], [1, 4])
 
 
 # =================================

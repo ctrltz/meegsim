@@ -11,6 +11,7 @@ import mne
 from meegsim.utils import (
     vertices_to_mne,
     _extract_hemi,
+    _get_center_of_mass,
     _get_param_from_stc,
     _hemi_to_index,
 )
@@ -328,19 +329,19 @@ class PatchSource(_BaseSource):
         patch_stds = [] if isinstance(stds, mne.SourceEstimate) else stds
         for isource, extent in enumerate(extents):
             src_idx, vertno = vertices[isource]
+            vertno = vertno if isinstance(vertno, list) else [vertno]
 
             # Get the std values if an stc was provided
-            # The resulting value either corresponds to the center of the
-            # patch (extent is not None) or to the average over all
-            # vertices of the patch
+            # NOTE: for now, we always use the value that corresponds to the
+            # center of the patch but we could allow the user to select another
+            # vertex
             if isinstance(stds, mne.SourceEstimate):
-                std = _get_param_from_stc(stds, [(src_idx, v) for v in vertno])
-                patch_stds.append(std.mean())
+                center_vertno = _get_center_of_mass(src, src_idx, vertno)
+                std = _get_param_from_stc(stds, [(src_idx, center_vertno)])
+                patch_stds.append(std)
 
             # Add vertices as they are if no extent provided
             if extent is None:
-                # Wrap vertno in a list if it is a single number
-                vertno = vertno if isinstance(vertno, list) else [vertno]
                 patch_vertices.append(vertno)
                 continue
 
