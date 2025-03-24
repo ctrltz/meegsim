@@ -33,6 +33,7 @@ extensions = [
     "numpydoc",
     "myst_parser",
     "sphinx_copybutton",
+    "sphinx_gallery.gen_gallery",
     "sphinxcontrib.bibtex",
 ]
 
@@ -59,6 +60,13 @@ html_theme_options = {
     ],
     # include class methods in the per-page TOC
     "show_toc_level": 2,
+    # version switcher dropdown & stable version banner
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "show_version_warning_banner": True,
+    "switcher": {
+        "json_url": "https://meegsim.readthedocs.io/en/latest/_static/versions.json",
+        "version_match": "dev" if "dev" in release else release,
+    },
 }
 
 
@@ -99,6 +107,7 @@ numpydoc_xref_aliases = {
     # MNE-Python
     "Forward": "mne.Forward",
     "Info": "mne.Info",
+    "Label": "mne.Label",
     "Raw": "mne.io.Raw",
     "SourceSpaces": "mne.SourceSpaces",
     "SourceEstimate": "mne.SourceEstimate",
@@ -123,3 +132,10 @@ intersphinx_mapping = get_intersphinx_mapping(packages={"mne", "numpy", "python"
 # BibTeX
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
+
+
+# Sphinx Gallery
+sphinx_gallery_conf = {
+    "examples_dirs": "../examples",
+    "gallery_dirs": "auto_examples",
+}

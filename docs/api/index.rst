@@ -6,6 +6,7 @@ API Reference
 
    simulate
    configuration
+   sources
    location
    waveform
    coupling

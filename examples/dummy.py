@@ -1,5 +1,7 @@
 """
 Testing the configuration structure
+===================================
+
 """
 
 import json

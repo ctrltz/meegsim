@@ -46,11 +46,13 @@ deploy = [
 ]
 docs = [
     "intersphinx-registry",
+    "harmoni",
     "myst-parser",
     "numpydoc",
     "pydata-sphinx-theme",
     "sphinx",
     "sphinx-copybutton",
+    "sphinx-gallery",
     "sphinxcontrib-bibtex"
 ]
 # copied from MNE-Python, last updated on 27.01.2025
