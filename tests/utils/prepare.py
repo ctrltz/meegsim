@@ -109,6 +109,11 @@ def prepare_patch_source(name, src_idx=0, vertno=[0, 1], n_samples=100):
     return PatchSource(name, src_idx, vertno, waveform)
 
 
+def prepare_source_estimate(data, vertices):
+    vertices = [np.array(el) for el in vertices]
+    return mne.SourceEstimate(np.array(data), vertices, tmin=0, tstep=0.01)
+
+
 def prepare_sinusoid(f, sfreq, duration):
     times = np.arange(sfreq * duration) / sfreq
     return np.sin(2 * np.pi * f * times)

@@ -11,9 +11,11 @@ from meegsim.utils import (
     get_sfreq,
     vertices_to_mne,
     _hemi_to_index,
+    _get_param_from_stc,
+    _get_center_of_mass,
 )
 
-from utils.prepare import prepare_source_space
+from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_unpack_single_list():
@@ -168,3 +170,42 @@ def test_vertices_to_mne():
 def test_hemi_to_index():
     assert _hemi_to_index("lh") == 0
     assert _hemi_to_index("rh") == 1
+
+
+def test_get_param_from_stc_lh():
+    stc = prepare_source_estimate(data=[0, 1, 0, 0], vertices=[[0, 1], [0, 1]])
+    assert _get_param_from_stc(stc, [(0, 1)]) == 1
+
+
+def test_get_param_from_stc_rh():
+    stc = prepare_source_estimate(data=[0, 0, 0, 1], vertices=[[0, 1], [0, 1]])
+    assert _get_param_from_stc(stc, [(1, 1)]) == 1
+
+
+def test_get_param_from_stc_multiple():
+    stc = prepare_source_estimate(data=[0, 1, 2, 3], vertices=[[0, 1], [0, 1]])
+    all_vertices = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    assert np.allclose(_get_param_from_stc(stc, all_vertices), np.arange(4))
+
+
+def test_get_param_from_stc_duplicate_vertex():
+    stc = prepare_source_estimate(data=[0, 0, 0, 1], vertices=[[0, 1], [0, 1]])
+
+    # Request the same vertex multiple times
+    all_vertices = [(1, 1), (1, 1), (1, 1)]
+    assert np.allclose(_get_param_from_stc(stc, all_vertices), np.ones((3,)))
+
+
+def test_get_center_of_mass_one_vertex():
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2], [0, 1, 2]])
+    for v in [0, 1, 2]:
+        assert _get_center_of_mass(src, 0, [v]) == v
+        assert _get_center_of_mass(src, 1, [v]) == v
+
+
+def test_get_center_of_mass_multiple_vertices():
+    src = prepare_source_space(["surf", "surf"], [[0, 1, 2, 3, 4], [0, 1, 2]])
+
+    # Set symmetric coordinates -> the middle vertex is the center
+    src[0]["rr"] = np.tile(np.array([[-2], [-1], [0], [1], [2]]), (1, 3))
+    assert _get_center_of_mass(src, 0, [0, 1, 2, 3, 4]) == 2

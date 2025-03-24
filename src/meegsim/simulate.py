@@ -95,13 +95,20 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR), a single value
             that is used for all sources or an array with one SNR
             value per source.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. This parameter can be used in combination with the global SNR
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the source activity, provided via one of
+            the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on its location.
+
+            This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value of local SNR is specified, this parameter will effectively
+            If the value of ``snr`` is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
@@ -187,13 +194,21 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR, default),
             a single value that is used for all sources or an array
             with one SNR value per source.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. This parameter can be used in combination with the global SNR
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the **total** source activity of the
+            patch (invariant to the number of vertices in the patch), provided via
+            one of the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on the location of its center of mass.
+
+            This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value of local SNR is specified, this parameter will effectively
+            If the value of ``snr`` is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -272,10 +287,17 @@ class SourceSimulator:
         waveform : array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise with the slope of 1 is used for all noise sources.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. By default, 1 is used so the variance of all noise sources is
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the source activity, provided via one of
+            the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on its location.
+
+            By default, 1 is used so the variance of all noise sources is
             the same.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a

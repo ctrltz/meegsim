@@ -600,6 +600,21 @@ def check_extents(extents, n_sources):
     return extents
 
 
+def check_stc_as_param(stc, src):
+    for src_idx, s in enumerate(src):
+        common = np.intersect1d(stc.vertices[src_idx], s["vertno"], assume_unique=True)
+
+        # XXX: the code below overlaps with sources._BaseSource.check_compatibility
+        missing_vertno = set(s["vertno"]) - set(common)
+        if missing_vertno:
+            report_missing = ", ".join([str(v) for v in missing_vertno])
+            raise ValueError(
+                f"The provided stc does not contain all vertices of the "
+                f"source space that is used for simulations. The following vertices "
+                f"from src[{src_idx}] are missing: {report_missing}"
+            )
+
+
 def check_colors(colors):
     """
     Check the dictionary with colors provided for the visualization of the

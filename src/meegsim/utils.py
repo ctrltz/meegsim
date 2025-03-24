@@ -219,3 +219,56 @@ def _hemi_to_index(hemi):
     Get the index of the hemisphere (0 for lh, 1 for rh).
     """
     return ["lh", "rh"].index(hemi)
+
+
+def _get_param_from_stc(stc, vertices):
+    """
+    Extract parameter values for specified vertices from the provided stc.
+
+    Parameters
+    ----------
+    stc : mne.SourceEstimate
+        The stc object that contains values for all vertices.
+    vertices: list
+        List of tuples (src_idx, vertno) corresponding to the vertices of interest.
+
+    Returns
+    -------
+    values : array
+        One value from stc for each vertex.
+    """
+    values = np.zeros((len(vertices),))
+
+    # NOTE: we only support surface source estimates for now
+    offsets = [0, len(stc.vertices[0])]
+    for i, (src_idx, vertno) in enumerate(vertices):
+        idx = offsets[src_idx] + np.searchsorted(stc.vertices[src_idx], vertno)
+        values[i] = stc.data[idx]
+
+    return values
+
+
+def _get_center_of_mass(src, src_idx, vertno):
+    """
+    For a given set of vertices, select one that is the closest to the
+    center of mass in terms of Euclidean distance.
+
+    Parameters
+    ----------
+    src : SourceSpaces
+        The source spaces with information about all vertices.
+    src_idx : int
+        The index of source space to be considered.
+    vertno : list
+        The list of vertex indices to be considered.
+
+    Returns
+    -------
+    center_vertno : int
+        The vertex from the provided list that is the closest to the center of mass.
+    """
+    pos = src[src_idx]["rr"][vertno, :]
+    mean_pos = pos.mean(axis=0)
+    dist = np.sum((pos - mean_pos) ** 2, axis=1)
+
+    return vertno[np.argmin(dist)]
