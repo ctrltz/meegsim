@@ -26,7 +26,7 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 
 ### Fixed
 
-- Fixed a bug that causes different sources to have the same location and/or waveform when random state was explicitly provided ([#76](https://github.com/ctrltz/meegsim/pull/76))
+- Fixed a bug that caused different sources to have the same location and/or waveform when random state was explicitly provided ([#76](https://github.com/ctrltz/meegsim/pull/76))
 
 ## Version 0.0.1 (2024-10-31)
 

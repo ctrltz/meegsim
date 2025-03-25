@@ -589,7 +589,7 @@ def test_simulate_coupling_setup(set_coupling_mock):
 def test_simulate_random_states():
     """
     This test assesses whether the values of random state are passed correctly
-    from the most high-level function (_simulate) to  the most low-level
+    from the most high-level function (_simulate) to the most low-level
     functions (location, waveform, coupling).
 
     It relies on the mechanism for seed generation used in _simulate:

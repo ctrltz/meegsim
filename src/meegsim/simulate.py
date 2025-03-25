@@ -510,11 +510,11 @@ def _simulate(
     # Generate unique random states for each simulation step:
     #  - generation of noise source groups
     #  - generation of point/patch source groups
-    #  - coupling
+    #  - generation of coupling
     # NOTE: if we don't perform this, then callable-based sources defined in
     # different calls will have identical locations and waveforms
-    coupling_required = coupling_graph.number_of_edges() > 0
-    n_seeds = len(noise_groups) + len(source_groups) + coupling_required
+    is_coupling_required = coupling_graph.number_of_edges() > 0
+    n_seeds = len(noise_groups) + len(source_groups) + is_coupling_required
     seeds = list(np.random.SeedSequence(random_state).generate_state(n_seeds))
 
     # Simulate all sources independently first (no coupling yet)
@@ -530,7 +530,7 @@ def _simulate(
 
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
-    if coupling_required:
+    if is_coupling_required:
         _set_coupling(sources, coupling_graph, times, random_state=seeds.pop(0))
 
     # Set the standard deviation of all sources w.r.t. base std
