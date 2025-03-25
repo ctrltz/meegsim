@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. The public
+API is defined in the [API reference](https://meegsim.readthedocs.io/en/stable/api/).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -22,6 +23,10 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 
 - Reworked normalization of source activity: by default, all source time courses are scaled to make their standard deviation equal to 1 nAm ([#66](https://github.com/ctrltz/meegsim/pull/66))
 - Improved performance when adjusting the SNR for a large number of sources ([#68](https://github.com/ctrltz/meegsim/pull/68))
+
+### Fixed
+
+- Fixed a bug that caused different sources to have the same location and/or waveform when random state was explicitly provided ([#76](https://github.com/ctrltz/meegsim/pull/76))
 
 ## Version 0.0.1 (2024-10-31)
 

@@ -37,7 +37,7 @@ class SourceConfiguration:
         self.times = np.arange(self.n_samples) / self.sfreq
         self.tstep = self.times[1] - self.times[0]
 
-        # Random state (for reproducibility)
+        # Random state (for reproducibility & for sensor noise generation here)
         self.random_state = random_state
 
         # Keep track of all added sources, store 'signal' and 'noise' separately to ease the calculation of SNR
@@ -183,11 +183,11 @@ class SourceConfiguration:
 
             y = \\sqrt{1 - \\gamma} \\cdot y_{brain} + \\sqrt{\\gamma} \\cdot y_{noise}
 
-        If the sensor noise is independent from projected brain activity, the following 
+        If the sensor noise is independent from projected brain activity, the following
         relationship will hold for the total sensor space power:
 
         .. math::
-            
+
             P_{total} = (1 - \\gamma) \\cdot P_{brain} + \\gamma \\cdot P_{noise}
         """
         check_numeric("sensor_noise_level", sensor_noise_level, [0.0, 1.0])

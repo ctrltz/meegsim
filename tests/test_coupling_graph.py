@@ -150,7 +150,7 @@ def test_set_coupling(generate_mock):
 @patch("meegsim.coupling_graph.generate_walkaround", return_value=[("s1", "s2")])
 def test_set_coupling_random_state(generate_mock):
     def coupling_fn(waveform, sfreq, random_state=0):
-        return random_state
+        return np.ones((1, 100))
 
     sources = {k: prepare_point_source(name=k) for k in ["s1", "s2", "s3"]}
     coupling = [("s1", "s2", dict(method=coupling_fn))]
@@ -161,9 +161,5 @@ def test_set_coupling_random_state(generate_mock):
 
     _set_coupling(sources, coupling_graph, times, random_state)
 
-    # Check that the random state was forwarded to low-level functions
-    assert generate_mock.call_args.kwargs["random_state"] == random_state
-
-    # coupling_fn returns the provided random_state so it should be
-    # saved in the source waveform
-    assert sources["s2"].waveform == random_state
+    # return value of coupling_fn should be saved in the source waveform
+    assert np.allclose(sources["s2"].waveform, 1.0)
