@@ -1,3 +1,11 @@
+"""
+Random state and reproducibility
+--------------------------------
+
+This example will showcase how reproducible source configurations
+can be achieved by fixing the random state when simulating.
+"""
+
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
