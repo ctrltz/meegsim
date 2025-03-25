@@ -94,6 +94,8 @@ def _set_coupling(sources, coupling_graph, times, random_state):
     walkaround = generate_walkaround(coupling_graph, random_state=random_state)
 
     # Generate random states for each edge
+    # NOTE: if we don't perform this, same noise or phase lag distribution might be
+    # used for different edges, which is most likely not desirable
     n_edges = len(walkaround)
     seeds = list(np.random.SeedSequence(random_state).generate_state(n_edges))
 

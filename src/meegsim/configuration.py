@@ -37,7 +37,7 @@ class SourceConfiguration:
         self.times = np.arange(self.n_samples) / self.sfreq
         self.tstep = self.times[1] - self.times[0]
 
-        # Random state (for reproducibility, only used for sensor noise generation)
+        # Random state (for reproducibility & for sensor noise generation here)
         self.random_state = random_state
 
         # Keep track of all added sources, store 'signal' and 'noise' separately to ease the calculation of SNR

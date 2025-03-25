@@ -509,7 +509,7 @@ def _simulate(
 
     # Generate unique random states for each simulation step:
     #  - generation of noise source groups
-    #  - generation of source groups
+    #  - generation of point/patch source groups
     #  - coupling
     # NOTE: if we don't perform this, then callable-based sources defined in
     # different calls will have identical locations and waveforms
