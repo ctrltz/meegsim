@@ -126,7 +126,9 @@ numpydoc_xref_ignore = {
 
 
 # Intersphinx
-intersphinx_mapping = get_intersphinx_mapping(packages={"mne", "numpy", "python"})
+intersphinx_mapping = get_intersphinx_mapping(
+    packages={"matplotlib", "mne", "numpy", "python"}
+)
 
 
 # BibTeX
