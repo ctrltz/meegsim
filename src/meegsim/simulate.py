@@ -1,4 +1,5 @@
 import networkx as nx
+import numpy as np
 
 from ._check import check_coupling, check_option, check_numeric_array, check_snr_params
 from .configuration import SourceConfiguration
@@ -95,13 +96,20 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR), a single value
             that is used for all sources or an array with one SNR
             value per source.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. This parameter can be used in combination with the global SNR
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the source activity, provided via one of
+            the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on its location.
+
+            This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value of local SNR is specified, this parameter will effectively
+            If the value of ``snr`` is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location``
@@ -187,13 +195,21 @@ class SourceSimulator:
             ``'local'``. Can be None (no adjustment of SNR, default),
             a single value that is used for all sources or an array
             with one SNR value per source.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. This parameter can be used in combination with the global SNR
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the **total** source activity of the
+            patch (invariant to the number of vertices in the patch), provided via
+            one of the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on the location of its center of mass.
+
+            This parameter can be used in combination with the global SNR
             mode to set an arbitrary spatial distribution of source activity.
             By default, 1 is used so the variance of all sources is the same.
-            If the value of local SNR is specified, this parameter will effectively
+            If the value of ``snr`` is specified, this parameter will effectively
             be ignored.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -272,10 +288,17 @@ class SourceSimulator:
         waveform : array or callable
             Waveform provided either directly as an array or as a function.
             By default, 1/f noise with the slope of 1 is used for all noise sources.
-        std : float or array, optional
-            Desired standard deviation of the source activity, provided either as a
-            single value that applies to all sources or as an array with one value per
-            source. By default, 1 is used so the variance of all noise sources is
+        std : float, array, or SourceEstimate, optional
+            Desired standard deviation of the source activity, provided via one of
+            the following options:
+
+            - a single value that applies to all sources
+            - an array with one value per source
+            - a :class:`~mne.SourceEstimate` object that contains values of all
+              vertices of the source space. In this case, the value will be adjusted
+              for each source automatically based on its location.
+
+            By default, 1 is used so the variance of all noise sources is
             the same.
         location_params : dict, optional
             Keyword arguments that will be passed to ``location`` if a
@@ -484,21 +507,31 @@ def _simulate(
     This function describes the simulation workflow.
     """
 
+    # Generate unique random states for each simulation step:
+    #  - generation of noise source groups
+    #  - generation of point/patch source groups
+    #  - generation of coupling
+    # NOTE: if we don't perform this, then callable-based sources defined in
+    # different calls will have identical locations and waveforms
+    is_coupling_required = coupling_graph.number_of_edges() > 0
+    n_seeds = len(noise_groups) + len(source_groups) + is_coupling_required
+    seeds = list(np.random.SeedSequence(random_state).generate_state(n_seeds))
+
     # Simulate all sources independently first (no coupling yet)
     noise_sources = []
     for ng in noise_groups:
-        noise_sources.extend(ng.simulate(src, times, random_state=random_state))
+        noise_sources.extend(ng.simulate(src, times, random_state=seeds.pop(0)))
     noise_sources = {s.name: s for s in noise_sources}
 
     sources = []
     for sg in source_groups:
-        sources.extend(sg.simulate(src, times, random_state=random_state))
+        sources.extend(sg.simulate(src, times, random_state=seeds.pop(0)))
     sources = {s.name: s for s in sources}
 
     # Setup the desired coupling patterns
     # The time courses are changed for some of the sources in the process
-    if coupling_graph.number_of_edges() > 0:
-        _set_coupling(sources, coupling_graph, times, random_state=random_state)
+    if is_coupling_required:
+        _set_coupling(sources, coupling_graph, times, random_state=seeds.pop(0))
 
     # Set the standard deviation of all sources w.r.t. base std
     # NOTE: this should also be helpful to get less warnings about unreasonably

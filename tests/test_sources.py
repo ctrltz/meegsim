@@ -12,12 +12,12 @@ from meegsim.sources import (
     _get_patch_sources_in_hemis,
 )
 
-from utils.prepare import prepare_source_space
+from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_basesource_is_abstract():
     waveform = np.ones((100,))
-    s = _BaseSource(waveform)
+    s = _BaseSource(0, waveform)
     with pytest.raises(NotImplementedError, match="in a subclass"):
         s.data
 
@@ -47,6 +47,25 @@ def test_pointsource_repr(src_idx, vertno, hemi):
 
     assert str(vertno) in repr(s)
     assert "mysource" in repr(s)
+
+
+@pytest.mark.parametrize("src_idx,hemi", [(0, "lh"), (1, "rh")])
+def test_pointsource_to_label_should_pass(src_idx, hemi):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    s = PointSource("mysource", src_idx, 1, np.array([]), hemi=hemi)
+    label = s.to_label(src)
+
+    assert np.isin(1, label.vertices)
+    assert label.hemi == hemi
+
+
+def test_pointsource_to_label_bad_source_space_type():
+    src = prepare_source_space(
+        types=["surf", "surf", "vol"], vertices=[[0, 1], [0, 1], [0, 1, 2]]
+    )
+    s = PointSource("mysource", 2, 1, np.array([]))
+    with pytest.raises(ValueError, match="Only sources in surface"):
+        s.to_label(src)
 
 
 @pytest.mark.parametrize("src_idx,vertno", [(0, 0), (1, 1)])
@@ -129,7 +148,9 @@ def test_pointsource_create_from_arrays():
     stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
@@ -157,7 +178,9 @@ def test_pointsource_create_from_callables():
     stds = [1, 2]
     names = ["s1", "s2"]
 
-    sources = PointSource.create(src, times, n_sources, location, waveform, stds, names)
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
 
     # Check that the inputs were distributed correctly between sources
     assert [s.src_idx for s in sources] == [0, 1]
@@ -165,6 +188,35 @@ def test_pointsource_create_from_callables():
     assert [s.waveform[0] for s in sources] == [0, 1]
     assert [s.std for s in sources] == stds
     assert [s.name for s in sources] == names
+
+
+@patch("meegsim.sources._get_param_from_stc", return_value=np.array([1, 2]))
+def test_pointsource_create_std_sourceestimate(get_param_mock):
+    n_sources = 2
+    n_samples = 1000
+    sfreq = 250
+
+    vertices = [[0, 1], [0, 1]]
+    src = prepare_source_space(types=["surf", "surf"], vertices=vertices)
+    times = np.arange(n_samples) / sfreq
+    location = [(0, 0), (1, 1)]
+    waveform = np.tile(np.arange(n_sources), (n_samples, 1)).T
+    std_stc = prepare_source_estimate(data=[0, 1, 2, 3], vertices=vertices)
+    stds = [1, 2]
+    names = ["s1", "s2"]
+
+    # Values are passed directly - the mock should not be used
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, stds, names
+    )
+    get_param_mock.assert_not_called()
+
+    # Values are passed in stc - the mock should be called once
+    sources = PointSource._create(
+        src, times, n_sources, location, waveform, std_stc, names
+    )
+    get_param_mock.assert_called_once()
+    assert [s.std for s in sources] == [1, 2]
 
 
 # =================================
@@ -194,22 +246,35 @@ def test_patchsource_repr(src_idx, vertno, hemi):
     assert "mysource" in repr(s)
 
 
+@pytest.mark.parametrize("src_idx,hemi", [(0, "lh"), (1, "rh")])
+def test_patchsource_to_label_should_pass(src_idx, hemi):
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+    s = PatchSource("mysource", src_idx, [0, 1], np.array([]), hemi=hemi)
+    label = s.to_label(src)
+
+    assert np.isin(0, label.vertices)
+    assert np.isin(1, label.vertices)
+    assert label.hemi == hemi
+
+
 @pytest.mark.parametrize("src_idx,vertno", [(0, [0, 1]), (1, [1, 2])])
 def test_patchsource_to_stc(src_idx, vertno):
-    waveform = np.ones((100,))
+    # adjust the waveform to account for scaling in .data
+    waveform = np.ones((100,)) * np.sqrt(len(vertno))
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1, 2]])
     s = PatchSource("mysource", src_idx, vertno, waveform)
     stc = s.to_stc(src, tstep=0.01)
+    n_vertno = len(vertno)
 
     assert (
-        stc.data.shape[0] == 2
-    ), f"Expected two active vertices in stc, got {stc.data.shape[0]}"
+        stc.data.shape[0] == n_vertno
+    ), f"Expected {n_vertno} active vertices in stc, got {stc.data.shape[0]}"
     assert np.all(
         vertno in stc.vertices[src_idx]
     ), f"Expected all vertno to be put in src {src_idx}"
     assert np.allclose(
-        stc.data, waveform
-    ), "The source waveform should not change during conversion to stc"
+        stc.data, 1.0
+    ), "The source waveform should be scaled by the square root of the number of vertices"
 
 
 def test_patchsource_to_stc_bad_src_raises():
@@ -273,7 +338,7 @@ def test_patchsource_create_with_extent():
         mock_grow_labels.return_value = [MagicMock(vertices=vertno)]
 
         # Call the create method
-        sources = PatchSource.create(
+        sources = PatchSource._create(
             src=src,
             times=times,
             n_sources=n_sources,
@@ -303,7 +368,41 @@ def test_patchsource_create_with_extent():
         assert source_2.std == 2, "Second source std mismatch"
 
         # Verify that grow_labels was called once for the source with extent
-        mock_grow_labels.assert_called_once_with("meegsim", 2, 3, 0, subjects_dir=None)
+        mock_grow_labels.assert_called_once_with(
+            "meegsim", [2], 3, 0, subjects_dir=None
+        )
+
+
+@patch("meegsim.sources._get_param_from_stc", side_effect=[1, 4])
+def test_patchsource_create_std_sourceestimate(get_param_mock):
+    n_sources = 2
+    n_samples = 1000
+    sfreq = 250
+
+    vertices = [[0, 1], [0, 1]]
+    src = prepare_source_space(types=["surf", "surf"], vertices=vertices)
+    times = np.arange(n_samples) / sfreq
+    location = [(0, [0, 1]), (1, [0, 1])]
+    waveform = np.tile(np.arange(n_sources), (n_samples, 1)).T
+    std_stc = prepare_source_estimate(data=[0, 1, 2, 3], vertices=vertices)
+    stds = [1, 2]
+    names = ["s1", "s2"]
+    extents = [None] * n_sources
+
+    # Values are passed directly - the mock should not be used
+    sources = PatchSource._create(
+        src, times, n_sources, location, waveform, stds, names, extents
+    )
+    get_param_mock.assert_not_called()
+
+    # Values are passed in stc - the mock should be called once per patch
+    sources = PatchSource._create(
+        src, times, n_sources, location, waveform, std_stc, names, extents
+    )
+    assert get_param_mock.call_count == n_sources
+
+    # Mock std values should be saved
+    assert np.allclose([s.std for s in sources], [1, 4])
 
 
 # =================================
@@ -332,19 +431,20 @@ def test_combine_sources_into_stc_point():
 def test_combine_sources_into_stc_patch():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
 
-    s1 = PatchSource("s1", 0, [0, 1], np.ones((100,)))
-    s2 = PatchSource("s2", 1, [0, 1], np.ones((100,)))
-    s3 = PatchSource("s3", 0, [0, 1], np.ones((100,)))
+    # adjust the waveform to account for scaling in .data
+    s1 = PatchSource("s1", 0, [0, 1], np.ones((100,)) * np.sqrt(2))
+    s2 = PatchSource("s2", 1, [0, 1], np.ones((100,)) * np.sqrt(2))
+    s3 = PatchSource("s3", 0, [0, 1], np.ones((100,)) * np.sqrt(2))
 
-    # s1 and s2 are the same vertex, should be summed
+    # s1 and s2 are in different hemispheres, activity should not be summed
     stc1 = _combine_sources_into_stc([s1, s2], src, tstep=0.01)
-    assert stc1.data.shape[0] == 4, "Expected 1 active vertices in stc"
-    assert np.all(stc1.data == 1), "Expected source activity not to be summed"
+    assert stc1.data.shape[0] == 4, "Expected 4 active vertices in stc"
+    assert np.allclose(stc1.data, 1.0), "Expected source activity not to be summed"
 
-    # s1 and s3 are different vertices, should be concatenated
+    # s1 and s3 are in the same hemisphere, activity should be summed
     stc2 = _combine_sources_into_stc([s1, s3], src, tstep=0.01)
     assert stc2.data.shape[0] == 2, "Expected 2 active vertices in stc"
-    assert np.all(stc2.data == 2), "Expected source activity to be summed"
+    assert np.allclose(stc2.data, 2.0), "Expected source activity to be summed"
 
 
 def test_get_point_sources_in_hemi():

@@ -3,15 +3,18 @@ This classes store the information about source groups that were
 defined by the user until we actually start simulating the data.
 """
 
-from ._check import (
+import mne
+
+from meegsim._check import (
     check_location,
     check_waveform,
     check_numeric_array,
     check_snr_params,
+    check_stc_as_param,
     check_names,
     check_extents,
 )
-from .sources import PointSource, PatchSource
+from meegsim.sources import PointSource, PatchSource
 
 
 def generate_names(group, n_sources):
@@ -74,7 +77,7 @@ class PointSourceGroup(_BaseSourceGroup):
         return f"<PointSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
-        return PointSource.create(
+        return PointSource._create(
             src,
             times,
             self.n_sources,
@@ -114,7 +117,7 @@ class PointSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr: None, float, or array
             The SNR values provided by the user.
-        std: float or array
+        std: float, array, or mne.SourceEstimate
             The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
@@ -143,7 +146,10 @@ class PointSourceGroup(_BaseSourceGroup):
             "SNR", snr, n_sources, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr)
-        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
+        if isinstance(std, mne.SourceEstimate):
+            check_stc_as_param(std, src)
+        else:
+            std = check_numeric_array("std", std, n_sources, bounds=(0, None))
 
         # Auto-generate or check the provided source names
         if not names:
@@ -189,7 +195,7 @@ class PatchSourceGroup(_BaseSourceGroup):
         return f"<PatchSourceGroup | {self.n_sources} sources | {location_desc} | {waveform_desc}>"
 
     def simulate(self, src, times, random_state=None):
-        return PatchSource.create(
+        return PatchSource._create(
             src,
             times,
             self.n_sources,
@@ -231,7 +237,7 @@ class PatchSourceGroup(_BaseSourceGroup):
             The waveform provided by the user.
         snr:
             The SNR values provided by the user.
-        std: float or array
+        std: float, array, or mne.SourceEstimate
             The values of standard deviation provided by the user.
         location_params: dict, optional
             Additional keyword arguments for the location function.
@@ -262,7 +268,10 @@ class PatchSourceGroup(_BaseSourceGroup):
             "SNR", snr, n_sources, bounds=(0, None), allow_none=True
         )
         snr_params = check_snr_params(snr_params, snr)
-        std = check_numeric_array("std", std, n_sources, bounds=(0, None))
+        if isinstance(std, mne.SourceEstimate):
+            check_stc_as_param(std, src)
+        else:
+            std = check_numeric_array("std", std, n_sources, bounds=(0, None))
         extents = check_extents(extents, n_sources)
 
         # Auto-generate or check the provided source names

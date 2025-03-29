@@ -90,7 +90,14 @@ def _set_coupling(sources, coupling_graph, times, random_state):
     random_state : int or None
         The random state that could be fixed to ensure reproducibility.
     """
+    # Traverse the graph to ensure that coupling is set correctly
     walkaround = generate_walkaround(coupling_graph, random_state=random_state)
+
+    # Generate random states for each edge
+    # NOTE: if we don't perform this, same noise or phase lag distribution might be
+    # used for different coupling edges, which is most likely not desirable
+    n_edges = len(walkaround)
+    seeds = list(np.random.SeedSequence(random_state).generate_state(n_edges))
 
     for name1, name2 in walkaround:
         # Get the sources by their names
@@ -108,5 +115,5 @@ def _set_coupling(sources, coupling_graph, times, random_state):
             s1.waveform,
             get_sfreq(times),
             **tmp_coupling_params,
-            random_state=random_state,
+            random_state=seeds.pop(0),
         )

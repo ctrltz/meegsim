@@ -14,11 +14,13 @@ def prepare_source_space(types, vertices):
     # Create a simple dummy data structure for testing purposes
     src = []
     for i, (src_type, src_vertno) in enumerate(zip(types, vertices)):
+        assert src_type in ["surf", "vol", "discrete"]
         n_verts = len(src_vertno)
 
         # Generate random positions and random normals
         rr = np.random.rand(n_verts, 3) * 100
         nn = np.random.rand(n_verts, 3)
+        nn /= np.linalg.norm(nn, axis=1, keepdims=True)
 
         # Set src ID according to the documentation
         src_id = FIFF.FIFFV_MNE_SURF_UNKNOWN
@@ -29,16 +31,18 @@ def prepare_source_space(types, vertices):
             )
 
         # Explicitly set types to match src objects that are created by MNE
+        # Dictionary fields are ordered to match the documentation page of
+        # mne.SourceSpaces
         src_dict = dict(
-            vertno=np.array(src_vertno),
+            id=int(src_id),
+            type=str(src_type),
+            np=int(n_verts),
+            coord_frame=FIFF.FIFFV_COORD_MRI,
             rr=np.array(rr),
             nn=np.array(nn),
-            inuse=np.ones(n_verts, dtype=int),  # All vertices in use
             nuse=int(n_verts),
-            type=str(src_type),
-            id=int(src_id),
-            coord_frame=FIFF.FIFFV_COORD_MRI,
-            np=int(n_verts),
+            inuse=np.ones(n_verts, dtype=int),  # All vertices are in use
+            vertno=np.array(src_vertno),
             subject_his_id="meegsim",
         )
         src.append(src_dict)
@@ -67,30 +71,27 @@ def prepare_forward(n_channels, n_sources, ch_names=None, ch_types=None, sfreq=2
     lh_vertno = np.arange(n_sources // 2)
     rh_vertno = np.arange(n_sources // 2)
 
+    # Generate a corresponding source space
     src = prepare_source_space(["surf", "surf"], [lh_vertno, rh_vertno])
-
-    # Generate random source positions
-    source_rr = np.random.rand(n_sources, 3)
-
-    # Generate random source orientations
-    source_nn = np.random.randn(n_sources, 3)
-    source_nn /= np.linalg.norm(source_nn, axis=1, keepdims=True)
+    source_rr = np.vstack([s["rr"] for s in src])
+    source_nn = np.vstack([s["nn"] for s in src])
+    assert source_rr.shape == (n_sources, 3)
+    assert source_nn.shape == (n_sources, 3)
 
     # Create a forward solution
+    # Dictionary fields are ordered to match the documentation page of
+    # mne.Forward, mri_head_t is not included
     forward = {
-        "sol": {"data": fwd_data, "row_names": info.ch_names},
-        "_orig_sol": fwd_data,
-        "sol_grad": None,
-        "info": info,
-        "source_ori": 1,
-        "surf_ori": True,
+        "source_ori": FIFF.FIFFV_MNE_FIXED_ORI,
+        "coord_frame": FIFF.FIFFV_COORD_MRI,
         "nsource": n_sources,
         "nchan": n_channels,
-        "coord_frame": 1,
+        "sol": {"data": fwd_data, "row_names": info.ch_names},
+        "info": info,
         "src": src,
         "source_rr": source_rr,
         "source_nn": source_nn,
-        "_orig_source_ori": 1,
+        "surf_ori": FIFF.FIFFV_MNE_FIXED_ORI,
     }
 
     # Convert the dictionary to an mne.Forward object
@@ -107,6 +108,11 @@ def prepare_point_source(name, src_idx=0, vertno=0, n_samples=100):
 def prepare_patch_source(name, src_idx=0, vertno=[0, 1], n_samples=100):
     waveform = np.ones((n_samples,))
     return PatchSource(name, src_idx, vertno, waveform)
+
+
+def prepare_source_estimate(data, vertices):
+    vertices = [np.array(el) for el in vertices]
+    return mne.SourceEstimate(np.array(data), vertices, tmin=0, tstep=0.01)
 
 
 def prepare_sinusoid(f, sfreq, duration):
