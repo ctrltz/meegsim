@@ -75,25 +75,23 @@ def prepare_forward(n_channels, n_sources, ch_names=None, ch_types=None, sfreq=2
     src = prepare_source_space(["surf", "surf"], [lh_vertno, rh_vertno])
     source_rr = np.vstack([s["rr"] for s in src])
     source_nn = np.vstack([s["nn"] for s in src])
+    assert source_rr.shape == (n_sources, 3)
+    assert source_nn.shape == (n_sources, 3)
 
     # Create a forward solution
     # Dictionary fields are ordered to match the documentation page of
-    # mne.Forward, following fields are not present:
-    #  - mri_head_t
+    # mne.Forward, mri_head_t is not included
     forward = {
         "source_ori": FIFF.FIFFV_MNE_FIXED_ORI,
         "coord_frame": FIFF.FIFFV_COORD_MRI,
         "nsource": n_sources,
         "nchan": n_channels,
         "sol": {"data": fwd_data, "row_names": info.ch_names},
-        # "_orig_sol": fwd_data,
-        # "sol_grad": None,
         "info": info,
         "src": src,
         "source_rr": source_rr,
         "source_nn": source_nn,
         "surf_ori": FIFF.FIFFV_MNE_FIXED_ORI,
-        # "_orig_source_ori": 1,
     }
 
     # Convert the dictionary to an mne.Forward object
