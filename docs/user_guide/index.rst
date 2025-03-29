@@ -8,3 +8,4 @@ User Guide
    get_started/index
    ../auto_examples/index
    advanced/index
+   how_to_cite
