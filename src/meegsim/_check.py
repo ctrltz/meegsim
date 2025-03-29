@@ -462,7 +462,7 @@ def check_coupling_params(method, coupling_params, coupling_edge):
     """
 
     # Test on a 10 second segment of white noise
-    sfreq = 100
+    sfreq = 500
     rng = np.random.default_rng(seed=0)
     waveform = rng.random((10 * sfreq,))
 
