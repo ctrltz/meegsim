@@ -139,5 +139,6 @@ bibtex_default_style = "unsrt"
 # Sphinx Gallery
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
+    "filename_pattern": "/(plot_|run_)",
     "gallery_dirs": "auto_examples",
 }
