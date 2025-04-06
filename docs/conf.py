@@ -73,6 +73,7 @@ html_theme_options = {
 
 # Autodoc
 sys.path.insert(0, os.path.abspath("../src"))
+autodoc_mock_imports = ["PyQt6"]
 
 
 # Autosummary
