@@ -93,13 +93,13 @@ sc = sim.simulate(
 #     The brain plot is currently not snown due to technical limitations
 #     of the platform used for hosting the documentation.
 
-# brain = sc.plot(
-#     scale_factors=dict(point=1.25),
-#     subject="sample",
-#     subjects_dir=subjects_dir,
-#     size=(1000, 800),
-#     background="black",
-#     hemi="split",
-#     views=["lat", "med"],
-# )
-# brain.add_annotation("aparc")
+brain = sc.plot(
+    scale_factors=dict(point=1.25),
+    subject="sample",
+    subjects_dir=subjects_dir,
+    size=(1000, 800),
+    background="black",
+    hemi="split",
+    views=["lat", "med"],
+)
+brain.add_annotation("aparc")

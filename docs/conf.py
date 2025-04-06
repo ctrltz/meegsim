@@ -7,6 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 
+import pyvista
 import os
 import sys
 
@@ -136,10 +137,15 @@ bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
 
 
+# Enabling PyVista scraper
+pyvista.BUILDING_GALLERY = True
+pyvista.OFF_SCREEN = False
+
+
 # Sphinx Gallery
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
     "filename_pattern": "/(plot_|run_)",
     "gallery_dirs": "auto_examples",
-    "image_scrapers": ("matplotlib",),
+    "image_scrapers": ("matplotlib", "pyvista"),
 }
