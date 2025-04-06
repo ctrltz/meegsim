@@ -8,6 +8,7 @@
 
 
 import os
+import pyvista
 import sys
 
 import meegsim
@@ -136,9 +137,14 @@ bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
 
 
+# Enabling PyVista scraper
+pyvista.BUILDING_GALLERY = True
+pyvista.OFF_SCREEN = False
+
 # Sphinx Gallery
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
     "filename_pattern": "/(plot_|run_)",
     "gallery_dirs": "auto_examples",
+    "image_scrapers": ("matplotlib", "pyvista"),
 }

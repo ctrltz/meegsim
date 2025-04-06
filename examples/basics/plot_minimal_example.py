@@ -1,7 +1,7 @@
 """
-=================
-A minimal example
-=================
+===============
+Minimal example
+===============
 
 Below you can find an example script that contains all the ideas showcased
 in the Getting Started tutorial. It may serve as a good starting point
