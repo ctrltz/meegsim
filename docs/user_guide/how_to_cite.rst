@@ -21,11 +21,15 @@ DOI provided by Zenodo: https://doi.org/10.5281/zenodo.15106042
 Methods
 -------
 
-Below we also provide reference papers for some of the functions provided by MEEGsim.
+Below we also provide reference papers for some of the approaches and functions provided by MEEGsim.
 By citing these references, you can guide the reader to the description of underlying methods:
 
 +--------------------------------------------------+------------------------------------------+
-| Function                                         | Reference                                |
+| **Approach / Function**                          | **Reference**                            |
++--------------------------------------------------+------------------------------------------+
+| Global adjustment of the SNR                     | :footcite:`HaufeEwald2019`               |
++--------------------------------------------------+------------------------------------------+
+| Local adjustment of the SNR                      | :footcite:`Nikulin2011`                  |
 +--------------------------------------------------+------------------------------------------+
 | :py:func:`meegsim.coupling.constant_phase_shift` | :footcite:`JamshidiIdaji2022_PhDThesis`  |
 +--------------------------------------------------+------------------------------------------+
