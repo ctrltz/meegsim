@@ -60,7 +60,7 @@ sim.add_point_sources(
     waveform_params=dict(fmin=8, fmax=12),
 )
 
-# Add patch sources
+# Add patch sources - disabled until issue #80 is fixed
 # sim.add_patch_sources(
 #     location=select_random,
 #     location_params=dict(n=3),
@@ -70,7 +70,7 @@ sim.add_point_sources(
 # )
 
 # %%
-# Now we simulate the configuration with an arbitray level of global SNR:
+# Now we simulate the configuration with an arbitrary level of global SNR:
 
 sc = sim.simulate(
     sfreq,
@@ -86,15 +86,20 @@ sc = sim.simulate(
 # :py:meth:`~meegsim.configuration.SourceConfiguration.plot()` of the
 # :py:class:`~meegsim.configuration.SourceConfiguration` class. The
 # method returns a :py:class:`~mne.viz.Brain` object, which can be
-# used to plot additional information, e.g., parcellation of interest:
+# used to plot additional information, e.g., parcellation of interest.
+#
+# .. note::
+#
+#     The brain plot is currently not snown due to technical limitations
+#     of the platform used for hosting the documentation.
 
-brain = sc.plot(
-    scale_factors=dict(point=1.25),
-    subject="sample",
-    subjects_dir=subjects_dir,
-    size=(1000, 800),
-    background="black",
-    hemi="split",
-    views=["lat", "med"],
-)
-brain.add_annotation("aparc")
+# brain = sc.plot(
+#     scale_factors=dict(point=1.25),
+#     subject="sample",
+#     subjects_dir=subjects_dir,
+#     size=(1000, 800),
+#     background="black",
+#     hemi="split",
+#     views=["lat", "med"],
+# )
+# brain.add_annotation("aparc")

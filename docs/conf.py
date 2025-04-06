@@ -8,7 +8,6 @@
 
 
 import os
-import pyvista
 import sys
 
 import meegsim
@@ -73,7 +72,6 @@ html_theme_options = {
 
 # Autodoc
 sys.path.insert(0, os.path.abspath("../src"))
-autodoc_mock_imports = ["PyQt6"]
 
 
 # Autosummary
@@ -138,14 +136,10 @@ bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
 
 
-# Enabling PyVista scraper
-pyvista.BUILDING_GALLERY = True
-pyvista.OFF_SCREEN = False
-
 # Sphinx Gallery
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
     "filename_pattern": "/(plot_|run_)",
     "gallery_dirs": "auto_examples",
-    "image_scrapers": ("matplotlib", "pyvista"),
+    "image_scrapers": ("matplotlib",),
 }
