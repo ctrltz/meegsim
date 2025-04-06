@@ -91,7 +91,7 @@ hemisphere (123 and 456) and one source to the right hemisphere (789).
 In the second case, you need to provide a function that accepts ``src`` as the first
 argument and returns the indices of selected vertices in the same format as
 described above. If the function relies on additional arguments, these can be
-provided in the ``location_params`` argument. In the example below,
+provided in the ``location_params`` dictionary. In the example below,
 we use a built-in function :meth:`select_random` to place 10 sources in random
 locations:
 
@@ -121,7 +121,7 @@ Similar to location, activity waveforms can also be defined manually or through
 a function. In the first case, the toolbox expects an array with one time series
 per added source, and the number of waveforms should match the number of defined
 locations. We can now add some activity to the point sources described above
-(here we use constant time series for simplicity):
+(using constant time series for simplicity):
 
 .. code-block:: python
 
@@ -169,65 +169,29 @@ Signal-to-noise ratio (SNR)
 ---------------------------
 
 By default, the waveforms provided by the user are saved as is, while the built-in
-waveforms are normalized to have the same variance. In practice, it is often useful
-to set up a specific SNR for each source, for example, to test how different analysis
-methods perform depending on the SNR of target sources.
+waveforms are normalized to have the same standard deviation (1 nAm by default).
+In practice, it is often useful to set up a specific SNR for each source, for example,
+to test how different analysis methods perform depending on the SNR of target sources.
 
-We use the approach from :cite:p:`Nikulin2011` for adjusting the sensor-space SNR
-of sources. Namely, we calculate the mean variance of each point or patch source
-across all sensors and adjust it relative to the mean variance of all noise sources
-(mean over sensors but summed over noise sources). The calculation of variance is
-performed after filtering both time series (signal and noise) in the frequency
-band of interest.
+We provide two approaches for adjusting the sensor-space SNR of added sources. The
+first approach was used in :cite:`Nikulin2011`, where the SNR was adjusted separately for
+each point or patch source relative to the total power of all noise sources.
+The second approach was introduced in :cite:`HaufeEwald2019`: in this case, the total power
+of all point and patch sources is adjusted relative to the total power of all noise sources
+to obtain the desired SNR. We refer to these approaches as *local* and *global*
+adjustment of the SNR, respectively.
 
 .. note::
-    For the adjustment of SNR, you always need to add noise sources to the
+    By default, the *global* adjustment of SNR is performed.
+
+The *global* adjustment of the SNR is discussed later in the tutorial as it is
+performed only at the last step when simulating the data.
+The *local* adjustment of the SNR can be performed when adding the sources to
+the simulation and is described :doc:`here </user_guide/advanced/local_snr>`.
+
+.. note::
+    For any adjustment of the SNR, you need to add noise sources to the
     simulation.
-
-By default, no adjustment of SNR is performed. To enable it, you need to specify
-the value of SNR using the ``snr`` argument and provide the limits of the frequency
-band in ``snr_params`` when adding the point or patch sources:
-
-.. code-block:: python
-
-    import numpy as np
-
-    # add some noise sources first
-    sim.add_noise_sources(
-        location=select_random,
-        location_params=dict(n=10)
-    )
-
-    # now add point sources with adjustment of SNR
-    sim.add_point_sources(
-        location=[(0, 123), (0, 456), (1, 789)],
-        waveform=np.ones((3, 1000)),
-        snr=5,
-        snr_params=dict(fmin=8, fmax=12),
-        ...
-    )
-
-It is also possible to specify SNR for each of the sources separately by providing
-one value for each source:
-
-.. code-block:: python
-
-    import numpy as np
-
-    # add some noise sources first
-    sim.add_noise_sources(
-        location=select_random,
-        location_params=dict(n=10)
-    )
-
-    # now add point sources with adjustment of SNR
-    sim.add_point_sources(
-        location=[(0, 123), (0, 456), (1, 789)],
-        waveform=np.ones((3, 1000)),
-        snr=[1, 2.5, 5],
-        snr_params=dict(fmin=8, fmax=12),
-        ...
-    )
 
 Configuring coupling between sources
 ====================================
@@ -287,7 +251,7 @@ coupling parameters as shown below:
 In the example above, we used the :meth:`constant_phase_shift` coupling method.
 As the name suggests, it generates time series with a constant phase shift
 relative to each other. To have more control over the strength of coupling,
-you can use the :meth:`ppc_von_mises` method that set probabilistic phase shifts
+you can use the :meth:`ppc_von_mises` method that sets probabilistic phase shifts
 based on the von Mises distribution. For more details about both approaches,
 see chapter 3 of :cite:`JamshidiIdaji2022_PhDThesis`.
 

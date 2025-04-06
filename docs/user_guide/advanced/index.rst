@@ -9,4 +9,6 @@ for the toolbox.
    :maxdepth: 2
 
    patches
+   standard_deviation
+   local_snr
    customization

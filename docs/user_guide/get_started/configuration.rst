@@ -36,6 +36,41 @@ the sensor layout:
 
     raw = sc.to_raw(fwd, info)
 
+Global adjustment of the SNR
+----------------------------
+
+If necessary, the global SNR can be adjusted when simulating the data. To achieve this,
+you will need to specify the desired value of SNR (``snr_global``) and the limits of
+the frequency band that should be considered during the adjustment (``fmin`` and
+``fmax`` keys in the ``snr_params`` dictionary). As a result, the mean sensor-space
+variance of all point and patch sources will be adjusted relative to the mean variance
+of all noise sources to achieve the desired SNR:
+
+.. code-block:: python
+
+    sfreq = 250     # in Hz
+    duration = 30   # in seconds
+    sc = sim.simulate(
+        sfreq,
+        duration,
+        fwd=fwd,    # Forward model is required for the adjustment of SNR
+        snr_global=3.0,
+        snr_params=dict(fmin=8, fmax=12)
+    )
+
+Adding sensor noise
+-------------------
+
+When projecting the simulated source activity to sensor space, it is also possible
+to add a desired amount of sensor noise (currently modeled as white noise):
+
+.. code-block:: python
+
+    raw = sc.to_raw(fwd, info, sensor_noise_level=0.01)
+
+The ``sensor_noise_level`` controls the ratio of noise to total power in sensor space.
+In the example above, 1% of total sensor-space power will originate from noise.
+
 Reproducibility
 ===============
 

@@ -6,6 +6,6 @@ User Guide
 
    install
    get_started/index
-   ../auto_examples/index
    advanced/index
+   ../auto_examples/index
    how_to_cite
