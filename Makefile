@@ -7,10 +7,18 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = _build
+EXAMPLESDIR   = auto_examples
 
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+clean:
+	rm -rf $(BUILDDIR)/*
+	rm -rf $(EXAMPLESDIR)/*
+
+collect: html
+	./collect_example_stubs.sh
 
 show:
 	python -m webbrowser -t "$(BUILDDIR)/html/index.html"

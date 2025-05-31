@@ -14,6 +14,8 @@ from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
 
+# sphinx_gallery_thumbnail_path = '_static/example_stubs/thumb/sphx_glr_plot_brain_configuration_thumb.png'
+
 # %%
 # First, we load all the prerequisites for our simulation and restrict to the EEG
 # channels only
@@ -87,11 +89,6 @@ sc = sim.simulate(
 # :py:class:`~meegsim.configuration.SourceConfiguration` class. The
 # method returns a :py:class:`~mne.viz.Brain` object, which can be
 # used to plot additional information, e.g., parcellation of interest.
-#
-# .. note::
-#
-#     The brain plot is currently not snown due to technical limitations
-#     of the platform used for hosting the documentation.
 
 brain = sc.plot(
     scale_factors=dict(point=1.25),
@@ -103,3 +100,8 @@ brain = sc.plot(
     views=["lat", "med"],
 )
 brain.add_annotation("aparc")
+
+# %%
+# .. image:: ../../../../_static/example_stubs/images/sphx_glr_plot_brain_configuration_001.png
+#    :alt: brain plot configuration
+#    :width: 600
