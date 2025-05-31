@@ -145,11 +145,14 @@ pyvista.OFF_SCREEN = False
 # Sphinx Gallery
 sphinx_gallery_conf = {
     "examples_dirs": "../examples",
-    "filename_pattern": "/(plot_|run_)",
+    "filename_pattern": "/plot_",
     "gallery_dirs": "auto_examples",
     "image_scrapers": ("matplotlib", "pyvista"),
 }
 
 # Disable brain plots for CIs
 if os.environ.get("BUILD_ENV", "local") == "ci":
-    sphinx_gallery_conf["ignore_pattern"] = "/plot_brain_"
+    sphinx_gallery_conf["filename_pattern"] = "/plot_(?!brain)"
+
+print(os.environ.get("BUILD_ENV", "local"))
+print(sphinx_gallery_conf)
