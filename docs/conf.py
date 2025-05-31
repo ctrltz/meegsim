@@ -149,3 +149,7 @@ sphinx_gallery_conf = {
     "gallery_dirs": "auto_examples",
     "image_scrapers": ("matplotlib", "pyvista"),
 }
+
+# Disable brain plots for CIs
+if os.environ.get("BUILD_ENV", "local") == "ci":
+    sphinx_gallery_conf["ignore_pattern"] = "/plot_brain_"
