@@ -3,8 +3,9 @@ Customization
 =============
 
 If the built-in functions for location, waveform or coupling do not satisfy the
-needs of your project, you are always welcome use a custom function instead.
-In this section, we provide a short description of requirements for such functions:
+needs of your project, you are always welcome use a custom function instead (either
+created by you or re-used from another toolbox). In this section, we provide a short
+description of requirements for such functions:
 
 * which arguments should be accepted (but not necessarily used)
 
@@ -59,7 +60,12 @@ The waveform function should accept:
 
 * keyword argument ``random_state``
 
-The result is expected to be an array with shape ``(n_series, n_times)``.
+The result is expected to be an array with shape ``(n_series, n_times)``. Below,
+we show two examples: the first relies on an own custom function, the second shows
+how to adapt the function from another toolbox to be used with MEEGsim.
+
+Own custom function
+-------------------
 
 The function below returns white noise, and it produces different results every
 time unless ``random_state`` is fixed:
@@ -82,6 +88,61 @@ are not required in this case):
         location_params=dict(src_idx=0),
         waveform=my_white_noise
     )
+
+Function from another package
+-----------------------------
+
+For this example, we use a
+`function <https://neurodsp-tools.github.io/neurodsp/generated/neurodsp.sim.sim_bursty_oscillation.html>`_
+from the NeuroDSP package that allows simulating bursty oscillations (currently not possible with our toolbox).
+First, we need to create a wrapper function to adapt the input and output formats to match
+the built-in functions of MEEGsim:
+
+.. code-block:: python
+
+    from neurodsp.sim import sim_bursty_oscillation
+    from neurodsp.sim.multi import sim_multiple
+    from meegsim.utils import normalize_variance
+
+    def bursty_osc(n_series, times, **kwargs):
+        # Convert MEEGsim input to NeuroDSP input
+        n_seconds = times.max()
+        fs = 1.0 / (times[1] - times[0])
+
+        params = dict(n_seconds=n_seconds, fs=fs)
+        params.update(kwargs)
+
+        sims = sim_multiple(sim_bursty_oscillation, **params, n_sims=n_series)
+
+        return normalize_variance(sims.signals)
+
+.. note::
+    We use ``**kwargs`` in the example above to forward all additional arguments to the
+    simulation function from the NeuroDSP package. This way, the names and meaning of
+    each argument remains the same.
+
+Once adapted, the function can be used similar to other built-in functions when
+adding sources:
+
+.. code-block:: python
+
+    # src should be loaded before
+    sim = SourceSimulator(src)
+
+    sim.add_point_sources(
+        location=[(0, 123), (1, 456)],
+        waveform=bursty_osc,
+        waveform_params=dict(          # NeuroDSP parameters
+            freq=20,
+            burst_def='durations',
+            burst_params={'n_cycles_burst' : 3, 'n_cycles_off' : 3}
+        ),
+        ...  # snr / std / names
+    )
+
+However, it is important to keep in mind that coupling methods might also need to be
+adapted in order to preserve any special features of the simulated time series (e.g.,
+presence of bursts).
 
 Coupling
 ========
