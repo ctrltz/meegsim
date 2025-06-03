@@ -2,8 +2,8 @@
 Local adjustment of SNR
 =======================
 
-To enable the *local* adjustment of SNR, you need to specify the ``snr_mode`` when initializing
-the ``SourceSimulator`` class:
+To enable the *local* adjustment of SNR, you need to enable the corresponding ``snr_mode``
+when initializing the ``SourceSimulator`` class:
 
 .. code-block:: python
 

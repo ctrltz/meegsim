@@ -55,10 +55,10 @@ object:
     sim.add_noise_sources(...)
 
 The parameters in brackets can be used to configure the location of the source,
-the waveform of source activity, the SNR and, for patch sources only, the extent
-of the source. Below we discuss the parameters relevant for all sources in more
-detail. For more information about patch sources, please visit
-:doc:`this page </user_guide/advanced/patches>`.
+the waveform of source activity and its standard deviation, the sensor-space SNR and,
+for patch sources only, the extent of the source. Below we discuss the parameters
+relevant for all sources in more detail. For more information about patch sources,
+please visit :doc:`this page </user_guide/advanced/patches>`.
 
 Source location
 ---------------
@@ -73,7 +73,7 @@ In the first case, you need to provide a list of 2-element tuples, where the
 first element specifies the index of the source space, while the second contains
 the index of the vertex (`vertno`). If we consider the typical surface source
 space with two hemispheres, the call below will add two sources to the left
-hemisphere (123 and 456) and one source to the right hemisphere (789).
+hemisphere (vertices 123 and 456) and one source to the right hemisphere (vertex 789).
 
 .. code-block:: python
 
@@ -90,7 +90,7 @@ hemisphere (123 and 456) and one source to the right hemisphere (789).
 
 In the second case, you need to provide a function that accepts ``src`` as the first
 argument and returns the indices of selected vertices in the same format as
-described above. If the function relies on additional arguments, these can be
+described above. If the function relies on additional arguments, their values can be
 provided in the ``location_params`` dictionary. In the example below,
 we use a built-in function :meth:`select_random` to place 10 sources in random
 locations:
@@ -105,8 +105,9 @@ locations:
         ...
     )
 
-As one of the benefits of specifying location as a function, the simulated source
-configurations may differ between subsequent calls of the same ``sim`` object,
+If location is specified as a function, the simulated source
+configurations may differ between subsequent calls of the
+:meth:`~meegsim.simulate.SourceSimulator.simulate()` method,
 simplifying the simulation of multiple datasets with the same underlying idea.
 
 .. note::
@@ -170,8 +171,9 @@ Signal-to-noise ratio (SNR)
 
 By default, the waveforms provided by the user are saved as is, while the built-in
 waveforms are normalized to have the same standard deviation (1 nAm by default).
-In practice, it is often useful to set up a specific SNR for each source, for example,
-to test how different analysis methods perform depending on the SNR of target sources.
+In practice, it is often useful to set up a specific SNR for each source separately
+or for all sources combined, for example, to test how different analysis methods
+perform depending on the SNR of target sources.
 
 We provide two approaches for adjusting the sensor-space SNR of added sources. The
 first approach was used in :cite:`Nikulin2011`, where the SNR was adjusted separately for

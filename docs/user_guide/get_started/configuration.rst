@@ -40,7 +40,7 @@ Global adjustment of the SNR
 ----------------------------
 
 If necessary, the global SNR can be adjusted when simulating the data. To achieve this,
-you will need to specify the desired value of SNR (``snr_global``) and the limits of
+you need to specify the desired value of SNR (``snr_global``) and the limits of
 the frequency band that should be considered during the adjustment (``fmin`` and
 ``fmax`` keys in the ``snr_params`` dictionary). As a result, the mean sensor-space
 variance of all point and patch sources will be adjusted relative to the mean variance
