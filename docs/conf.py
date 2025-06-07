@@ -144,6 +144,8 @@ pyvista.OFF_SCREEN = False
 
 # Sphinx Gallery
 sphinx_gallery_conf = {
+    "backreferences_dir": "generated",
+    "doc_module": ("meegsim",),
     "examples_dirs": "../examples",
     "filename_pattern": "/plot_",
     "gallery_dirs": "auto_examples",
