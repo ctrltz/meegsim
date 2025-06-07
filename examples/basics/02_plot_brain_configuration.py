@@ -6,6 +6,8 @@ Plotting the configuration
 This example illustrates how to plot the simulated source configuration.
 """
 
+# sphinx_gallery_thumbnail_path = '_static/example_stubs/thumb/sphx_glr_02_plot_brain_configuration_thumb.png'
+
 import mne
 
 from mne.datasets import sample
@@ -13,8 +15,6 @@ from mne.datasets import sample
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
-
-# sphinx_gallery_thumbnail_path = '_static/example_stubs/thumb/sphx_glr_plot_brain_configuration_thumb.png'
 
 # %%
 # First, we load all the prerequisites for our simulation and restrict to the EEG
@@ -102,6 +102,6 @@ brain = sc.plot(
 brain.add_annotation("aparc")
 
 # %%
-# .. image:: ../../../../_static/example_stubs/images/sphx_glr_plot_brain_configuration_001.png
+# .. image:: ../../_static/example_stubs/images/sphx_glr_02_plot_brain_configuration_001.png
 #    :alt: brain plot configuration
 #    :width: 600

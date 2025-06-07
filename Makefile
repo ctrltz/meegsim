@@ -7,7 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = _build
-EXAMPLESDIR   = auto_examples
+EXAMPLESDIR   = docs/auto_examples
 
 # Put it first so that "make" without argument is like "make help".
 help:

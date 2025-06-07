@@ -48,6 +48,7 @@ docs = [
     "intersphinx-registry",
     "harmoni",
     "myst-parser",
+    "neurodsp",
     "numpydoc",
     "pydata-sphinx-theme",
     "sphinx",

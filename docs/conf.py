@@ -147,9 +147,15 @@ sphinx_gallery_conf = {
     "backreferences_dir": "generated",
     "doc_module": ("meegsim",),
     "examples_dirs": "../examples",
-    "filename_pattern": "/plot_",
+    "filename_pattern": "/\\d{2}_plot_",
     "gallery_dirs": "auto_examples",
     "image_scrapers": ("matplotlib", "pyvista"),
+    "subsection_order": [
+        "../examples/basics",
+        "../examples/building_blocks",
+        "../examples/advanced",
+    ],
+    "within_subsection_order": "FileNameSortKey",
 }
 
 # Disable brain plots for CIs

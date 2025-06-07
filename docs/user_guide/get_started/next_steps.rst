@@ -11,10 +11,10 @@ below to learn more about the functionality of the package:
 
  * :doc:`Examples <../../auto_examples/index>`: here you can find various examples
    that illustrate the nuances of built-in components
-   (e.g., :doc:`coupling parameters <../../auto_examples/building_blocks/plot_coupling>`),
-   provide a :doc:`backbone <../../auto_examples/basics/plot_minimal_example>`
+   (e.g., :doc:`coupling parameters <../../auto_examples/building_blocks/01_plot_coupling>`),
+   provide a :doc:`backbone <../../auto_examples/basics/00_plot_minimal_example>`
    for your own simulations or help with debugging (e.g.,
-   :doc:`plotting <../../auto_examples/basics/plot_brain_configuration>` the simulated configuration).
+   :doc:`plotting <../../auto_examples/basics/02_plot_brain_configuration>` the simulated configuration).
 
  * Obviously, the toolbox does not cover the needs of every possible simulation.
    Visit the :doc:`Customization </user_guide/advanced/customization>` page to learn how to extend
