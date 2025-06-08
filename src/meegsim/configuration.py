@@ -1,10 +1,10 @@
 import numpy as np
 import mne
 
-from ._check import check_numeric
-from .sensor_noise import _adjust_sensor_noise, _prepare_sensor_noise
-from .sources import _combine_sources_into_stc
-from .viz import plot_source_configuration
+from meegsim._check import check_numeric, check_if_source_exists
+from meegsim.sensor_noise import _adjust_sensor_noise, _prepare_sensor_noise
+from meegsim.sources import _combine_sources_into_stc
+from meegsim.viz import plot_source_configuration
 
 
 class SourceConfiguration:
@@ -43,6 +43,34 @@ class SourceConfiguration:
         # Keep track of all added sources, store 'signal' and 'noise' separately to ease the calculation of SNR
         self._sources = {}
         self._noise_sources = {}
+
+    def __getitem__(self, name):
+        """
+        This function provides quick access to the simulated sources. The syntax
+        is similar to list/dict access: ``sc[name]`` returns the corresponding source
+        if it is present in the configuration.
+
+        Parameters
+        ----------
+        name : str
+            Name of the source.
+
+        Returns
+        -------
+        source : PointSource or PatchSource
+            The corresponding source.
+
+        Raises
+        ------
+        ValueError
+            In case there is no source with the provided name.
+        """
+        check_if_source_exists(
+            name,
+            list(self._sources.keys()),
+            context="does not exist in the configuration",
+        )
+        return self._sources[name]
 
     def plot(
         self,
