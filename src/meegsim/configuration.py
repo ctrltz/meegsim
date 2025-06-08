@@ -46,7 +46,7 @@ class SourceConfiguration:
 
     def __getitem__(self, name):
         """
-        This function provides quick access to the simulated sources, the syntax
+        This function provides quick access to the simulated sources. The syntax
         is similar to list/dict access: ``sc[name]`` returns the corresponding source
         if it is present in the configuration.
 
