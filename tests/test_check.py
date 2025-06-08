@@ -307,13 +307,19 @@ def test_check_names_already_exists():
 
 def test_check_if_source_exists_should_pass():
     existing = ["aaa", "bbb"]
-    check_if_source_exists("aaa", existing)
+    check_if_source_exists("aaa", existing, context="was not defined yet")
 
 
 def test_check_if_source_exists_should_raise():
     existing = ["aaa", "bbb"]
     with pytest.raises(ValueError, match="Source ccc"):
-        check_if_source_exists("ccc", existing)
+        check_if_source_exists("ccc", existing, context="was not defined yet")
+
+
+def test_check_if_source_exists_should_raise_context():
+    existing = ["aaa", "bbb"]
+    with pytest.raises(ValueError, match="does not exist"):
+        check_if_source_exists("ccc", existing, context="does not exist")
 
 
 def test_check_coupling_params_should_pass():

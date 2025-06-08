@@ -8,6 +8,30 @@ from meegsim.sources import PointSource, PatchSource
 from utils.prepare import prepare_source_space, prepare_forward
 
 
+def test_sourceconfiguration_getitem():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+
+    sc = SourceConfiguration(src, sfreq=250, duration=30)
+    sc._sources = {
+        "s1": PointSource("s1", 0, 0, np.ones((250 * 30,))),
+    }
+
+    assert isinstance(sc["s1"], PointSource)
+    assert sc["s1"].name == "s1"
+
+
+def test_sourceconfiguration_getitem_should_raise():
+    src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
+
+    sc = SourceConfiguration(src, sfreq=250, duration=30)
+    sc._sources = {
+        "s1": PointSource("s1", 0, 0, np.ones((250 * 30,))),
+    }
+
+    with pytest.raises(ValueError, match="does not exist"):
+        sc["s2"]
+
+
 def test_sourceconfiguration_to_stc_empty_raises():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
 
