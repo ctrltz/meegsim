@@ -129,8 +129,9 @@ numpydoc_xref_ignore = {
 
 
 # Intersphinx
-intersphinx_mapping = get_intersphinx_mapping(
-    packages={"matplotlib", "mne", "numpy", "python"}
+intersphinx_mapping = {"neurodsp": ("https://neurodsp-tools.github.io/neurodsp/", None)}
+intersphinx_mapping.update(
+    get_intersphinx_mapping(packages={"matplotlib", "mne", "numpy", "python"})
 )
 
 

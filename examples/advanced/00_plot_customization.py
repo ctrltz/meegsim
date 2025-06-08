@@ -19,7 +19,7 @@ from meegsim.simulate import SourceSimulator
 from meegsim.utils import normalize_variance
 
 # %%
-# For this example, we use the :meth:`~neurodsp.sim.sim_bursty_oscillation` function
+# For this example, we use the :func:`~neurodsp.sim.sim_bursty_oscillation` function
 # from the `NeuroDSP <https://neurodsp-tools.github.io/neurodsp/>`_ package. To make
 # the function compatible with MEEGsim, we need to wrap it in another function and
 # adapt the input and output parameters:
@@ -89,7 +89,7 @@ sc = sim.simulate(sfreq=250, duration=60, fwd=fwd, random_state=123)
 
 n_samples_to_plot = 500
 fig, ax = plt.subplots()
-ax.plot(sc.times[:n_samples_to_plot], sc._sources["lh"].waveform[:n_samples_to_plot])
+ax.plot(sc.times[:n_samples_to_plot], sc["lh"].waveform[:n_samples_to_plot])
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Amplitude (nAm)")
 
