@@ -57,7 +57,7 @@ sources, will be the same on every call.
 Accessing the simulated sources
 ===============================
 
-The simulated sources can be quickly accessed by their name (`"source"` in the
+The simulated sources can be quickly accessed by their name (``"source"`` in the
 example below). This might be helpful in case ground-truth waveforms were
 generated randomly:
 
