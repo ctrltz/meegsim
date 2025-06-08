@@ -113,6 +113,8 @@ numpydoc_xref_aliases = {
     "SourceEstimate": "mne.SourceEstimate",
     # MEEGsim
     "SourceConfiguration": "meegsim.configuration.SourceConfiguration",
+    "PointSource": "meegsim.sources.PointSource",
+    "PatchSource": "meegsim.sources.PatchSource",
 }
 numpydoc_xref_ignore = {
     "type",

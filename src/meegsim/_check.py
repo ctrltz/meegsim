@@ -420,7 +420,7 @@ def check_snr_params(snr_params, snr):
     return snr_params
 
 
-def check_if_source_exists(name, existing):
+def check_if_source_exists(name, existing, context):
     """
     Check if a source exists when trying to set the coupling.
 
@@ -429,7 +429,9 @@ def check_if_source_exists(name, existing):
     name: str
         The name of the source to be checked.
     existing: list of str
-        The name of all existing sources
+        The name of all existing sources.
+    context: str
+        Context for an informative error message.
 
     Raises
     ------
@@ -437,7 +439,7 @@ def check_if_source_exists(name, existing):
         If the provided source name is not in the list of existing ones.
     """
     if name not in existing:
-        raise ValueError(f"Source {name} was not defined yet")
+        raise ValueError(f"Source {name} {context}")
 
 
 def check_coupling_params(method, coupling_params, coupling_edge):
@@ -512,8 +514,8 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
 
     # Check that both source names already exist
     source, target = coupling_edge
-    check_if_source_exists(source, names)
-    check_if_source_exists(target, names)
+    check_if_source_exists(source, names, context="was not defined yet")
+    check_if_source_exists(target, names, context="was not defined yet")
 
     # Check that the edge is not a self-loop
     if source == target:
