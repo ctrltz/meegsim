@@ -45,6 +45,26 @@ class SourceConfiguration:
         self._noise_sources = {}
 
     def __getitem__(self, name):
+        """
+        This function provides quick access to the simulated sources, the syntax
+        is similar to list/dict access: ``sc[name]`` returns the corresponding source
+        if it is present in the configuration.
+
+        Parameters
+        ----------
+        name : str
+            Name of the source.
+
+        Returns
+        -------
+        source : PointSource or PatchSource
+            The corresponding source.
+
+        Raises
+        ------
+        ValueError
+            In case there is no source with the provided name.
+        """
         check_if_source_exists(
             name,
             list(self._sources.keys()),

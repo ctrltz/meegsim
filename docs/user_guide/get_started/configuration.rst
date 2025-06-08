@@ -53,3 +53,15 @@ specific value of the ``random_state`` as shown below:
 
 The resulting source configuration, including the locations and waveforms of all
 sources, will be the same on every call.
+
+Accessing the simulated sources
+===============================
+
+The simulated sources can be quickly accessed by their name (`"source"` in the
+example below). This might be helpful in case ground-truth waveforms were
+generated randomly:
+
+.. code-block:: python
+
+    s = sc["source"]
+    gt = s.waveform
