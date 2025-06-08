@@ -106,13 +106,15 @@ the built-in functions of MEEGsim:
 
     def bursty_osc(n_series, times, **kwargs):
         # Convert MEEGsim input to NeuroDSP input
-        n_seconds = times.max()
-        fs = 1.0 / (times[1] - times[0])
+        tstep = (times[1] - times[0])
+        n_seconds = times.max() + tstep
+        fs = 1.0 / tstep
 
         params = dict(n_seconds=n_seconds, fs=fs)
         params.update(kwargs)
+        params.pop("random_state")  # is not accepted by NeuroDSP function
 
-        sims = sim_multiple(sim_bursty_oscillation, **params, n_sims=n_series)
+        sims = sim_multiple(sim_bursty_oscillation, params, n_sims=n_series)
 
         return normalize_variance(sims.signals)
 
