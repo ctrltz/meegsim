@@ -35,6 +35,7 @@ raw_path = data_path / "sample_audvis_raw.fif"
 
 # Load the prerequisites: fwd, src, and info
 fwd = mne.read_forward_solution(fwd_path)
+fwd = mne.convert_forward_solution(fwd, force_fixed=True)
 raw = mne.io.read_raw(raw_path)
 src = fwd["src"]
 info = raw.info
