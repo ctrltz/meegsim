@@ -163,7 +163,7 @@ sphinx_gallery_conf = {
 
 # Disable brain plots for CIs
 if os.environ.get("BUILD_ENV", "local") == "ci":
-    sphinx_gallery_conf["filename_pattern"] = "/plot_(?!brain)"
+    sphinx_gallery_conf["filename_pattern"] = "/\\d{2}_plot_(?!brain)"
 
 print(os.environ.get("BUILD_ENV", "local"))
 print(sphinx_gallery_conf)
