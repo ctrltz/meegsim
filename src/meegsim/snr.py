@@ -63,7 +63,9 @@ def get_sensor_space_variance(stc, fwd, fmin=None, fmax=None, filter=False):
     """
 
     try:
-        raw = mne.apply_forward_raw(fwd, stc, fwd["info"], on_missing="raise")
+        raw = mne.apply_forward_raw(
+            fwd, stc, fwd["info"], on_missing="raise", verbose=False
+        )
     except ValueError:
         raise ValueError(
             "The provided forward model does not contain some of the "
