@@ -77,10 +77,12 @@ def ppc_constant_phase_shift(
         generated or to be the same as the envelope of the input waveform.
 
     fmin : float, optional
-        Lower cutoff frequency for the oscillation.
+        Lower cutoff frequency for the oscillation that gives rise to the random
+        amplitude envelope (only if the ``envelope`` is set to ``"random"``).
 
     fmax : float, optional
-        Upper cutoff frequency for the oscillation.
+        Upper cutoff frequency for the oscillation that gives rise to the random
+        amplitude envelope (only if the ``envelope`` is set to ``"random"``).
 
     m : float, optional
         Multiplier for the base frequency of the output oscillation, default is 1.
@@ -89,8 +91,8 @@ def ppc_constant_phase_shift(
         Multiplier for the base frequency of the input oscillation, default is 1.
 
     random_state : None, optional
-        Random state can be fixed to provide reproducible results. Otherwise, the
-        results may differ between function calls.
+        Random state can be fixed to provide reproducible results if the envelope
+        is generated randomly. Otherwise, the results may differ between function calls.
 
     Returns
     -------
@@ -99,9 +101,9 @@ def ppc_constant_phase_shift(
     """
     if not np.iscomplexobj(waveform):
         waveform = hilbert(waveform)
-    waveform_angle = np.angle(waveform)
 
     waveform_amp = _get_envelope(waveform, envelope, sfreq, fmin, fmax, random_state)
+    waveform_angle = np.angle(waveform)
     waveform_coupled = np.real(
         waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * phase_lag)
     )
@@ -109,8 +111,8 @@ def ppc_constant_phase_shift(
         return normalize_variance(waveform_coupled)
 
     # NOTE: if the envelope was modified, we filter the result again in the target
-    # frequency range to suppress distortions due to merging amplitude envelope and
-    # phase from different time series
+    # frequency range to suppress possible distortions due to merging amplitude
+    # envelope and phase from different time series
     b, a = butter(
         N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / sfreq * 2, btype="bandpass"
     )
@@ -170,10 +172,10 @@ def ppc_von_mises(
         Controls the amplitude envelope of the coupled waveform to be either randomly
         generated or to be the same as the envelope of the input waveform.
 
-    m : int, optional
+    m : float, optional
         Multiplier for the base frequency of the output oscillation, default is 1.
 
-    n : int, optional
+    n : float, optional
         Multiplier for the base frequency of the input oscillation, default is 1.
 
     random_state : None (default) or int
@@ -199,6 +201,10 @@ def ppc_von_mises(
     waveform_coupled = np.real(
         waveform_amp * np.exp(1j * m / n * waveform_angle + 1j * ph_distr)
     )
+
+    # NOTE: we filter the result again in the target frequency range to suppress
+    # possible distortions due to separate adjustment of the phase and amplitude
+    # of the coupled time series
     b, a = butter(
         N=2, Wn=np.array([m / n * fmin, m / n * fmax]) / sfreq * 2, btype="bandpass"
     )
