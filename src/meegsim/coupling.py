@@ -74,7 +74,7 @@ def ppc_constant_phase_shift(
 
     envelope : str, {"same", "random"}
         Controls the amplitude envelope of the coupled waveform to be either randomly
-        generated or to be the same as the envelope of the input waveform.
+        generated (default) or to be the same as the envelope of the input waveform.
 
     fmin : float, optional
         Lower cutoff frequency for the oscillation that gives rise to the random
@@ -170,7 +170,7 @@ def ppc_von_mises(
 
     envelope : str, {"same", "random"}
         Controls the amplitude envelope of the coupled waveform to be either randomly
-        generated or to be the same as the envelope of the input waveform.
+        generated (default) or to be the same as the envelope of the input waveform.
 
     m : float, optional
         Multiplier for the base frequency of the output oscillation, default is 1.
