@@ -62,7 +62,13 @@ def test_builtin_methods():
     )
 
     # Define several edges to test graph traversal and built-in coupling methods
-    sim.set_coupling(("point1", "point2"), method=ppc_constant_phase_shift, phase_lag=0)
+    sim.set_coupling(
+        ("point1", "point2"),
+        method=ppc_constant_phase_shift,
+        phase_lag=0,
+        fmin=8,
+        fmax=12,
+    )
     sim.set_coupling(
         coupling={
             ("point2", "patch3"): dict(kappa=0.1, phase_lag=-np.pi / 6),
