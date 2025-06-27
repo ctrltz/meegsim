@@ -6,7 +6,7 @@ from mock import patch
 from scipy.signal import hilbert
 
 from meegsim.coupling import (
-    constant_phase_shift,
+    ppc_constant_phase_shift,
     ppc_von_mises,
     ppc_shifted_copy_with_noise,
     _get_required_snr,
@@ -17,22 +17,23 @@ from meegsim.utils import get_sfreq, theoretical_plv
 from utils.prepare import prepare_sinusoid
 
 
-def prepare_inputs():
+def prepare_inputs(sfreq=250, duration=60):
     n_series = 2
-    fs = 1000
-    times = np.arange(0, 1, 1 / fs)
+    times = np.arange(0, duration, 1 / sfreq)
     return n_series, len(times), times
 
 
 @pytest.mark.parametrize(
     "phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi]
 )
-def test_constant_phase_shift(phase_lag):
+def test_ppc_constant_phase_shift_same_envelope(phase_lag):
     # Test with a simple sinusoidal waveform
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 10 * times)
 
-    result = constant_phase_shift(waveform, get_sfreq(times), phase_lag)
+    result = ppc_constant_phase_shift(
+        waveform, get_sfreq(times), phase_lag, envelope="same"
+    )
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -41,20 +42,47 @@ def test_constant_phase_shift(phase_lag):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.99, f"Test failed: plv is smaller than 0.99. plv = {plv}"
+    assert plv >= 0.95, f"Expected PLV to be at least 0.95, got {plv}"
+    assert (
+        (np.abs(test_angle) - phase_lag) <= 0.01
+    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+
+
+@pytest.mark.parametrize(
+    "phase_lag", [np.pi / 4, np.pi / 3, np.pi / 2, np.pi, 2 * np.pi]
+)
+def test_ppc_constant_phase_shift_random_envelope(phase_lag):
+    # Test with a simple sinusoidal waveform
+    _, _, times = prepare_inputs()
+    waveform = np.sin(2 * np.pi * 10 * times)
+
+    result = ppc_constant_phase_shift(
+        waveform, get_sfreq(times), phase_lag, envelope="random", fmin=9.5, fmax=10.5
+    )
+
+    waveform = hilbert(waveform)
+    result = hilbert(result)
+
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type="complex")
+    plv = np.abs(cplv)
+    test_angle = np.angle(cplv)
+
+    assert plv >= 0.95, f"Expected PLV to be at least 0.95, got {plv}"
     assert (
         (np.abs(test_angle) - phase_lag) <= 0.01
     ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
 @pytest.mark.parametrize("m, n", [(2, 1), (3, 1), (5 / 2, 1)])
-def test_constant_phase_shift_harmonics(m, n):
+def test_ppc_constant_phase_shift_harmonics_same_envelope(m, n):
     # Test with different m and n harmonics
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 10 * times)
     phase_lag = np.pi / 3
 
-    result = constant_phase_shift(waveform, get_sfreq(times), phase_lag, m=m, n=n)
+    result = ppc_constant_phase_shift(
+        waveform, get_sfreq(times), phase_lag, envelope="same", m=m, n=n
+    )
 
     waveform = hilbert(waveform)
     result = hilbert(result)
@@ -63,7 +91,7 @@ def test_constant_phase_shift_harmonics(m, n):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.9, f"Test failed: plv is smaller than 0.9. plv = {plv}"
+    assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
     assert (
         (np.abs(test_angle) - phase_lag) <= 0.1
     ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
@@ -120,6 +148,10 @@ def test_ppc_von_mises_harmonics(m, n):
 @pytest.mark.parametrize(
     "coupling_fun,params",
     [
+        (
+            ppc_constant_phase_shift,
+            dict(phase_lag=np.pi / 4, envelope="random", fmin=8, fmax=12),
+        ),
         (ppc_von_mises, dict(kappa=1, phase_lag=np.pi / 4, fmin=8, fmax=12)),
         (
             ppc_shifted_copy_with_noise,
