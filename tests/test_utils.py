@@ -96,11 +96,12 @@ def test_combine_stcs_overlap():
 
 def test_normalize_variance():
     data = np.random.randn(10, 1000)
+    data_orig = data.copy()
     normalized = normalize_variance(data)
 
-    # Should not change the shape but should change the norm
-    assert data.shape == normalized.shape
-    assert np.allclose(np.var(normalized, axis=1), 1)
+    assert data.shape == normalized.shape, "Array shape should not be changed"
+    assert np.allclose(np.var(normalized, axis=1), 1), "Expected variance to be 1"
+    assert np.allclose(data_orig, data), "The input waveform should not be modified"
 
 
 def test_get_sfreq():

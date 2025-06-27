@@ -79,15 +79,16 @@ def normalize_variance(data):
 
     Returns
     -------
-    data: array
+    data_norm: array
         Normalized time series. The variance of each row is equal to 1.
     """
+    # NOTE: make a copy to keep the original waveform intact
+    data_norm = data.copy()
+    if data_norm.ndim == 1:
+        return data_norm / np.std(data_norm)
 
-    if data.ndim == 1:
-        return data / np.std(data)
-
-    data /= np.std(data, axis=-1)[:, np.newaxis]
-    return data
+    data_norm /= np.std(data_norm, axis=-1)[:, np.newaxis]
+    return data_norm
 
 
 def _extract_hemi(src):
