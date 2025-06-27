@@ -9,6 +9,7 @@ from meegsim.coupling import (
     ppc_constant_phase_shift,
     ppc_von_mises,
     ppc_shifted_copy_with_noise,
+    _get_envelope,
     _get_required_snr,
     _shifted_copy_with_noise,
 )
@@ -271,6 +272,33 @@ def test_reproducibility_with_random_state(coupling_fun, params):
 )
 def test_get_required_snr(coh, expected_snr):
     assert np.isclose(_get_required_snr(coh), expected_snr)
+
+
+def test_get_envelope_same():
+    sfreq = 250
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=60)
+    waveform_amp = np.abs(hilbert(waveform))
+    envelope = _get_envelope(waveform, envelope="same", sfreq=sfreq)
+    assert np.allclose(waveform_amp, envelope), "Expected envelope to match input"
+
+
+def test_get_envelope_random():
+    sfreq = 250
+    fmin, fmax = 8, 12
+    seed = 1234
+    waveform = prepare_sinusoid(f=10, sfreq=sfreq, duration=60)
+    waveform_amp = np.abs(hilbert(waveform))
+    envelope = _get_envelope(
+        waveform,
+        envelope="random",
+        sfreq=sfreq,
+        fmin=fmin,
+        fmax=fmax,
+        random_state=seed,
+    )
+    assert not np.allclose(
+        waveform_amp, envelope
+    ), "Expected envelope not to match input"
 
 
 @pytest.mark.parametrize(

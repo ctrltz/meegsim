@@ -17,6 +17,8 @@ def _get_envelope(waveform, envelope, sfreq, fmin=None, fmax=None, random_state=
     check_option(
         "the amplitude envelope of the coupled waveform", envelope, ["same", "random"]
     )
+    if not np.iscomplexobj(waveform):
+        waveform = hilbert(waveform)
 
     if envelope == "same":
         return np.abs(waveform)
@@ -40,9 +42,9 @@ def ppc_constant_phase_shift(
     waveform,
     sfreq,
     phase_lag,
-    envelope="random",
     fmin=None,
     fmax=None,
+    envelope="random",
     m=1,
     n=1,
     random_state=None,
@@ -70,7 +72,7 @@ def ppc_constant_phase_shift(
     phase_lag : float
         Constant phase lag to apply to the waveform in radians.
 
-    envelope : {"same", "random"}
+    envelope : str, {"same", "random"}
         Controls the amplitude envelope of the coupled waveform to be either randomly
         generated or to be the same as the envelope of the input waveform.
 
@@ -164,7 +166,7 @@ def ppc_von_mises(
     fmax: float
         Upper cutoff frequency of the base frequency harmonic (in Hz).
 
-    envelope : {"same", "random"}
+    envelope : str, {"same", "random"}
         Controls the amplitude envelope of the coupled waveform to be either randomly
         generated or to be the same as the envelope of the input waveform.
 
