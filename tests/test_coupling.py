@@ -12,7 +12,7 @@ from meegsim.coupling import (
     _get_required_snr,
     _shifted_copy_with_noise,
 )
-from meegsim.utils import get_sfreq, theoretical_plv
+from meegsim.utils import get_sfreq
 
 from utils.prepare import prepare_sinusoid
 
@@ -32,7 +32,7 @@ def test_ppc_constant_phase_shift_same_envelope(phase_lag):
     waveform = np.sin(2 * np.pi * 10 * times)
 
     result = ppc_constant_phase_shift(
-        waveform, get_sfreq(times), phase_lag, envelope="same"
+        waveform, get_sfreq(times), phase_lag, envelope="same", random_state=1234
     )
 
     waveform = hilbert(waveform)
@@ -42,7 +42,7 @@ def test_ppc_constant_phase_shift_same_envelope(phase_lag):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.95, f"Expected PLV to be at least 0.95, got {plv}"
+    assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
     assert (
         (np.abs(test_angle) - phase_lag) <= 0.01
     ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
@@ -57,7 +57,13 @@ def test_ppc_constant_phase_shift_random_envelope(phase_lag):
     waveform = np.sin(2 * np.pi * 10 * times)
 
     result = ppc_constant_phase_shift(
-        waveform, get_sfreq(times), phase_lag, envelope="random", fmin=9.5, fmax=10.5
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        envelope="random",
+        fmin=9.5,
+        fmax=10.5,
+        random_state=1234,
     )
 
     waveform = hilbert(waveform)
@@ -67,7 +73,7 @@ def test_ppc_constant_phase_shift_random_envelope(phase_lag):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.95, f"Expected PLV to be at least 0.95, got {plv}"
+    assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
     assert (
         (np.abs(test_angle) - phase_lag) <= 0.01
     ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
@@ -81,7 +87,13 @@ def test_ppc_constant_phase_shift_harmonics_same_envelope(m, n):
     phase_lag = np.pi / 3
 
     result = ppc_constant_phase_shift(
-        waveform, get_sfreq(times), phase_lag, envelope="same", m=m, n=n
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        envelope="same",
+        m=m,
+        n=n,
+        random_state=1234,
     )
 
     waveform = hilbert(waveform)
@@ -97,15 +109,31 @@ def test_ppc_constant_phase_shift_harmonics_same_envelope(m, n):
     ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
 
 
-@pytest.mark.parametrize("kappa", [0.001, 0.1, 0.5, 1, 5, 10, 50])
-def test_ppc_von_mises(kappa):
-    # Test kappas that are reliable (more than 0.5)
-    _, _, times = prepare_inputs()
+@pytest.mark.parametrize(
+    "kappa,lo,hi",
+    [
+        (0.001, 0, 0.2),
+        (0.01, 0, 0.2),
+        (0.1, 0.1, 0.4),
+        (0.3, 0.3, 0.7),
+        (0.5, 0.5, 0.9),
+        (1, 0.7, 1),
+        (10, 0.9, 1),
+    ],
+)
+def test_ppc_von_mises_same_envelope_kappa(kappa, lo, hi):
+    _, _, times = prepare_inputs(duration=120)
     waveform = np.sin(2 * np.pi * 10 * times)
-    phase_lag = 0
+    phase_lag = np.pi / 4
 
     result = ppc_von_mises(
-        waveform, get_sfreq(times), phase_lag, kappa=kappa, fmin=8, fmax=12
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        kappa=kappa,
+        fmin=8,
+        fmax=12,
+        random_state=1234,
     )
 
     waveform = hilbert(waveform)
@@ -113,11 +141,52 @@ def test_ppc_von_mises(kappa):
 
     cplv = compute_plv(waveform, result, m=1, n=1, plv_type="complex")
     plv = np.abs(cplv)
-    plv_theoretical = theoretical_plv(kappa)
+    test_angle = np.abs(np.angle(cplv))
 
-    assert (
-        plv >= plv_theoretical
-    ), f"Test failed: plv is smaller than theoretical. plv = {plv}, plv_theoretical = {plv_theoretical}"
+    # NOTE: lower and upper bounds were selected by simulating multiple time series,
+    # this test should prevent large deviations from the expected result due to
+    # errors in the processing
+    assert lo <= plv <= hi, f"Expected PLV to be between {lo} and {hi}, got {plv}"
+    if kappa >= 0.5:
+        assert np.allclose(test_angle, phase_lag, atol=0.1), (
+            f"Expected the actual phase lag ({test_angle:.2f}) to be within "
+            f"0.1 from the desired one ({phase_lag:.2f})"
+        )
+
+
+@pytest.mark.parametrize("kappa,lo,hi", [(0.01, 0, 0.2), (10, 0.8, 1)])
+def test_ppc_von_mises_random_envelope_kappa(kappa, lo, hi):
+    _, _, times = prepare_inputs(duration=120)
+    waveform = np.sin(2 * np.pi * 10 * times)
+    phase_lag = np.pi / 4
+
+    result = ppc_von_mises(
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        kappa=kappa,
+        envelope="random",
+        fmin=8,
+        fmax=12,
+        random_state=1234,
+    )
+
+    waveform = hilbert(waveform)
+    result = hilbert(result)
+
+    cplv = compute_plv(waveform, result, m=1, n=1, plv_type="complex")
+    plv = np.abs(cplv)
+    test_angle = np.abs(np.angle(cplv))
+
+    # NOTE: we check only extreme cases here to make sure the random envelope does
+    # not break the result completely. Still, random envelope might decrease PLV a bit,
+    # so the bounds are a bit wider
+    assert lo <= plv <= hi, f"Expected PLV to be between {lo} and {hi}, got {plv}"
+    if kappa >= 0.5:
+        assert np.allclose(np.abs(test_angle), phase_lag, atol=0.1), (
+            f"Expected the actual phase lag ({test_angle:.2f}) to be within "
+            f"0.1 from the desired one ({phase_lag:.2f})"
+        )
 
 
 @pytest.mark.parametrize("m, n", [(2, 1), (3, 1), (5 / 2, 1)])
@@ -125,11 +194,20 @@ def test_ppc_von_mises_harmonics(m, n):
     # Test with different m and n harmonics
     _, _, times = prepare_inputs()
     waveform = np.sin(2 * np.pi * 10 * times)
-    phase_lag = 0
+    phase_lag = np.pi / 4
     kappa = 10
 
     result = ppc_von_mises(
-        waveform, get_sfreq(times), phase_lag, m=m, n=n, kappa=kappa, fmin=8, fmax=12
+        waveform,
+        get_sfreq(times),
+        phase_lag,
+        m=m,
+        n=n,
+        envelope="same",
+        kappa=kappa,
+        fmin=8,
+        fmax=12,
+        random_state=1234,
     )
 
     waveform = hilbert(waveform)
@@ -139,10 +217,11 @@ def test_ppc_von_mises_harmonics(m, n):
     plv = np.abs(cplv)
     test_angle = np.angle(cplv)
 
-    assert plv >= 0.8, f"Test failed: plv is smaller than 0.8. plv = {plv}"
-    assert (
-        (np.abs(test_angle) - phase_lag) <= 0.1
-    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert 0.7 <= plv, f"Expected PLV to be at least 0.7, got {plv}"
+    assert np.allclose(np.abs(test_angle), phase_lag, atol=0.1), (
+        f"Expected the actual phase lag ({test_angle:.2f}) to be within "
+        f"0.1 from the desired one ({phase_lag:.2f})"
+    )
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,6 @@ import numpy as np
 import warnings
 
 from mne.io.constants import FIFF
-from scipy.special import i1, i0
 
 
 logger = logging.getLogger("meegsim")
@@ -194,10 +193,6 @@ def unpack_vertices(vertices_lists):
         for vertno in vertices:
             unpacked_vertices.append((index, vertno))
     return unpacked_vertices
-
-
-def theoretical_plv(kappa):
-    return i1(kappa) / i0(kappa)
 
 
 def vertices_to_mne(vertices, src):
