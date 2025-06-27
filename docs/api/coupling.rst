@@ -6,6 +6,6 @@ Coupling methods
 .. autosummary::
    :toctree: ../generated/
 
-   ppc_shifted_copy_with_noise
+   ppc_constant_phase_shift
    ppc_von_mises
-   constant_phase_shift
+   ppc_shifted_copy_with_noise
