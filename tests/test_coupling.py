@@ -151,15 +151,18 @@ def test_reproducibility_with_random_state(coupling_fun, params):
 
 
 @pytest.mark.parametrize(
-    "coh,expected_snr",
+    "coh,band_limited,expected_snr",
     [
-        (1.0, np.inf),
-        (1.0 / np.sqrt(2), 1.0),
-        (0.0, 0.0),
+        (1.0, False, np.inf),
+        (1.0, True, 499.25),  # pre-computed for coh=0.999
+        (1.0 / np.sqrt(2), False, 1.0),
+        (1.0 / np.sqrt(2), True, 1.0),
+        (0.0, False, 0.0),
+        (0.0, True, 0.0),
     ],
 )
-def test_get_required_snr(coh, expected_snr):
-    assert np.isclose(_get_required_snr(coh), expected_snr)
+def test_get_required_snr(coh, band_limited, expected_snr):
+    assert np.isclose(_get_required_snr(coh, band_limited), expected_snr)
 
 
 @pytest.mark.parametrize(
@@ -186,6 +189,7 @@ def test_ppc_shifted_copy_with_noise(target_coh, tol):
         coh=target_coh,
         fmin=8,
         fmax=12,
+        band_limited=False,
         random_state=seed,
     )
     actual_coh = compute_plv(waveform, coupled, m=1, n=1, coh=True)
@@ -200,6 +204,7 @@ def test_ppc_shifted_copy_with_noise(target_coh, tol):
         coh=target_coh,
         fmin=8,
         fmax=12,
+        band_limited=False,
         random_state=seed,
     )
     actual_coh = compute_plv(waveform, coupled, m=1, n=1, coh=True)
@@ -212,7 +217,7 @@ def test_shifted_copy_with_noise_infinite_snr():
     waveform = np.sqrt(2) * prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
 
     # Infinite SNR with no phase lag should return the input
-    coupled = _shifted_copy_with_noise(waveform, sfreq, 0, np.inf, 8, 12, None)
+    coupled = _shifted_copy_with_noise(waveform, sfreq, 0, np.inf, 8, 12, False, None)
     assert np.allclose(coupled, waveform)
 
 
@@ -222,6 +227,6 @@ def test_shifted_copy_with_noise_zero_snr(osc_mock):
     waveform = np.sqrt(2) * prepare_sinusoid(f=10, sfreq=sfreq, duration=30)
 
     # Zero SNR should return noise waveform (mock in our case)
-    coupled = _shifted_copy_with_noise(waveform, sfreq, 0, 0, 8, 12, None)
+    coupled = _shifted_copy_with_noise(waveform, sfreq, 0, 0, 8, 12, False, None)
     assert np.allclose(coupled, 1.0)
     osc_mock.assert_called_once()
