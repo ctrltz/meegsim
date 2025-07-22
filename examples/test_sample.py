@@ -79,3 +79,6 @@ for i_snr, target_snr in enumerate(snr_values):
 
 fig.tight_layout()
 plt.show()
+
+brain = sc.plot("sample", subjects_dir=subjects_dir)
+brain.close()

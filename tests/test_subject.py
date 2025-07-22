@@ -58,3 +58,20 @@ def test_grow_patch_source():
 
     sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
     sc.to_raw(fwd, info)
+
+
+@pytest.mark.skipif(running_on_ci(), reason="Skip tests with real data on CI")
+def test_sourceconfiguration_plot():
+    fwd, _, subjects_dir = prepare_real_data()
+    src = fwd["src"]
+
+    sfreq = 250
+    duration = 60
+    seed = 123
+
+    sim = SourceSimulator(src, snr_mode="local")
+    sim.add_noise_sources(location=select_random, location_params=dict(n=10))
+
+    sc = sim.simulate(sfreq, duration, fwd=fwd, random_state=seed)
+    brain = sc.plot(subject="sample", subjects_dir=subjects_dir)
+    brain.close()
