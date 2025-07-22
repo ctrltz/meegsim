@@ -151,12 +151,13 @@ def _shifted_copy_with_noise(
     shifted_waveform = constant_phase_shift(waveform, sfreq, phase_lag)
     signal_var = get_variance(shifted_waveform, sfreq, fmin, fmax, filter=True)
 
-    # NOTE: to make coupling band-limited, we need to corrupt the rest of the
-    # coherence spectra with white noise, affecting other parts of the signal apart
-    # from the frequency band of interest. For oscillations as our main case this
-    # is not a big deal but might be important for other signals. If we filter the
-    # added noise in the frequency band of interest, it leads to flat connectivity
-    # spectra but only affects target frequencies
+    # NOTE: to make coupling band-limited (substantial only in the band of interest),
+    # we need to corrupt the rest of the coherence spectra with white noise,
+    # affecting other parts of the signal apart from the frequency band of interest.
+    #
+    # For oscillations as our main case this is not a big deal but might be important
+    # for other signals. If we filter the added noise in the frequency band of
+    # interest, it leads to flat connectivity spectra but only affects target frequencies
     times = np.arange(waveform.size) / sfreq
     if band_limited:
         noise_waveform = white_noise(n_series=1, times=times, random_state=random_state)
