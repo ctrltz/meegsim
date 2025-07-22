@@ -299,6 +299,8 @@ class PatchSource(_BaseSource):
         stds,
         names,
         extents,
+        subject,
+        subjects_dir,
         random_state=None,
     ):
         """
@@ -323,8 +325,11 @@ class PatchSource(_BaseSource):
         if data.shape[1] != len(times):
             raise ValueError("The number of samples in waveform does not match")
 
-        # find patch vertices
-        subject = src[0].get("subject_his_id", None)
+        # Pick subject name from src if not provided explicitly
+        if subject is None:
+            subject = src[0].get("subject_his_id", None)
+
+        # Find patch vertices
         patch_vertices = []
         patch_stds = [] if isinstance(stds, mne.SourceEstimate) else stds
         for isource, extent in enumerate(extents):
@@ -347,7 +352,11 @@ class PatchSource(_BaseSource):
 
             # Grow the patch from center otherwise
             patch = mne.grow_labels(
-                subject, vertno, extent, src_idx, subjects_dir=None
+                subject=subject,
+                seeds=vertno,
+                extents=extent,
+                hemis=src_idx,
+                subjects_dir=subjects_dir,
             )[0]
 
             # Prune vertices

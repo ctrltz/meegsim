@@ -347,6 +347,8 @@ def test_patchsource_create_with_extent():
             stds=stds,
             names=names,
             extents=extents,
+            subject=None,
+            subjects_dir=None,
             random_state=None,
         )
 
@@ -369,7 +371,7 @@ def test_patchsource_create_with_extent():
 
         # Verify that grow_labels was called once for the source with extent
         mock_grow_labels.assert_called_once_with(
-            "meegsim", [2], 3, 0, subjects_dir=None
+            subject="meegsim", seeds=[2], extents=3, hemis=0, subjects_dir=None
         )
 
 
@@ -391,13 +393,13 @@ def test_patchsource_create_std_sourceestimate(get_param_mock):
 
     # Values are passed directly - the mock should not be used
     sources = PatchSource._create(
-        src, times, n_sources, location, waveform, stds, names, extents
+        src, times, n_sources, location, waveform, stds, names, extents, None, None
     )
     get_param_mock.assert_not_called()
 
     # Values are passed in stc - the mock should be called once per patch
     sources = PatchSource._create(
-        src, times, n_sources, location, waveform, std_stc, names, extents
+        src, times, n_sources, location, waveform, std_stc, names, extents, None, None
     )
     assert get_param_mock.call_count == n_sources
 

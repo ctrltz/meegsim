@@ -243,6 +243,8 @@ def test_adjust_snr_local_patch(adjust_snr_mock):
             snr_params=dict(fmin=8, fmax=12),
             std=1,
             extents=None,
+            subject=None,
+            subjects_dir=None,
             names=["s1"],
         ),
         PatchSourceGroup(
@@ -253,6 +255,8 @@ def test_adjust_snr_local_patch(adjust_snr_mock):
             snr_params=dict(),
             std=1,
             extents=None,
+            subject=None,
+            subjects_dir=None,
             names=["s2"],
         ),
     ]

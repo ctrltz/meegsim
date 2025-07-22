@@ -383,6 +383,8 @@ def test_simulate_std_adjustment():
             snr_params=dict(),
             std=[3],
             extents=[None],
+            subject=None,
+            subjects_dir=None,
             names=["patch"],
         ),
     ]
