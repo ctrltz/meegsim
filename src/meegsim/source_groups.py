@@ -162,7 +162,17 @@ class PointSourceGroup(_BaseSourceGroup):
 
 class PatchSourceGroup(_BaseSourceGroup):
     def __init__(
-        self, n_sources, location, waveform, snr, snr_params, std, extents, names
+        self,
+        n_sources,
+        location,
+        waveform,
+        snr,
+        snr_params,
+        std,
+        extents,
+        subject,
+        subjects_dir,
+        names,
     ):
         super().__init__()
 
@@ -178,6 +188,8 @@ class PatchSourceGroup(_BaseSourceGroup):
         self.std = std
         self.names = names
         self.extents = extents
+        self.subject = subject
+        self.subjects_dir = subjects_dir
 
     def __repr__(self):
         location_desc = "list"
@@ -204,6 +216,8 @@ class PatchSourceGroup(_BaseSourceGroup):
             self.std,
             self.names,
             self.extents,
+            self.subject,
+            self.subjects_dir,
             random_state=random_state,
         )
 
@@ -219,6 +233,8 @@ class PatchSourceGroup(_BaseSourceGroup):
         waveform_params,
         snr_params,
         extents,
+        subject,
+        subjects_dir,
         names,
         group,
         existing,
@@ -247,6 +263,10 @@ class PatchSourceGroup(_BaseSourceGroup):
             Additional parameters for the adjustment of SNR.
         extents: list
             Extents (radius in mm) of each patch provided by the user.
+        subject: str, optional
+            Subject name.
+        subject_dir: str, optional
+            Path to the directory with FreeSurfer output.
         names:
             The names of sources provided by the user.
         group:
@@ -280,4 +300,15 @@ class PatchSourceGroup(_BaseSourceGroup):
         else:
             check_names(names, n_sources, existing)
 
-        return cls(n_sources, location, waveform, snr, snr_params, std, extents, names)
+        return cls(
+            n_sources,
+            location,
+            waveform,
+            snr,
+            snr_params,
+            std,
+            extents,
+            subject,
+            subjects_dir,
+            names,
+        )
