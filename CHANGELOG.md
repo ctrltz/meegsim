@@ -19,6 +19,7 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 - A method for setting phase-phase coupling by adding noise to the shifted copy of input waveform ([#71](https://github.com/ctrltz/meegsim/pull/71))
 - Function to convert the sources to mne.Label ([#73](https://github.com/ctrltz/meegsim/pull/73))
 - Quick list-like access to the simulated sources ([#82](https://github.com/ctrltz/meegsim/pull/82))
+- Control over the amplitude envelope of the coupled waveform ([#87](https://github.com/ctrltz/meegsim/pull/87))
 
 ### Changed
 

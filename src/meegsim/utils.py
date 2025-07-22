@@ -3,7 +3,6 @@ import numpy as np
 import warnings
 
 from mne.io.constants import FIFF
-from scipy.special import i1, i0
 
 
 logger = logging.getLogger("meegsim")
@@ -79,15 +78,16 @@ def normalize_variance(data):
 
     Returns
     -------
-    data: array
+    data_norm: array
         Normalized time series. The variance of each row is equal to 1.
     """
+    # NOTE: make a copy to keep the original waveform intact
+    data_norm = data.copy()
+    if data_norm.ndim == 1:
+        return data_norm / np.std(data_norm)
 
-    if data.ndim == 1:
-        return data / np.std(data)
-
-    data /= np.std(data, axis=-1)[:, np.newaxis]
-    return data
+    data_norm /= np.std(data_norm, axis=-1)[:, np.newaxis]
+    return data_norm
 
 
 def _extract_hemi(src):
@@ -193,10 +193,6 @@ def unpack_vertices(vertices_lists):
         for vertno in vertices:
             unpacked_vertices.append((index, vertno))
     return unpacked_vertices
-
-
-def theoretical_plv(kappa):
-    return i1(kappa) / i0(kappa)
 
 
 def vertices_to_mne(vertices, src):
