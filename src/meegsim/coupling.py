@@ -92,7 +92,7 @@ def ppc_constant_phase_shift(
 
     random_state : None, optional
         Random state can be fixed to provide reproducible results if the envelope
-        is generated randomly. Otherwise, the results may differ between function calls.
+        is generated randomly. If not set, the results may differ between function calls.
 
     Returns
     -------
