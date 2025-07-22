@@ -1,5 +1,6 @@
 import networkx as nx
 import numpy as np
+import warnings
 
 from ._check import check_coupling, check_option, check_numeric_array, check_snr_params
 from .configuration import SourceConfiguration
@@ -152,8 +153,15 @@ class SourceSimulator:
         self._sources.extend(point_sg.names)
 
         # Check if SNR should be adjusted
-        if point_sg.snr is not None and self.snr_mode == "local":
-            self.is_local_snr_adjusted = True
+        if point_sg.snr is not None:
+            if self.snr_mode == "local":
+                self.is_local_snr_adjusted = True
+            else:
+                warnings.warn(
+                    "Ignoring the provided value of local SNR since global adjustment "
+                    "is enabled. To enable the local adjustment, set snr_mode to 'local' "
+                    "when initializing the SourceSimulator."
+                )
 
         # Return the names of newly added sources
         return point_sg.names
@@ -271,8 +279,15 @@ class SourceSimulator:
         self._sources.extend(patch_sg.names)
 
         # Check if SNR should be adjusted
-        if patch_sg.snr is not None and self.snr_mode == "local":
-            self.is_local_snr_adjusted = True
+        if patch_sg.snr is not None:
+            if self.snr_mode == "local":
+                self.is_local_snr_adjusted = True
+            else:
+                warnings.warn(
+                    "Ignoring the provided value of local SNR since global adjustment "
+                    "is enabled. To enable the local adjustment, set snr_mode to 'local' "
+                    "when initializing the SourceSimulator."
+                )
 
         # Return the names of newly added sources
         return patch_sg.names
@@ -472,6 +487,12 @@ class SourceSimulator:
         # Check the forward model and auto-fill info if needed
         is_global_snr_adjusted = self.snr_mode == "global" and snr_global is not None
         is_local_snr_adjusted = self.snr_mode == "local" and self.is_local_snr_adjusted
+        if snr_global is not None and self.snr_mode == "local":
+            warnings.warn(
+                "Ignoring the provided value of global SNR since local adjustment "
+                "is enabled. To enable the global adjustment, set snr_mode to 'global' "
+                "when initializing the SourceSimulator."
+            )
         if (is_global_snr_adjusted or is_local_snr_adjusted) and fwd is None:
             raise ValueError("A forward model is required for the adjustment of SNR.")
 
