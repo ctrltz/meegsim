@@ -45,10 +45,10 @@ duration = 60
 seed = 123
 
 fig, axes = plt.subplots(ncols=3, figsize=(8, 3))
-snr_values = [1, 5, 10]
+snr_values = [1, 2.5, 5]
 
 for i_snr, target_snr in enumerate(snr_values):
-    sim = SourceSimulator(src)
+    sim = SourceSimulator(src, snr_mode="local")
 
     # Select some vertices randomly
     sim.add_point_sources(
