@@ -321,7 +321,7 @@ def ppc_shifted_copy_with_noise(
     multiple simulations. For every individual output, coherence and phase lag might
     deviate from the desired values: The lower the requested coherence is, the higher
     is the variance of the output. For more information, see :doc:`this example
-    </auto_examples/plot_coupling>`.
+    </auto_examples/building_blocks/01_plot_coupling>`.
     """
     check_numeric("coherence", coh, bounds=(0, 1), allow_none=False)
     snr = _get_required_snr(coh, band_limited)

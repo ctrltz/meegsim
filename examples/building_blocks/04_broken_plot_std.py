@@ -1,23 +1,17 @@
 """
-Testing the configuration structure
-===================================
+Controlling the standard deviation of activity
+==============================================
 
 """
 
-import json
-import matplotlib.pyplot as plt
 import mne
 import numpy as np
 
-from pathlib import Path
+from mne.datasets import sample
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
-
-
-def to_json(sources):
-    return json.dumps({k: str(s) for k, s in sources.items()}, indent=4)
 
 
 def data2stc(data, src):
@@ -31,30 +25,31 @@ def extents_from_areas_cm2(areas_cm2):
     return list(np.sqrt(np.array(areas_cm2) * 100 / np.pi))
 
 
-# Load the head model
-fs_dir = Path("~/mne_data/MNE-fsaverage-data/fsaverage/")
-fwd_path = fs_dir / "bem_copy" / "fsaverage-oct6-fwd.fif"
-src_path = fs_dir / "bem_copy" / "fsaverage-oct6-src.fif"
-src = mne.read_source_spaces(src_path)
+# %%
+# First, we load the head model and associated source space:
+
+# Paths
+data_path = sample.data_path() / "MEG" / "sample"
+fwd_path = data_path / "sample_audvis-meg-eeg-oct-6-fwd.fif"
+raw_path = data_path / "sample_audvis_raw.fif"
+
+# Load the prerequisites: fwd, src, and info
 fwd = mne.read_forward_solution(fwd_path)
+fwd = mne.convert_forward_solution(fwd, force_fixed=True)
+raw = mne.io.read_raw(raw_path)
+src = fwd["src"]
+info = raw.info
+
+# Pick EEG channels only
+eeg_idx = mne.pick_types(info, eeg=True)
+info_eeg = mne.pick_info(info, eeg_idx)
+fwd_eeg = fwd.pick_channels(info_eeg.ch_names)
 
 # Simulation parameters
 sfreq = 250
 duration = 60
 seed = 123
 target_snr = 20
-
-# Channel info
-montage = mne.channels.make_standard_montage("standard_1020")
-ch_names = [
-    ch for ch in montage.ch_names if ch not in ["O9", "O10", "T3", "T4", "T5", "T6"]
-]
-info = mne.create_info(ch_names, sfreq, ch_types="eeg")
-info.set_montage("standard_1020")
-
-# Adapt fwd to the info (could be done by our structure in principle)
-fwd = mne.convert_forward_solution(fwd, force_fixed=True)
-fwd = mne.pick_channels_forward(fwd, info.ch_names, ordered=True)
 
 # Create a dummy stc for std based on the y-position of the sources
 ypos = np.hstack([1 - 8 * np.abs(s["rr"][s["inuse"] > 0, 1]) for s in src])
@@ -97,7 +92,7 @@ source_std = np.std(stc.data, axis=1)
 lim = np.max(source_std)
 std_stc_est = mne.SourceEstimate(source_std, stc.vertices, tmin=0, tstep=0.01)
 std_stc_est.plot(
-    subject="fsaverage",
+    subject="sample",
     hemi="split",
     views=["lat", "med"],
     clim=dict(kind="value", lims=[0, lim / 2, lim]),
@@ -112,4 +107,3 @@ sc.plot(subject="fsaverage", hemi="split", views=["lat", "med"])
 spec = raw.compute_psd(n_fft=sfreq, n_overlap=sfreq // 2, n_per_seg=sfreq)
 spec.plot_topomap(bands={"alpha": (8, 12)}, sphere="eeglab")
 spec.plot(sphere="eeglab")
-plt.show(block=True)

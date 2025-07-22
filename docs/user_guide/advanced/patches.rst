@@ -12,7 +12,8 @@ Specifying all vertices belonging to the patch (default)
 By default, you are expected to provide indices of all vertices that belong to the
 patch in the second element of ``location`` tuples.
 
-For example, below we define a patch that contains three vertices:
+For example, below we define a patch in a left hemisphere (in the case of a surface
+source space) that contains three vertices:
 
 .. code-block:: python
 
@@ -21,8 +22,8 @@ For example, below we define a patch that contains three vertices:
         ...
     )
 
-And here we define two patches (with 3 and 4 vertices, respectively) in
-the same call:
+And here we define two patches (with 3 and 4 vertices in left and right hemispheres,
+respectively) in the same call:
 
 .. code-block:: python
 
@@ -48,7 +49,7 @@ Example 1 - single patch:
 
     sim.add_patch_sources(
         location=[(0, 123)],
-        extent=15             # in mm
+        extents=15             # in mm
     )
 
 Example 2 - several patches of different size:
@@ -57,5 +58,5 @@ Example 2 - several patches of different size:
 
     sim.add_patch_sources(
         location=[(0, 123), (1, 456)],
-        extent=[15, 30]       # in mm
+        extents=[15, 30]       # in mm
     )
