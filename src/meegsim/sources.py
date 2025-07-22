@@ -351,7 +351,13 @@ class PatchSource(_BaseSource):
                 continue
 
             # Grow the patch from center otherwise
-            patch = mne.grow_labels(subject, vertno, extent, src_idx, subjects_dir)[0]
+            patch = mne.grow_labels(
+                subject=subject,
+                seeds=vertno,
+                extents=extent,
+                hemis=src_idx,
+                subjects_dir=subjects_dir,
+            )[0]
 
             # Prune vertices
             patch_vertno = [
