@@ -64,6 +64,7 @@ sim.set_coupling(
     coh=0.5,
     fmin=8,
     fmax=12,
+    band_limited=False,
 )
 
 # %%
