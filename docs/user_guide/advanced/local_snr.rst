@@ -30,7 +30,7 @@ band in ``snr_params`` when adding the point or patch sources:
 
     import numpy as np
 
-    # add some noise sources first
+    # add some noise sources
     sim.add_noise_sources(
         location=select_random,
         location_params=dict(n=10)

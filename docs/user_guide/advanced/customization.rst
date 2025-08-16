@@ -14,8 +14,8 @@ description of requirements for such functions:
 In addition, we provide minimal examples of custom functions for each case.
 
 .. note::
-    When adding sources, we always try to execute the provided functions with 0
-    as ``random_state`` to making the debugging a bit easier.
+    When adding sources, we always call the provided functions with 0
+    as ``random_state`` to making the debugging a bit easier in case errors occur.
 
 Location
 ========

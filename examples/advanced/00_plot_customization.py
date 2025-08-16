@@ -2,7 +2,7 @@
 Using functions from other packages
 -----------------------------------
 
-This example show how to adapt functions from other packages to
+This example shows how to adapt functions from other packages to
 use them with MEEGsim.
 """
 

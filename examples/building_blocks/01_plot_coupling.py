@@ -62,6 +62,7 @@ for i_lag, lag in enumerate(phase_lags):
                 coh=target_coh,
                 fmin=fmin,
                 fmax=fmax,
+                band_limited=False,
                 random_state=seed,
             )
             # x is leading y

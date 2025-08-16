@@ -29,15 +29,15 @@ using different methods:
 * Point-like sources (:meth:`SourceSimulator.add_point_sources`): the time course
   of activity is assigned to one vertex.
 
-* Cortical patches (:meth:`SourceSimulator.add_patch_sources`): the time course of
+* Patch-like sources (:meth:`SourceSimulator.add_patch_sources`): the time course of
   activity is assigned to a set of vertices.
 
 .. note::
     Currently, all vertices belonging to the patch have identical waveforms.
 
 * Noise sources (:meth:`SourceSimulator.add_noise_sources`): these sources are
-  automatically considered as `noise` when adjusting the SNR, while point-like
-  or patch sources are treated as `signal`.
+  automatically considered as `noise` when adjusting the SNR, while point-
+  or patch-like sources are treated as `signal`.
 
 .. note::
     Currently, only point-like noise sources are supported.
@@ -172,8 +172,8 @@ Signal-to-noise ratio (SNR)
 By default, the waveforms provided by the user are saved as is, while the built-in
 waveforms are normalized to have the same standard deviation (1 nAm by default).
 In practice, it is often useful to set up a specific SNR for each source separately
-or for all sources combined, for example, to test how different analysis methods
-perform depending on the SNR of target sources.
+or for all sources combined. This is relevant, for example, when testing how different
+analysis methods perform depending on the SNR of target sources.
 
 We provide two approaches for adjusting the sensor-space SNR of added sources. The
 first approach was used in :cite:`Nikulin2011`, where the SNR was adjusted separately for
@@ -187,7 +187,7 @@ adjustment of the SNR, respectively.
     By default, the *global* adjustment of SNR is performed.
 
 The *global* adjustment of the SNR is discussed later in the tutorial as it is
-performed only at the last step when simulating the data.
+performed only at the final simulation step.
 The *local* adjustment of the SNR can be performed when adding the sources to
 the simulation and is described :doc:`here </user_guide/advanced/local_snr>`.
 
@@ -201,7 +201,7 @@ Configuring coupling between sources
 With the toolbox, we aim to provide a convenient interface for the generation of
 source waveforms with desired coupling. To set the coupling between sources, you
 only need to specify the names of sources to be coupled and the coupling
-parameters. The waveforms will be then generated automatically to obtain the
+parameters. The waveforms will then be generated automatically to obtain the
 desired coupling.
 
 Source names
@@ -238,10 +238,10 @@ coupling parameters as shown below:
 
 .. code-block:: python
 
-    from meegsim.coupling import constant_phase_shift
+    from meegsim.coupling import ppc_constant_phase_shift
 
     sim.set_coupling(('source', 'sink'),
-        method=constant_phase_shift, phase_lag=np.pi/3
+        method=ppc_constant_phase_shift, phase_lag=np.pi/3
     )
 
 .. currentmodule:: meegsim.coupling
@@ -250,7 +250,7 @@ coupling parameters as shown below:
     Find more details on the parameters of built-in coupling methods
     :doc:`here </api/coupling>`.
 
-In the example above, we used the :meth:`constant_phase_shift` coupling method.
+In the example above, we used the :meth:`ppc_constant_phase_shift` coupling method.
 As the name suggests, it generates time series with a constant phase shift
 relative to each other. To have more control over the strength of coupling,
 you can use the :meth:`ppc_von_mises` method that sets probabilistic phase shifts

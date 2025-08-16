@@ -25,7 +25,7 @@ The result of this function call is a :class:`SourceConfiguration` object that
 contains all simulated sources and their waveforms (with desired SNR and coupling).
 
 Now you can use the :meth:`SourceConfiguration.to_stc()` and
-:meth:`SourceConfiguration.to_raw()` to obtain source time courses and
+:meth:`SourceConfiguration.to_raw()` methods to obtain source time courses and
 sensor-space data, respectively. The projection to sensor space requires a
 forward model (:class:`mne.Forward`) and an :class:`mne.Info` object describing
 the sensor layout:

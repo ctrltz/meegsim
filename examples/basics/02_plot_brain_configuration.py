@@ -62,14 +62,16 @@ sim.add_point_sources(
     waveform_params=dict(fmin=8, fmax=12),
 )
 
-# Add patch sources - disabled until issue #80 is fixed
-# sim.add_patch_sources(
-#     location=select_random,
-#     location_params=dict(n=3),
-#     waveform=narrowband_oscillation,
-#     waveform_params=dict(fmin=8, fmax=12),
-#     extents=[10, 20, 50]
-# )
+# Add patch sources
+sim.add_patch_sources(
+    location=select_random,
+    location_params=dict(n=3),
+    waveform=narrowband_oscillation,
+    waveform_params=dict(fmin=8, fmax=12),
+    extents=[10, 20, 50],
+    subject="sample",
+    subjects_dir=subjects_dir,
+)
 
 # %%
 # Now we simulate the configuration with an arbitrary level of global SNR:
