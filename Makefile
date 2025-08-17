@@ -8,6 +8,7 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = _build
 EXAMPLESDIR   = docs/auto_examples
+AUTODOCDIR    = docs/generated
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -16,6 +17,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf $(EXAMPLESDIR)/*
+	rm -rf $(AUTODOCDIR)/*
 
 collect: html
 	./collect_example_stubs.sh

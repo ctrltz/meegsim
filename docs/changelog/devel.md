@@ -1,6 +1,6 @@
 # [Unreleased]
 
-### Added
+## Added
 
 - A desired level of white noise can be added in sensor space to model measurement
 noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
@@ -13,11 +13,11 @@ noise ([#58](https://github.com/ctrltz/meegsim/pull/58))
 - Quick dict-like access to the simulated sources ([#82](https://github.com/ctrltz/meegsim/pull/82))
 - Partial control over the amplitude envelope of the coupled waveform: same as input or randomly generated ([#87](https://github.com/ctrltz/meegsim/pull/87))
 
-### Changed
+## Changed
 
 - Reworked normalization of source activity: by default, all source time courses are scaled to make their standard deviation equal to 1 nAm ([#66](https://github.com/ctrltz/meegsim/pull/66))
 - Improved performance when adjusting the SNR for a large number of sources ([#68](https://github.com/ctrltz/meegsim/pull/68))
 
-### Fixed
+## Fixed
 
 - Fixed a bug that caused different sources to have the same location and/or waveform when random state was explicitly provided ([#76](https://github.com/ctrltz/meegsim/pull/76))

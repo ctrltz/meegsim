@@ -27,17 +27,17 @@ Methods
 Below we also provide reference papers for some of the approaches and functions provided by MEEGsim.
 By citing these references, you can guide the reader to the description of underlying methods:
 
-+--------------------------------------------------+------------------------------------------+
-| **Approach / Function**                          | **Reference**                            |
-+--------------------------------------------------+------------------------------------------+
-| Global adjustment of the SNR                     | :footcite:`HaufeEwald2019`               |
-+--------------------------------------------------+------------------------------------------+
-| Local adjustment of the SNR                      | :footcite:`Nikulin2011`                  |
-+--------------------------------------------------+------------------------------------------+
-| :py:func:`meegsim.coupling.constant_phase_shift` | :footcite:`JamshidiIdaji2022_PhDThesis`  |
-+--------------------------------------------------+------------------------------------------+
-| :py:func:`meegsim.coupling.ppc_von_mises`        | :footcite:`JamshidiIdaji2022_PhDThesis`  |
-+--------------------------------------------------+------------------------------------------+
++------------------------------------------------------+------------------------------------------+
+| **Approach / Function**                              | **Reference**                            |
++------------------------------------------------------+------------------------------------------+
+| Global adjustment of the SNR                         | :footcite:`HaufeEwald2019`               |
++------------------------------------------------------+------------------------------------------+
+| Local adjustment of the SNR                          | :footcite:`Nikulin2011`                  |
++------------------------------------------------------+------------------------------------------+
+| :py:func:`meegsim.coupling.ppc_constant_phase_shift` | :footcite:`JamshidiIdaji2022_PhDThesis`  |
++------------------------------------------------------+------------------------------------------+
+| :py:func:`meegsim.coupling.ppc_von_mises`            | :footcite:`JamshidiIdaji2022_PhDThesis`  |
++------------------------------------------------------+------------------------------------------+
 
 
 References
