@@ -64,8 +64,6 @@ for ax, length in zip(axes, lengths):
     ax.set_ylabel("PLV")
     ax.set_title(f"duration = {length} s")
 
-plt.show()
-
 # %%
 # As shown in the plots above, kappa is monotoneously related to the resulting PLV
 # between coupled time series. This allows for flexible control of coupling, and

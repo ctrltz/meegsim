@@ -80,4 +80,3 @@ for i_snr, target_snr in enumerate(snr_values):
     axes[i_snr].set_ylim([0, 0.125])
 
 fig.tight_layout()
-plt.show()

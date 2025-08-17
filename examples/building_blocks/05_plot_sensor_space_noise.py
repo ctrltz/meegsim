@@ -70,4 +70,3 @@ for i_level, noise_level in enumerate(noise_levels):
     axes[i_level].set_xlabel("Frequency (Hz)")
 
 fig.tight_layout()
-plt.show()
