@@ -7,6 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 
+import pyvista
 import os
 import sys
 
@@ -128,8 +129,9 @@ numpydoc_xref_ignore = {
 
 
 # Intersphinx
-intersphinx_mapping = get_intersphinx_mapping(
-    packages={"matplotlib", "mne", "numpy", "python"}
+intersphinx_mapping = {"neurodsp": ("https://neurodsp-tools.github.io/neurodsp/", None)}
+intersphinx_mapping.update(
+    get_intersphinx_mapping(packages={"matplotlib", "mne", "numpy", "python"})
 )
 
 
@@ -138,8 +140,30 @@ bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
 
 
+# Enabling PyVista scraper
+pyvista.BUILDING_GALLERY = True
+pyvista.OFF_SCREEN = False
+
+
 # Sphinx Gallery
 sphinx_gallery_conf = {
+    "backreferences_dir": "generated",
+    "doc_module": ("meegsim",),
     "examples_dirs": "../examples",
+    "filename_pattern": "/\\d{2}_plot_",
     "gallery_dirs": "auto_examples",
+    "image_scrapers": ("matplotlib", "pyvista"),
+    "subsection_order": [
+        "../examples/basics",
+        "../examples/building_blocks",
+        "../examples/advanced",
+    ],
+    "within_subsection_order": "FileNameSortKey",
 }
+
+# Disable brain plots for CIs
+if os.environ.get("BUILD_ENV", "local") == "ci":
+    sphinx_gallery_conf["filename_pattern"] = "/\\d{2}_plot_(?!brain)"
+
+print(os.environ.get("BUILD_ENV", "local"))
+print(sphinx_gallery_conf)

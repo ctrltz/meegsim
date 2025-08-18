@@ -1,4 +1,5 @@
 """
+==================================================
 Phase-phase coupling using shifted copy with noise
 ==================================================
 
@@ -61,6 +62,7 @@ for i_lag, lag in enumerate(phase_lags):
                 coh=target_coh,
                 fmin=fmin,
                 fmax=fmax,
+                band_limited=False,
                 random_state=seed,
             )
             # x is leading y
@@ -108,4 +110,3 @@ for i_lag, lag in enumerate(phase_lags):
     ax_lag.set_xlabel("Target coherence")
     ax_lag.set_ylabel("Obtained phase lag (degrees)")
 fig.tight_layout()
-plt.show()
