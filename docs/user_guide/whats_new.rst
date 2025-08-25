@@ -5,4 +5,5 @@ What's new?
     :maxdepth: 1
 
     ../changelog/devel.md
+    ../changelog/v0.0.2.md
     ../changelog/v0.0.1.md
