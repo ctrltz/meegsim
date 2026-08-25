@@ -17,7 +17,7 @@ from intersphinx_registry import get_intersphinx_mapping
 
 
 project = "meegsim"
-copyright = "2024, MEEGsim contributors"
+copyright = "2024-2026, MEEGsim contributors"
 author = "MEEGsim contributors"
 release = meegsim.__version__
 
@@ -91,7 +91,7 @@ def linkcode_resolve(domain, info):
     filename = info["module"].replace(".", "/")
 
     if "dev" in meegsim.__version__:
-        branch = "master"
+        branch = "main"
     else:
         branch = f"v{meegsim.__version__}"
 

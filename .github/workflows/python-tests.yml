@@ -5,9 +5,9 @@ name: Python Tests
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 env:
   BUILD_ENV: ci
@@ -19,7 +19,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     runs-on: ubuntu-latest
 
