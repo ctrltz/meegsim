@@ -100,6 +100,7 @@ brain = sc.plot(
     background="black",
     hemi="split",
     views=["lat", "med"],
+    time_viewer=False,
 )
 brain.add_annotation("aparc")
 

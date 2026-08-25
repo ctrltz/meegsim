@@ -1,9 +1,11 @@
+from matplotlib.colors import ListedColormap
+
 from meegsim._check import check_colors, check_scale_factors
 from meegsim.sources import _get_point_sources_in_hemi, _get_patch_sources_in_hemis
 from meegsim.utils import _hemi_to_index
 
 
-DEFAULT_COLORS = dict(point="green", patch="Oranges", noise="black", candidate="yellow")
+DEFAULT_COLORS = dict(point="green", patch="orange", noise="black", candidate="yellow")
 DEFAULT_SCALE_FACTORS = dict(point=0.75, noise=0.3, candidate=0.05)
 DEFAULT_PLOT_KWARGS = dict(
     background="w",
@@ -49,7 +51,10 @@ def plot_source_configuration(
     kwargs = DEFAULT_PLOT_KWARGS.copy()
     kwargs.update(plot_kwargs)
     brain = patch_data_stc.plot(
-        subject=subject, hemi=hemi, colormap=source_colors["patch"], **kwargs
+        subject=subject,
+        hemi=hemi,
+        colormap=_colormap_from_color(source_colors["patch"]),
+        **kwargs,
     )
 
     # Point/noise sources and candidate locations are added via
@@ -87,3 +92,10 @@ def plot_source_configuration(
         )
 
     return brain
+
+
+def _colormap_from_color(color):
+    """
+    Creates a colormap from the provided color.
+    """
+    return ListedColormap([color])
