@@ -23,9 +23,12 @@ classifiers = [
 ]
 dependencies = [
     "colorednoise",
+    "matplotlib",
     "mne",
     "networkx",
-    "nibabel"
+    "nibabel",
+    "numpy",
+    "scipy"
 ]
 keywords = [
     "MEG",

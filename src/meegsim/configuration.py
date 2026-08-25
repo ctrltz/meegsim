@@ -126,7 +126,7 @@ class SourceConfiguration:
 
             DEFAULT_COLORS = dict(
                 point="green",
-                patch="Oranges",
+                patch="orange",
                 noise="black",
                 candidate="yellow"
             )
