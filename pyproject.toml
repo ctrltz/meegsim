@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [project]
 name = "meegsim"
-version = "0.0.3dev"
+dynamic = ["version"]
 authors = [
   { name="Nikolai Kapralov", email="kapralov@cbs.mpg.de" },
   { name="Alina Studenova" },
