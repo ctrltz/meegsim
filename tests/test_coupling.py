@@ -1,21 +1,20 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
-
 from harmoni.extratools import compute_plv
-from mock import patch
 from scipy.signal import hilbert
+from utils.prepare import prepare_sinusoid
 
 from meegsim.coupling import (
-    ppc_constant_phase_shift,
-    ppc_von_mises,
-    ppc_shifted_copy_with_noise,
     _get_envelope,
     _get_required_snr,
     _shifted_copy_with_noise,
+    ppc_constant_phase_shift,
+    ppc_shifted_copy_with_noise,
+    ppc_von_mises,
 )
 from meegsim.utils import get_sfreq
-
-from utils.prepare import prepare_sinusoid
 
 
 def prepare_inputs(sfreq=250, duration=60):
@@ -44,9 +43,9 @@ def test_ppc_constant_phase_shift_same_envelope(phase_lag):
     test_angle = np.angle(cplv)
 
     assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
-    assert (
-        (np.abs(test_angle) - phase_lag) <= 0.01
-    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.01, (
+        f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag), 2)}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -75,9 +74,9 @@ def test_ppc_constant_phase_shift_random_envelope(phase_lag):
     test_angle = np.angle(cplv)
 
     assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
-    assert (
-        (np.abs(test_angle) - phase_lag) <= 0.01
-    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.01, (
+        f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag), 2)}"
+    )
 
 
 @pytest.mark.parametrize("m, n", [(2, 1), (3, 1), (5 / 2, 1)])
@@ -105,9 +104,9 @@ def test_ppc_constant_phase_shift_harmonics_same_envelope(m, n):
     test_angle = np.angle(cplv)
 
     assert plv >= 0.9, f"Expected PLV to be at least 0.9, got {plv}"
-    assert (
-        (np.abs(test_angle) - phase_lag) <= 0.1
-    ), f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag),2)}"
+    assert (np.abs(test_angle) - phase_lag) <= 0.1, (
+        f"Test failed: angle is different from phase_lag. difference = {np.round((np.abs(test_angle) - phase_lag), 2)}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -299,9 +298,9 @@ def test_get_envelope_random():
         fmax=fmax,
         random_state=seed,
     )
-    assert not np.allclose(
-        waveform_amp, envelope
-    ), "Expected envelope not to match input"
+    assert not np.allclose(waveform_amp, envelope), (
+        "Expected envelope not to match input"
+    )
 
 
 @pytest.mark.parametrize(

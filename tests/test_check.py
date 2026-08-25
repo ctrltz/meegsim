@@ -1,29 +1,29 @@
-import numpy as np
-import networkx as nx
-import pytest
 import warnings
-
 from functools import partial
+
+import networkx as nx
+import numpy as np
+import pytest
+from utils.prepare import prepare_source_estimate, prepare_source_space
+
 from meegsim._check import (
     check_callable,
-    check_vertices_list_of_tuples,
-    check_vertices_in_src,
-    check_location,
-    check_waveform,
-    check_names,
-    check_numeric_array,
-    check_snr_params,
-    check_if_source_exists,
+    check_colors,
     check_coupling,
     check_coupling_params,
+    check_if_source_exists,
+    check_location,
+    check_names,
     check_numeric,
-    check_colors,
-    check_scale_factors,
+    check_numeric_array,
     check_option,
+    check_scale_factors,
+    check_snr_params,
     check_stc_as_param,
+    check_vertices_in_src,
+    check_vertices_list_of_tuples,
+    check_waveform,
 )
-
-from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_check_numeric_should_pass():
@@ -34,10 +34,10 @@ def test_check_numeric_should_pass():
 
 
 def test_check_numeric_bad_type():
-    with pytest.raises(ValueError, match="Expected var to be a float number"):
+    with pytest.raises(TypeError, match="Expected var to be a float number"):
         check_numeric("var", None, allow_none=False)
 
-    with pytest.raises(ValueError, match="Expected var to be a float number"):
+    with pytest.raises(TypeError, match="Expected var to be a float number"):
         check_numeric("var", "abcd")
 
 
@@ -88,16 +88,16 @@ def test_check_vertices_list_of_tuples():
 
 
 def test_check_vertices_list_of_tuples_raises():
-    with pytest.raises(ValueError, match="vertices to be a list or a tuple"):
+    with pytest.raises(TypeError, match="vertices to be a list or a tuple"):
         check_vertices_list_of_tuples("aaa")
 
     with pytest.raises(
-        ValueError, match="to be a list or a tuple, does not hold for element 1"
+        TypeError, match="to be a list or a tuple, does not hold for element 1"
     ):
         check_vertices_list_of_tuples([(0, 1), 1])
 
     with pytest.raises(
-        ValueError, match="contain 2 values, does not hold for element \(1, 2, 3\)"
+        ValueError, match=r"contain 2 values, does not hold for element \(1, 2, 3\)"
     ):
         check_vertices_list_of_tuples([(0, 1), (0, 2), (1, 2, 3)])
 
@@ -115,7 +115,7 @@ def test_check_vertices_in_src():
 def test_check_vertices_in_src_raises():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
 
-    with pytest.raises(ValueError, match="Vertex \(2, 0\) belongs to"):
+    with pytest.raises(ValueError, match=r"Vertex \(2, 0\) belongs to"):
         check_vertices_in_src([(0, 0), (1, 0), (2, 0)], src)
 
     with pytest.raises(ValueError, match="Vertex 2 is not present"):
@@ -149,12 +149,12 @@ def test_check_location_using_callables():
     src = prepare_source_space(types=["surf", "surf"], vertices=[[0, 1], [0, 1]])
     checked, n_vertices = check_location(location_fun, dict(pick=1), src)
 
-    assert isinstance(
-        checked, partial
-    ), "Expected the location function to be converted to a partial object"
-    assert (
-        checked.keywords["pick"] == 1
-    ), "The provided value of the keyword argument was changed"
+    assert isinstance(checked, partial), (
+        "Expected the location function to be converted to a partial object"
+    )
+    assert checked.keywords["pick"] == 1, (
+        "The provided value of the keyword argument was changed"
+    )
     assert n_vertices == 2, "Wrong number of vertices"
 
 
@@ -186,12 +186,12 @@ def test_check_waveform_using_callables():
 
     checked = check_waveform(waveform_fun, dict(value=1), n_sources=2)
 
-    assert isinstance(
-        checked, partial
-    ), "Expected the waveform function to be converted to a partial object"
-    assert (
-        checked.keywords["value"] == 1
-    ), "The provided value of the keyword argument was changed"
+    assert isinstance(checked, partial), (
+        "Expected the waveform function to be converted to a partial object"
+    )
+    assert checked.keywords["value"] == 1, (
+        "The provided value of the keyword argument was changed"
+    )
 
 
 def test_check_waveform_callable_bad_shape_raises():
@@ -217,7 +217,7 @@ def test_check_numeric_array_none_passes_if_allowed():
 
 
 def test_check_numeric_array_none_raises_if_not_allowed():
-    with pytest.raises(ValueError, match="Expected value to be a float number"):
+    with pytest.raises(TypeError, match="Expected value to be a float number"):
         check_numeric_array("value", None, 5, allow_none=False)
 
 
@@ -284,9 +284,9 @@ def test_check_names_non_unique():
 
 
 def test_check_names_wrong_type():
-    with pytest.raises(ValueError, match="to be strings, got int: 1"):
+    with pytest.raises(TypeError, match="to be strings, got int: 1"):
         check_names(["a", "b", 1], 3, [])
-    with pytest.raises(ValueError, match="to be strings, got list"):
+    with pytest.raises(TypeError, match="to be strings, got list"):
         check_names(["a", "b", ["c", "d"]], 3, [])
 
 
@@ -367,7 +367,7 @@ def test_check_coupling_should_pass():
 
 def test_check_coupling_bad_edge_format():
     # Meaningless coupling edge
-    with pytest.raises(ValueError, match="1 should be defined as a tuple"):
+    with pytest.raises(TypeError, match="1 should be defined as a tuple"):
         check_coupling(1, {}, {}, [], nx.Graph())
 
     # Too many sources to couple
@@ -410,7 +410,7 @@ def test_check_coupling_self_loop_edge():
 
 def test_check_coupling_params_not_dict():
     # Too many sources to couple
-    with pytest.raises(ValueError, match="as a dictionary, got str"):
+    with pytest.raises(TypeError, match="as a dictionary, got str"):
         check_coupling(("a", "b"), "params", {}, ["a", "b"], nx.Graph())
 
 
@@ -449,7 +449,7 @@ def test_check_coupling_method_not_callable():
     existing = nx.Graph()
     coupling_params = {"method": "ppc_von_mises", "kappa": 1, "phase_lag": 0}
 
-    with pytest.raises(ValueError, match="method to be a callable, got str"):
+    with pytest.raises(TypeError, match="method to be a callable, got str"):
         check_coupling(("a", "b"), coupling_params, {}, sources, existing)
 
 
@@ -478,7 +478,7 @@ def test_check_stc_as_param_raises():
     )
     std_stc = prepare_source_estimate(data=[1, 1, 1, 1], vertices=[[0, 1], [0, 1]])
 
-    with pytest.raises(ValueError, match="vertices from src\[0\] are missing: 2, 3"):
+    with pytest.raises(ValueError, match=r"vertices from src\[0\] are missing: 2, 3"):
         check_stc_as_param(std_stc, src)
 
 
@@ -518,5 +518,5 @@ def test_check_scale_factors_bad_source_type():
 
 
 def test_check_scale_factors_bad_scale_factor():
-    with pytest.raises(ValueError, match="a float number"):
+    with pytest.raises(TypeError, match="a float number"):
         check_scale_factors(dict(point="abcd"))

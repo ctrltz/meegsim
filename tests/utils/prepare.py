@@ -1,15 +1,14 @@
-import numpy as np
 import mne
-
+import numpy as np
 from mne.io.constants import FIFF
 
-from meegsim.sources import PointSource, PatchSource
+from meegsim.sources import PatchSource, PointSource
 
 
 def prepare_source_space(types, vertices):
-    assert len(types) == len(
-        vertices
-    ), "The number of types and the number of lists of vertices should match"
+    assert len(types) == len(vertices), (
+        "The number of types and the number of lists of vertices should match"
+    )
 
     # Create a simple dummy data structure for testing purposes
     src = []
@@ -52,7 +51,7 @@ def prepare_source_space(types, vertices):
 
 def prepare_info(n_channels, ch_names=None, ch_types=None, sfreq=250):
     if ch_names is None:
-        ch_names = [f"EEG{i+1}" for i in range(n_channels)]
+        ch_names = [f"EEG{i + 1}" for i in range(n_channels)]
     if ch_types is None:
         ch_types = ["eeg"] * n_channels
     return mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
@@ -105,7 +104,9 @@ def prepare_point_source(name, src_idx=0, vertno=0, n_samples=100):
     return PointSource(name, src_idx, vertno, waveform)
 
 
-def prepare_patch_source(name, src_idx=0, vertno=[0, 1], n_samples=100):
+def prepare_patch_source(name, src_idx=0, vertno=None, n_samples=100):
+    if vertno is None:
+        vertno = [0, 1]
     waveform = np.ones((n_samples,))
     return PatchSource(name, src_idx, vertno, waveform)
 

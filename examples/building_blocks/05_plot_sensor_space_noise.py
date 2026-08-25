@@ -4,9 +4,8 @@ Adding sensor space noise
 
 """
 
-import mne
 import matplotlib.pyplot as plt
-
+import mne
 from mne.datasets import sample
 
 from meegsim.location import select_random

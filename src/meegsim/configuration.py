@@ -1,7 +1,7 @@
-import numpy as np
 import mne
+import numpy as np
 
-from meegsim._check import check_numeric, check_if_source_exists
+from meegsim._check import check_if_source_exists, check_numeric
 from meegsim.sensor_noise import _adjust_sensor_noise, _prepare_sensor_noise
 from meegsim.sources import _combine_sources_into_stc
 from meegsim.viz import plot_source_configuration

@@ -1,21 +1,21 @@
-import numpy as np
 import mne
+import numpy as np
 import pytest
-
 from mne.io.constants import FIFF
-from meegsim.utils import (
-    _extract_hemi,
-    unpack_vertices,
-    combine_stcs,
-    normalize_variance,
-    get_sfreq,
-    vertices_to_mne,
-    _hemi_to_index,
-    _get_param_from_stc,
-    _get_center_of_mass,
-)
+from utils.prepare import prepare_source_estimate, prepare_source_space
 
-from utils.prepare import prepare_source_space, prepare_source_estimate
+from meegsim.utils import (
+    _empty_dict_if_none,
+    _extract_hemi,
+    _get_center_of_mass,
+    _get_param_from_stc,
+    _hemi_to_index,
+    combine_stcs,
+    get_sfreq,
+    normalize_variance,
+    unpack_vertices,
+    vertices_to_mne,
+)
 
 
 def test_unpack_single_list():
@@ -217,3 +217,8 @@ def test_get_center_of_mass_multiple_vertices():
     # Set symmetric coordinates -> the middle vertex is the center
     src[0]["rr"] = np.tile(np.array([[-2], [-1], [0], [1], [2]]), (1, 3))
     assert _get_center_of_mass(src, 0, [0, 1, 2, 3, 4]) == 2
+
+
+def test_empty_dict_if_none():
+    assert _empty_dict_if_none(None) == {}
+    assert _empty_dict_if_none({"a": 1}) == {"a": 1}

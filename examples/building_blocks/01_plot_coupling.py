@@ -14,10 +14,10 @@ simulation, and the variance of the result is higher for low values of coherence
 To start, we load the necessary functions first:
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 from harmoni.extratools import compute_plv
+
 from meegsim.coupling import ppc_shifted_copy_with_noise
 from meegsim.waveform import narrowband_oscillation
 

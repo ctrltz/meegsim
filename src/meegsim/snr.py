@@ -1,7 +1,7 @@
-import numpy as np
-import mne
 import warnings
 
+import mne
+import numpy as np
 from scipy.signal import butter, filtfilt
 
 from meegsim.sources import _combine_sources_into_stc

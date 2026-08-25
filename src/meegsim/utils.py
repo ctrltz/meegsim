@@ -1,9 +1,8 @@
 import logging
-import numpy as np
 import warnings
 
+import numpy as np
 from mne.io.constants import FIFF
-
 
 logger = logging.getLogger("meegsim")
 
@@ -237,8 +236,7 @@ def _get_param_from_stc(stc, vertices):
     stc_data = np.squeeze(stc.data)
     if stc_data.ndim > 1:
         raise ValueError(
-            "Expected the provided `stc` object to have only one "
-            "value per vertex"
+            "Expected the provided `stc` object to have only one value per vertex"
         )
 
     # NOTE: we only support surface source estimates for now
@@ -274,3 +272,10 @@ def _get_center_of_mass(src, src_idx, vertno):
     dist = np.sum((pos - mean_pos) ** 2, axis=1)
 
     return vertno[np.argmin(dist)]
+
+
+def _empty_dict_if_none(d):
+    if d is None:
+        return {}
+
+    return d

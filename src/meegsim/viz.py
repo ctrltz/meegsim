@@ -1,9 +1,8 @@
 from matplotlib.colors import ListedColormap
 
 from meegsim._check import check_colors, check_scale_factors
-from meegsim.sources import _get_point_sources_in_hemi, _get_patch_sources_in_hemis
+from meegsim.sources import _get_patch_sources_in_hemis, _get_point_sources_in_hemi
 from meegsim.utils import _hemi_to_index
-
 
 DEFAULT_COLORS = dict(point="green", patch="orange", noise="black", candidate="yellow")
 DEFAULT_SCALE_FACTORS = dict(point=0.75, noise=0.3, candidate=0.05)
@@ -59,7 +58,7 @@ def plot_source_configuration(
 
     # Point/noise sources and candidate locations are added via
     # add_foci that needs to be run for each hemisphere separately
-    for hemi in hemis:
+    for hemi in hemis:  # noqa: PLR1704
         # All candidate locations (resource-heavy, disabled by default)
         if show_candidate_locations:
             src_idx = _hemi_to_index(hemi)

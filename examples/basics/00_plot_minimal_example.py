@@ -8,9 +8,8 @@ in the Getting Started tutorial. It may serve as a good starting point
 for your own simulation.
 """
 
-import numpy as np
 import mne
-
+import numpy as np
 from mne.datasets import sample
 
 from meegsim.coupling import ppc_von_mises

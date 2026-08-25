@@ -5,9 +5,8 @@ Adjustment of local SNR
 This example shows how the local SNR can be adjusted.
 """
 
-import mne
 import matplotlib.pyplot as plt
-
+import mne
 from mne.datasets import sample
 
 from meegsim.location import select_random

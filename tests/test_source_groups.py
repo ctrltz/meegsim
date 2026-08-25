@@ -1,19 +1,19 @@
+from functools import partial
+from unittest.mock import patch
+
 import numpy as np
 import pytest
-
-from functools import partial
-from mock import patch
-from meegsim.source_groups import _BaseSourceGroup, PointSourceGroup, generate_names
-
 from utils.prepare import prepare_source_space
+
+from meegsim.source_groups import PointSourceGroup, _BaseSourceGroup, generate_names
 
 
 def check_all_mocks(sg, mocks):
     for field, mock in mocks.items():
         mock.assert_called()
-        assert (
-            getattr(sg, field) == f"mock {field}"
-        ), f"Value of {field} was stored incorrectly"
+        assert getattr(sg, field) == f"mock {field}", (
+            f"Value of {field} was stored incorrectly"
+        )
 
 
 @pytest.mark.parametrize("group,n_sources", [("group1", 3), ("group2", 6)])

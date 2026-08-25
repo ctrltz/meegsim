@@ -3,13 +3,12 @@ Integration tests
 """
 
 import numpy as np
+from utils.prepare import prepare_forward
 
 from meegsim.coupling import ppc_constant_phase_shift, ppc_von_mises
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation, white_noise
-
-from utils.prepare import prepare_forward
 
 
 def test_builtin_methods():

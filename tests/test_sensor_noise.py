@@ -1,11 +1,10 @@
 import numpy as np
 import pytest
+from utils.prepare import prepare_forward, prepare_source_space
 
-from meegsim.sensor_noise import _prepare_sensor_noise, _adjustment_factors
+from meegsim.sensor_noise import _adjustment_factors, _prepare_sensor_noise
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
-
-from utils.prepare import prepare_forward, prepare_source_space
 
 
 def test_prepare_sensor_noise():

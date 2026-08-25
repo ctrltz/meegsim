@@ -9,10 +9,9 @@ use them with MEEGsim.
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
-
+from mne.datasets import sample
 from neurodsp.sim import sim_bursty_oscillation
 from neurodsp.sim.multi import sim_multiple
-from mne.datasets import sample
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator

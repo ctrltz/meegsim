@@ -2,24 +2,23 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from utils.prepare import prepare_source_estimate, prepare_source_space
 
 from meegsim.sources import (
-    _BaseSource,
-    PointSource,
     PatchSource,
+    PointSource,
+    _BaseSource,
     _combine_sources_into_stc,
-    _get_point_sources_in_hemi,
     _get_patch_sources_in_hemis,
+    _get_point_sources_in_hemi,
 )
-
-from utils.prepare import prepare_source_space, prepare_source_estimate
 
 
 def test_basesource_is_abstract():
     waveform = np.ones((100,))
     s = _BaseSource(0, waveform)
     with pytest.raises(NotImplementedError, match="in a subclass"):
-        s.data
+        s.data  # noqa: B018
 
 
 # =================================
@@ -75,15 +74,15 @@ def test_pointsource_to_stc(src_idx, vertno):
     s = PointSource("mysource", src_idx, vertno, waveform)
     stc = s.to_stc(src, tstep=0.01)
 
-    assert (
-        stc.data.shape[0] == 1
-    ), f"Expected one active vertex in stc, got {stc.data.shape[0]}"
-    assert (
-        vertno in stc.vertices[src_idx]
-    ), f"Expected the vertex to be put in src {src_idx}, but it is not there"
-    assert np.allclose(
-        stc.data, waveform
-    ), "The source waveform should not change during conversion to stc"
+    assert stc.data.shape[0] == 1, (
+        f"Expected one active vertex in stc, got {stc.data.shape[0]}"
+    )
+    assert vertno in stc.vertices[src_idx], (
+        f"Expected the vertex to be put in src {src_idx}, but it is not there"
+    )
+    assert np.allclose(stc.data, waveform), (
+        "The source waveform should not change during conversion to stc"
+    )
 
 
 @pytest.mark.parametrize("tstep", [0.01, 0.025, 0.05])
@@ -94,9 +93,9 @@ def test_pointsource_to_stc_tstep(tstep):
     stc = s.to_stc(src, tstep=tstep)
 
     expected_sfreq = 1.0 / tstep
-    assert (
-        stc.sfreq == expected_sfreq
-    ), f"Expected stc.sfreq to be {expected_sfreq}, got {stc.sfreq}"
+    assert stc.sfreq == expected_sfreq, (
+        f"Expected stc.sfreq to be {expected_sfreq}, got {stc.sfreq}"
+    )
 
 
 def test_pointsource_to_stc_subject():
@@ -105,15 +104,15 @@ def test_pointsource_to_stc_subject():
     s = PointSource("mysource", 0, 0, waveform)
     stc = s.to_stc(src, tstep=0.01)
 
-    assert (
-        stc.subject == "meegsim"
-    ), f"Expected stc.subject to be derived from src, got {stc.subject}"
+    assert stc.subject == "meegsim", (
+        f"Expected stc.subject to be derived from src, got {stc.subject}"
+    )
 
     stc = s.to_stc(src, tstep=0.01, subject="mysubject")
 
-    assert (
-        stc.subject == "mysubject"
-    ), f"Expected stc.subject to be mysubject, got {stc.subject}"
+    assert stc.subject == "mysubject", (
+        f"Expected stc.subject to be mysubject, got {stc.subject}"
+    )
 
 
 def test_pointsource_to_stc_bad_src_raises():
@@ -266,15 +265,15 @@ def test_patchsource_to_stc(src_idx, vertno):
     stc = s.to_stc(src, tstep=0.01)
     n_vertno = len(vertno)
 
-    assert (
-        stc.data.shape[0] == n_vertno
-    ), f"Expected {n_vertno} active vertices in stc, got {stc.data.shape[0]}"
-    assert np.all(
-        vertno in stc.vertices[src_idx]
-    ), f"Expected all vertno to be put in src {src_idx}"
-    assert np.allclose(
-        stc.data, 1.0
-    ), "The source waveform should be scaled by the square root of the number of vertices"
+    assert stc.data.shape[0] == n_vertno, (
+        f"Expected {n_vertno} active vertices in stc, got {stc.data.shape[0]}"
+    )
+    assert np.all(vertno in stc.vertices[src_idx]), (
+        f"Expected all vertno to be put in src {src_idx}"
+    )
+    assert np.allclose(stc.data, 1.0), (
+        "The source waveform should be scaled by the square root of the number of vertices"
+    )
 
 
 def test_patchsource_to_stc_bad_src_raises():

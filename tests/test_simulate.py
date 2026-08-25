@@ -1,14 +1,13 @@
-import meegsim
+from unittest.mock import Mock, patch
+
 import networkx as nx
 import numpy as np
 import pytest
+from utils.prepare import prepare_forward, prepare_point_source, prepare_source_space
 
-from mock import patch, Mock
-
+import meegsim
 from meegsim.simulate import SourceSimulator, _simulate
-from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
-
-from utils.prepare import prepare_source_space, prepare_forward, prepare_point_source
+from meegsim.source_groups import PatchSourceGroup, PointSourceGroup
 
 
 def test_sourcesimulator_add_point_sources():
@@ -18,15 +17,15 @@ def test_sourcesimulator_add_point_sources():
     # Add one group with auto-generated names
     sim.add_point_sources([(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)))
 
-    assert (
-        len(sim._source_groups) == 1
-    ), f"Expected one source group to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._noise_groups) == 0
-    ), f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._sources) == 4
-    ), f"Expected four sources to be created, got {len(sim._sources)}"
+    assert len(sim._source_groups) == 1, (
+        f"Expected one source group to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._noise_groups) == 0, (
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._sources) == 4, (
+        f"Expected four sources to be created, got {len(sim._sources)}"
+    )
 
     # Add one group with custom names
     custom_names = ["s1", "s2", "s3", "s4"]
@@ -34,18 +33,18 @@ def test_sourcesimulator_add_point_sources():
         [(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)), names=custom_names
     )
 
-    assert (
-        len(sim._source_groups) == 2
-    ), f"Expected two source groups to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._noise_groups) == 0
-    ), f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._sources) == 8
-    ), f"Expected eight sources to be created, got {len(sim._sources)}"
-    assert all(
-        [name in sim._sources for name in custom_names]
-    ), "Provided source names were not used properly"
+    assert len(sim._source_groups) == 2, (
+        f"Expected two source groups to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._noise_groups) == 0, (
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._sources) == 8, (
+        f"Expected eight sources to be created, got {len(sim._sources)}"
+    )
+    assert all([name in sim._sources for name in custom_names]), (
+        "Provided source names were not used properly"
+    )
 
     # Add one group with already existing names
     with pytest.raises(ValueError):
@@ -59,15 +58,15 @@ def test_sourcesimulator_add_patch_sources():
     # Add one group with auto-generated names
     sim.add_patch_sources([(0, [0, 1]), (1, [0, 1])], np.ones((2, 100)))
 
-    assert (
-        len(sim._source_groups) == 1
-    ), f"Expected one source group to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._noise_groups) == 0
-    ), f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._sources) == 2
-    ), f"Expected two sources to be created, got {len(sim._sources)}"
+    assert len(sim._source_groups) == 1, (
+        f"Expected one source group to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._noise_groups) == 0, (
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._sources) == 2, (
+        f"Expected two sources to be created, got {len(sim._sources)}"
+    )
 
     # Add one group with custom names
     custom_names = ["s1", "s2"]
@@ -75,18 +74,18 @@ def test_sourcesimulator_add_patch_sources():
         [(0, [0, 1]), (1, [0, 1])], np.ones((2, 100)), names=custom_names
     )
 
-    assert (
-        len(sim._source_groups) == 2
-    ), f"Expected two source groups to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._noise_groups) == 0
-    ), f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._sources) == 4
-    ), f"Expected four sources to be created, got {len(sim._sources)}"
-    assert all(
-        [name in sim._sources for name in custom_names]
-    ), "Provided source names were not used properly"
+    assert len(sim._source_groups) == 2, (
+        f"Expected two source groups to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._noise_groups) == 0, (
+        f"Expected no noise groups to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._sources) == 4, (
+        f"Expected four sources to be created, got {len(sim._sources)}"
+    )
+    assert all([name in sim._sources for name in custom_names]), (
+        "Provided source names were not used properly"
+    )
 
     # Add one group with already existing names
     with pytest.raises(ValueError):
@@ -102,28 +101,28 @@ def test_sourcesimulator_add_noise_sources():
     # Add one group (names are always auto-generated)
     sim.add_noise_sources([(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)))
 
-    assert (
-        len(sim._noise_groups) == 1
-    ), f"Expected one noise group to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._source_groups) == 0
-    ), f"Expected no source groups to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._sources) == 4
-    ), f"Expected four sources to be created, got {len(sim._sources)}"
+    assert len(sim._noise_groups) == 1, (
+        f"Expected one noise group to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._source_groups) == 0, (
+        f"Expected no source groups to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._sources) == 4, (
+        f"Expected four sources to be created, got {len(sim._sources)}"
+    )
 
     # Add second group (with auto-generated names)
     sim.add_noise_sources([(0, 0), (0, 1), (1, 0), (1, 1)], np.ones((4, 100)))
 
-    assert (
-        len(sim._noise_groups) == 2
-    ), f"Expected two noise groups to be created, got {len(sim._noise_groups)}"
-    assert (
-        len(sim._source_groups) == 0
-    ), f"Expected no source groups to be created, got {len(sim._source_groups)}"
-    assert (
-        len(sim._sources) == 8
-    ), f"Expected eight sources to be created, got {len(sim._sources)}"
+    assert len(sim._noise_groups) == 2, (
+        f"Expected two noise groups to be created, got {len(sim._noise_groups)}"
+    )
+    assert len(sim._source_groups) == 0, (
+        f"Expected no source groups to be created, got {len(sim._source_groups)}"
+    )
+    assert len(sim._sources) == 8, (
+        f"Expected eight sources to be created, got {len(sim._sources)}"
+    )
 
 
 @patch("meegsim.simulate.check_coupling", return_value={"param": 1})
@@ -345,9 +344,9 @@ def test_simulate():
             random_state=0,
         )
 
-        assert (
-            len(simulate_mock.call_args_list) == 3
-        ), "Expected three calls of PointSourceGroup.simulate method"
+        assert len(simulate_mock.call_args_list) == 3, (
+            "Expected three calls of PointSourceGroup.simulate method"
+        )
 
         assert len(sources) == 2, f"Expected 2 sources, got {len(sources)}"
         assert len(noise_sources) == 4, f"Expected 4 sources, got {len(noise_sources)}"
