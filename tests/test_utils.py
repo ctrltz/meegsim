@@ -197,6 +197,13 @@ def test_get_param_from_stc_duplicate_vertex():
     assert np.allclose(_get_param_from_stc(stc, all_vertices), np.ones((3,)))
 
 
+def test_get_param_from_stc_too_many_values():
+    stc = prepare_source_estimate(data=np.zeros((4, 2)), vertices=[[0, 1], [0, 1]])
+
+    with pytest.raises(ValueError, match="one value per vertex"):
+        _get_param_from_stc(stc, [(0, 0)])
+
+
 def test_get_center_of_mass_one_vertex():
     src = prepare_source_space(["surf", "surf"], [[0, 1, 2], [0, 1, 2]])
     for v in [0, 1, 2]:

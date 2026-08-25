@@ -234,12 +234,18 @@ def _get_param_from_stc(stc, vertices):
         One value from stc for each vertex.
     """
     values = np.zeros((len(vertices),))
+    stc_data = np.squeeze(stc.data)
+    if stc_data.ndim > 1:
+        raise ValueError(
+            "Expected the provided `stc` object to have only one "
+            "value per vertex"
+        )
 
     # NOTE: we only support surface source estimates for now
     offsets = [0, len(stc.vertices[0])]
     for i, (src_idx, vertno) in enumerate(vertices):
         idx = offsets[src_idx] + np.searchsorted(stc.vertices[src_idx], vertno)
-        values[i] = stc.data[idx]
+        values[i] = stc_data[idx]
 
     return values
 
