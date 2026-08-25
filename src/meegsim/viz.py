@@ -53,7 +53,7 @@ def plot_source_configuration(
     brain = patch_data_stc.plot(
         subject=subject,
         hemi=hemi,
-        colormap=_colormap_from_color(source_colors["patch"]),
+        colormap=ListedColormap([source_colors["patch"]]),
         **kwargs,
     )
 
@@ -92,10 +92,3 @@ def plot_source_configuration(
         )
 
     return brain
-
-
-def _colormap_from_color(color):
-    """
-    Creates a colormap from the provided color.
-    """
-    return ListedColormap([color])
