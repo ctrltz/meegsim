@@ -12,7 +12,7 @@ authors = [
 ]
 description = "Building blocks (waveforms, SNR, connectivity) for M/EEG simulations with MNE-Python"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
