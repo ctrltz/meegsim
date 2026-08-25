@@ -10,14 +10,12 @@ can be achieved by fixing the random state when simulating.
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
-
 from mne.datasets import sample
 
 from meegsim.coupling import ppc_shifted_copy_with_noise
 from meegsim.location import select_random
-from meegsim.waveform import narrowband_oscillation
 from meegsim.simulate import SourceSimulator
-
+from meegsim.waveform import narrowband_oscillation
 
 # %%
 # First, we load the head model and associated source space:
@@ -81,7 +79,7 @@ sc3 = sim.simulate(sfreq=sfreq, duration=duration, random_state=123)
 # First, we can check the locations (``vertno``) of the simulated sources:
 
 for i, sc in enumerate([sc1, sc2, sc3]):
-    print(f"Configuration {i+1}: {[int(s.vertno) for s in sc._sources.values()]}")
+    print(f"Configuration {i + 1}: {[int(s.vertno) for s in sc._sources.values()]}")
 
 # %%
 # For the source with name ``"1"``, we additionally plot the waveform in
@@ -94,7 +92,7 @@ for i, (ax, sc) in enumerate(zip(axes, [sc1, sc2, sc3])):
     ax.plot(sc.times[:n_samples_to_plot], waveform[:n_samples_to_plot])
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Amplitude (nAm)")
-    ax.set_title(f"Configuration {i+1} | random_state={sc.random_state}")
+    ax.set_title(f"Configuration {i + 1} | random_state={sc.random_state}")
 
 # %%
 # As expected, both locations and waveforms of the simulated sources are the

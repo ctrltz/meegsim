@@ -3,12 +3,11 @@ Methods for setting the coupling between two signals
 """
 
 import numpy as np
-
-from scipy.stats import vonmises
 from scipy.signal import butter, filtfilt, hilbert
+from scipy.stats import vonmises
 
 from meegsim._check import check_numeric, check_option
-from meegsim.snr import get_variance, amplitude_adjustment_factor
+from meegsim.snr import amplitude_adjustment_factor, get_variance
 from meegsim.utils import normalize_variance
 from meegsim.waveform import narrowband_oscillation, white_noise
 

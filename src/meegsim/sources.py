@@ -5,15 +5,15 @@ per vertex, so if point sources coincide or patches overlap, we lose access
 to the original time series.
 """
 
-import numpy as np
 import mne
+import numpy as np
 
 from meegsim.utils import (
-    vertices_to_mne,
     _extract_hemi,
     _get_center_of_mass,
     _get_param_from_stc,
     _hemi_to_index,
+    vertices_to_mne,
 )
 
 
@@ -225,14 +225,14 @@ class PointSource(_BaseSource):
 
         # Create point sources and save them as a group
         sources = []
-        for (src_idx, vertno), waveform, std, name in zip(vertices, data, stds, names):
+        for (src_idx, vertno), ts, std, name in zip(vertices, data, stds, names):
             hemi = _extract_hemi(src[src_idx])
             sources.append(
                 cls(
                     name=name,
                     src_idx=src_idx,
                     vertno=vertno,
-                    waveform=waveform,
+                    waveform=ts,
                     std=std,
                     hemi=hemi,
                 )
@@ -367,7 +367,7 @@ class PatchSource(_BaseSource):
 
         # Create patch sources and save them as a group
         sources = []
-        for (src_idx, _), patch_vertno, waveform, std, name in zip(
+        for (src_idx, _), patch_vertno, ts, std, name in zip(
             vertices, patch_vertices, data, patch_stds, names
         ):
             hemi = _extract_hemi(src[src_idx])
@@ -376,7 +376,7 @@ class PatchSource(_BaseSource):
                     name=name,
                     src_idx=src_idx,
                     vertno=patch_vertno,
-                    waveform=waveform,
+                    waveform=ts,
                     std=std,
                     hemi=hemi,
                 )

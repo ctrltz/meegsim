@@ -4,14 +4,12 @@ Tests for ensuring that subject-specific info is processed and set correctly.
 
 import mne
 import pytest
-
 from mne.datasets import sample
+from utils.misc import running_on_ci
 
 from meegsim.location import select_random
 from meegsim.simulate import SourceSimulator
 from meegsim.waveform import narrowband_oscillation
-
-from utils.misc import running_on_ci
 
 
 def prepare_real_data():

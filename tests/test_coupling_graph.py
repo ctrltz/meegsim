@@ -1,12 +1,11 @@
-import numpy as np
+from unittest.mock import patch
+
 import networkx as nx
+import numpy as np
 import pytest
-
-from mock import patch
-
-from meegsim.coupling_graph import generate_walkaround, traverse_tree, _set_coupling
-
 from utils.prepare import prepare_point_source
+
+from meegsim.coupling_graph import _set_coupling, generate_walkaround, traverse_tree
 
 
 def test_traverse_tree_with_start_node():
@@ -17,9 +16,9 @@ def test_traverse_tree_with_start_node():
     # Generate paths starting from node 0
     result = traverse_tree(tree, start_node=0)
     expected = [(0, 1), (1, 3), (1, 4), (0, 2)]
-    assert (
-        result == expected
-    ), f"Failed with start_node: Expected {expected}, got {result}"
+    assert result == expected, (
+        f"Failed with start_node: Expected {expected}, got {result}"
+    )
 
 
 def test_traverse_tree_random_start_node():
@@ -41,9 +40,9 @@ def test_traverse_tree_single_node():
     # Generate paths starting from node 0
     result = traverse_tree(tree, start_node=0)
     expected = []
-    assert (
-        result == expected
-    ), f"Failed on single-node tree: Expected {expected}, got {result}"
+    assert result == expected, (
+        f"Failed on single-node tree: Expected {expected}, got {result}"
+    )
 
 
 def test_generate_walkaround():
@@ -66,9 +65,9 @@ def test_generate_walkaround():
     coupling_graph.add_edges_from(coupling_setup)
 
     walkaround = generate_walkaround(coupling_graph, random_state=42)
-    assert set(walkaround) == set(
-        edgelist
-    ), "All edges should be included in the walkaround"
+    assert set(walkaround) == set(edgelist), (
+        "All edges should be included in the walkaround"
+    )
 
 
 def test_generate_walkaround_with_cycle():
@@ -114,9 +113,9 @@ def test_generate_walkaround_random_state():
     walkaround1 = generate_walkaround(coupling_graph, random_state=42)
     walkaround2 = generate_walkaround(coupling_graph, random_state=42)
 
-    assert (
-        walkaround1 == walkaround2
-    ), "Walkaround paths should be identical with the same random_state"
+    assert walkaround1 == walkaround2, (
+        "Walkaround paths should be identical with the same random_state"
+    )
 
 
 @patch(

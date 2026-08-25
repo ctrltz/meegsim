@@ -1,11 +1,11 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
+from utils.prepare import prepare_forward, prepare_source_space
 
-from mock import patch
 from meegsim.configuration import SourceConfiguration
-from meegsim.sources import PointSource, PatchSource
-
-from utils.prepare import prepare_source_space, prepare_forward
+from meegsim.sources import PatchSource, PointSource
 
 
 def test_sourceconfiguration_getitem():

@@ -1,9 +1,9 @@
 import re
-import numpy as np
-import mne
-import pytest
+from unittest.mock import patch
 
-from mock import patch
+import mne
+import numpy as np
+import pytest
 
 from meegsim.location import select_random
 from meegsim.utils import unpack_vertices
@@ -42,9 +42,9 @@ def test_single_space_basic_functionality():
     single_src = create_dummy_sourcespace(vertices)
     result = select_random(single_src, n=2, random_state=42)
     assert len(result) == 2, f"Expected 2 vertices, got {len(result)}"
-    assert all(
-        vert[1] in single_src[0]["vertno"] for vert in result
-    ), "Selected vertices are not in the source space"
+    assert all(vert[1] in single_src[0]["vertno"] for vert in result), (
+        "Selected vertices are not in the source space"
+    )
 
 
 def test_dual_space_basic_functionality():
@@ -66,9 +66,9 @@ def test_specific_vertices():
     specific_vertices = [[1, 2, 3]]
     result = select_random(single_src, vertices=specific_vertices, n=1, random_state=42)
     assert len(result) == 1, f"Expected 1 vertex, got {len(result)}"
-    assert all(
-        vert in unpack_vertices(specific_vertices) for vert in result
-    ), "Selected vertex is not in the specific set"
+    assert all(vert in unpack_vertices(specific_vertices) for vert in result), (
+        "Selected vertex is not in the specific set"
+    )
 
 
 def test_random_state_effect():

@@ -1,11 +1,10 @@
-import mne
+from unittest.mock import create_autospec, patch
 
-from unittest.mock import patch, create_autospec
+import mne
+from utils.prepare import prepare_source_space
 
 from meegsim.configuration import SourceConfiguration
 from meegsim.viz import plot_source_configuration
-
-from utils.prepare import prepare_source_space
 
 
 def test_plot_source_configuration_kwargs():

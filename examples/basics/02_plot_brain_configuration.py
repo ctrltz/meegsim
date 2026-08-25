@@ -9,7 +9,6 @@ This example illustrates how to plot the simulated source configuration.
 # sphinx_gallery_thumbnail_path = '_static/example_stubs/thumb/sphx_glr_02_plot_brain_configuration_thumb.png'
 
 import mne
-
 from mne.datasets import sample
 
 from meegsim.location import select_random

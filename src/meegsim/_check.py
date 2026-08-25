@@ -9,15 +9,14 @@ for SourceSimulator:
  - source names
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 import warnings
-
 from functools import partial
+
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import is_color_like
 
 from meegsim.utils import logger
-
 
 VIZ_SOURCE_TYPES = ["point", "patch", "noise", "candidate"]
 
@@ -29,7 +28,7 @@ def check_numeric(context, value, bounds=(None, None), allow_none=True):
     try:
         value = float(value)
     except (TypeError, ValueError):  # None leads to TypeError
-        raise ValueError(f"Expected {context} to be a float number, got {type(value)}")
+        raise TypeError(f"Expected {context} to be a float number, got {type(value)}")
 
     lo, hi = bounds
     if lo is not None and value < lo:
@@ -131,13 +130,13 @@ def check_vertices_list_of_tuples(vertices):
     """
 
     if not isinstance(vertices, (list, tuple)):
-        raise ValueError(
+        raise TypeError(
             f"Expected vertices to be a list or a tuple, got {type(vertices)}"
         )
 
     for i, el in enumerate(vertices):
         if not isinstance(el, (list, tuple)):
-            raise ValueError(
+            raise TypeError(
                 f"Expected each element of the vertices list to "
                 f"be a list or a tuple, does not hold for "
                 f"element {el}"
@@ -318,7 +317,7 @@ def check_names(names, n_sources, existing):
     for name in names:
         if not isinstance(name, str):
             actual_type = type(name).__name__
-            raise ValueError(
+            raise TypeError(
                 f"Expected all names to be strings, got {actual_type}: {name}"
             )
 
@@ -378,8 +377,8 @@ def check_numeric_array(
         )
 
     # Check that values are numeric and, if required, in bounds
-    for value in values:
-        check_numeric(context, value, bounds=bounds, allow_none=allow_none)
+    for v in values:
+        check_numeric(context, v, bounds=bounds, allow_none=allow_none)
 
     # Broadcast to all sources if a single value was provided
     if values.size == 1:
@@ -505,7 +504,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
 
     # Check that the coupling edge is defined as a tuple of two elements
     if not isinstance(coupling_edge, tuple):
-        raise ValueError(f"Coupling edges {coupling_edge} should be defined as a tuple")
+        raise TypeError(f"Coupling edges {coupling_edge} should be defined as a tuple")
     if len(coupling_edge) != 2:
         raise ValueError(
             f"Coupling edges should contain two elements (names of "
@@ -534,7 +533,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
     # Coupling parameters should be provided in a dictionary
     if not isinstance(coupling_params, dict):
         actual_type = type(coupling_params).__name__
-        raise ValueError(
+        raise TypeError(
             f"Coupling parameters should be provided as a dictionary, "
             f"got {actual_type} for edge {coupling_edge}"
         )
@@ -562,7 +561,7 @@ def check_coupling(coupling_edge, coupling_params, common_params, names, current
 
     # Check that the coupling method is a callable
     if not callable(method):
-        raise ValueError(
+        raise TypeError(
             f"Expected coupling method to be a callable, "
             f"got {type(method).__name__} for edge {coupling_edge}"
         )
@@ -585,7 +584,7 @@ def check_extents(extents, n_sources):
         if extent is not None:
             # Check if each extent is a number
             if not isinstance(extent, (int, float, np.integer, np.floating)):
-                raise ValueError(f"Extent {extent} must be a number.")
+                raise TypeError(f"Extent {extent} must be a number.")
 
             # Check if each extent is positive
             if extent <= 0:

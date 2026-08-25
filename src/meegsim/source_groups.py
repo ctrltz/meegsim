@@ -6,15 +6,15 @@ defined by the user until we actually start simulating the data.
 import mne
 
 from meegsim._check import (
+    check_extents,
     check_location,
-    check_waveform,
+    check_names,
     check_numeric_array,
     check_snr_params,
     check_stc_as_param,
-    check_names,
-    check_extents,
+    check_waveform,
 )
-from meegsim.sources import PointSource, PatchSource
+from meegsim.sources import PatchSource, PointSource
 
 
 def generate_names(group, n_sources):

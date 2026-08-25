@@ -7,14 +7,13 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 
-import pyvista
 import os
 import sys
 
-import meegsim
-
+import pyvista
 from intersphinx_registry import get_intersphinx_mapping
 
+import meegsim
 
 project = "meegsim"
 copyright = "2024-2026, MEEGsim contributors"

@@ -1,25 +1,24 @@
-import numpy as np
-import mne
 from unittest.mock import patch
 
+import mne
+import numpy as np
 import pytest
+from utils.prepare import (
+    prepare_forward,
+    prepare_patch_source,
+    prepare_point_source,
+    prepare_sinusoid,
+    prepare_source_space,
+)
 
 from meegsim.snr import (
-    get_variance,
-    get_sensor_space_variance,
-    amplitude_adjustment_factor,
-    _adjust_snr_local,
     _adjust_snr_global,
+    _adjust_snr_local,
+    amplitude_adjustment_factor,
+    get_sensor_space_variance,
+    get_variance,
 )
-from meegsim.source_groups import PointSourceGroup, PatchSourceGroup
-
-from utils.prepare import (
-    prepare_source_space,
-    prepare_forward,
-    prepare_point_source,
-    prepare_patch_source,
-    prepare_sinusoid,
-)
+from meegsim.source_groups import PatchSourceGroup, PointSourceGroup
 
 
 def prepare_stc(vertices, num_samples=500):
@@ -58,9 +57,9 @@ def test_get_sensor_space_variance_no_filter():
     # activity should cancel out in sensor space
     expected_variance = 0.0
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert np.isclose(
-        variance, expected_variance
-    ), f"Expected variance {expected_variance}, but got {variance}"
+    assert np.isclose(variance, expected_variance), (
+        f"Expected variance {expected_variance}, but got {variance}"
+    )
 
 
 def test_get_sensor_space_variance_no_filter_sel_vert():
@@ -71,9 +70,9 @@ def test_get_sensor_space_variance_no_filter_sel_vert():
     # Both vertices in the stc have corresponding zero time series
     expected_variance = 0
     variance = get_sensor_space_variance(stc, fwd, filter=False)
-    assert np.isclose(
-        variance, expected_variance
-    ), f"Expected variance {expected_variance}, but got {variance}"
+    assert np.isclose(variance, expected_variance), (
+        f"Expected variance {expected_variance}, but got {variance}"
+    )
 
 
 @patch("meegsim.snr.filtfilt", return_value=np.ones((4, 500)))
@@ -95,12 +94,12 @@ def test_get_sensor_space_variance_with_filter(butter_mock, filtfilt_mock):
     expected_wmin = 8.0 / (0.5 * sfreq)
     expected_wmax = 12.0 / (0.5 * sfreq)
     actual_wmin, actual_wmax = butter_args.args[1]
-    assert np.isclose(
-        actual_wmin, expected_wmin
-    ), f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
-    assert np.isclose(
-        actual_wmax, expected_wmax
-    ), f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
+    assert np.isclose(actual_wmin, expected_wmin), (
+        f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
+    )
+    assert np.isclose(actual_wmax, expected_wmax), (
+        f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
+    )
 
     assert variance >= 0, "Variance should be non-negative"
 
@@ -124,12 +123,12 @@ def test_get_sensor_space_variance_with_filter_fmin_fmax(butter_mock, filtfilt_m
     expected_wmin = 20.0 / (0.5 * sfreq)
     expected_wmax = 30.0 / (0.5 * sfreq)
     actual_wmin, actual_wmax = butter_args.args[1]
-    assert np.isclose(
-        actual_wmin, expected_wmin
-    ), f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
-    assert np.isclose(
-        actual_wmax, expected_wmax
-    ), f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
+    assert np.isclose(actual_wmin, expected_wmin), (
+        f"Expected fmin to be {expected_wmin}, got {actual_wmin}"
+    )
+    assert np.isclose(actual_wmax, expected_wmax), (
+        f"Expected fmax to be {expected_wmax}, got {actual_wmax}"
+    )
 
 
 def test_get_sensor_space_variance_no_fmin_fmax():
@@ -158,9 +157,9 @@ def test_amplitude_adjustment_factor(target_snr):
     expected_result = np.sqrt(target_snr / snr_current)
 
     result = amplitude_adjustment_factor(signal_var, noise_var, target_snr=target_snr)
-    assert np.isclose(
-        result, expected_result
-    ), f"Expected {expected_result}, but got {result}"
+    assert np.isclose(result, expected_result), (
+        f"Expected {expected_result}, but got {result}"
+    )
 
 
 def test_amplitude_adjustment_zero_signal_var():

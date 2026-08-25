@@ -2,13 +2,13 @@
 Template waveforms: narrowband oscillation, white and 1/f noise
 """
 
-import colorednoise as cn
-import numpy as np
 import warnings
 
+import colorednoise as cn
+import numpy as np
 from scipy.signal import butter, filtfilt
 
-from .utils import normalize_variance, get_sfreq
+from .utils import get_sfreq, normalize_variance
 
 
 def narrowband_oscillation(

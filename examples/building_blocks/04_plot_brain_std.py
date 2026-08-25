@@ -11,7 +11,6 @@ manipulated.
 import matplotlib.pyplot as plt
 import mne
 import numpy as np
-
 from mne.datasets import sample
 
 from meegsim.location import select_random

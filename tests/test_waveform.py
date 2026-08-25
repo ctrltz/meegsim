@@ -1,11 +1,11 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
-
-from mock import patch
 from scipy.signal import welch
 
 from meegsim.utils import get_sfreq
-from meegsim.waveform import white_noise, narrowband_oscillation, one_over_f_noise
+from meegsim.waveform import narrowband_oscillation, one_over_f_noise, white_noise
 
 
 def prepare_times(sfreq, duration):
@@ -94,9 +94,9 @@ def test_narrowband_oscillation_fmin_fmax(fmin, fmax):
     band_fmin_fmax = (freqs >= fmin) & (freqs <= fmax)
     band_freqs = sorted_freqs[: np.sum(band_fmin_fmax)]
     assert len(band_freqs) > 0, "No frequencies found in the specified band."
-    assert np.all(
-        (band_freqs >= fmin) & (band_freqs <= fmax)
-    ), "Not all powerful frequencies are in the specified band."
+    assert np.all((band_freqs >= fmin) & (band_freqs <= fmax)), (
+        "Not all powerful frequencies are in the specified band."
+    )
     assert data.shape == (n_series, n_times), "Shape mismatch"
 
 

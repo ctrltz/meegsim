@@ -95,3 +95,6 @@ testpaths = [
     "tests",
 ]
 addopts = "--cov=src/meegsim --cov-report term-missing"
+
+[tool.ruff.lint]
+ignore = ['C408', 'C419']
